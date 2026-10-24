@@ -20,7 +20,11 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.webkit.WebViewAssetLoader
 import com.negiysem.app.data.Store
+import com.negiysem.app.widget.NeGiysemWidget
 import com.negiysem.app.work.Scheduler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * The app screen: the same Ne Giysem? web app, bundled inside the APK and shown full screen.
@@ -129,6 +133,16 @@ class MainActivity : Activity() {
         fun saveState(json: String) {
             val changed = Store(this@MainActivity).saveFromApp(json)
             if (changed) Scheduler.now(this@MainActivity, replace = true)
+        }
+
+        /** "Tüm verilerimi sil": wipe the app's own store and show the empty widget until a new place is chosen. */
+        @JavascriptInterface
+        fun reset() {
+            val ctx = applicationContext
+            Store(ctx).clear()
+            CoroutineScope(Dispatchers.IO).launch {
+                runCatching { NeGiysemWidget.pushAll(ctx, "") }
+            }
         }
 
         @JavascriptInterface

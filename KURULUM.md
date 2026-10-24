@@ -17,12 +17,12 @@ Bu klasör Galaxy A56 gibi Android telefonlar için hazırlanmış bir Android S
 
 Kırmızı çarpı görürsen, Actions'ta o çalışmaya tıklayıp hata satırlarını Claude'a gönder.
 
-## 2. Galaxy A56'ya kur
+## 2. Android telefona kur
 
 1. Telefonda Chrome ile deponun **Releases** sayfasını aç → `NeGiysem.apk` dosyasına dokun → indir.
 2. İndirilen dosyayı aç. "Bilinmeyen uygulamaları yükle" sorulursa Chrome'a (ya da Dosyalarım'a) izin ver → **Yükle**.
 3. Play Protect uyarı verirse **Ayrıntılar → Yine de yükle** de. (Mağaza dışından kurulan her uygulamada bu uyarı çıkar.)
-4. Uygulamayı aç, sağ üstteki yenile düğmesine bas ve konum iznini ver. Widget bu konumu kullanır. Uygulamada bir yer seçersen (ör. Bahçeköy) widget da ona geçer.
+4. Uygulamayı aç, sağ üstteki yenile düğmesine bas ve konum iznini ver. Widget bu konumu kullanır. Uygulamada bir yer seçersen (ör. okulun) widget da ona geçer.
 
 ## 3. Widget'ı ana ekrana ekle
 

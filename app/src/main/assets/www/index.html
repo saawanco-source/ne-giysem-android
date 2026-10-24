@@ -278,7 +278,7 @@ button{font:inherit;color:inherit}
   <div class="panel" id="placePanel" hidden>
     <div class="chips" id="chips"></div>
     <form class="search" id="searchForm" hidden role="search">
-      <input id="q" type="search" placeholder="Semt, okul, durak ya da adres: Bahçeköy, Orman Fakültesi…" autocomplete="off" spellcheck="false"
+      <input id="q" type="search" placeholder="Semt, okul, durak ya da adres: Kadıköy, Kızılay, Alsancak…" autocomplete="off" spellcheck="false"
              role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="results" aria-label="Yer ara">
       <button type="submit" class="btn">Ara</button>
       <button type="button" class="btn soft" id="cancelSearch">Vazgeç</button>
@@ -393,6 +393,11 @@ button{font:inherit;color:inherit}
         <div class="chips"><button type="button" class="chip" data-open-routine id="routineBtn">Rutinimi kur</button></div>
         <p class="src" id="routineHint">Yerlerini ve yolculuklarını eklersen kıyafet, dışarıda geçireceğin anlara göre bütün gün için seçilir.</p>
       </div>
+      <div class="row">
+        <span class="rl">Verilerim</span>
+        <div class="chips"><button type="button" class="chip" id="resetBtn">Tüm verilerimi sil</button></div>
+        <p class="src">Kayıtlı yerlerin, rutinin ve ayarların yalnızca bu cihazda durur. Silince uygulama ilk açıldığı haline döner.</p>
+      </div>
     </section>
 
     <section class="edit card" id="routine" hidden aria-label="Rutinim"></section>
@@ -414,7 +419,7 @@ button{font:inherit;color:inherit}
            routes:[], trips:[], dayMode:true, dayWx:null, choice:{date:"", picks:{}}};
   (function(){
     var d = null;
-    try { var raw = localStorage.getItem(KEY) || localStorage.getItem("negiysem:v1"); d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
+    try { var raw = localStorage.getItem(KEY); d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
     if (!d || typeof d !== "object") return;
     if (Array.isArray(d.places)) S.places = d.places.filter(function(p){ return p && p.id && isFinite(p.lat) && isFinite(p.lon); });
     if (typeof d.sel === "string") S.sel = d.sel;
@@ -1204,7 +1209,7 @@ button{font:inherit;color:inherit}
       return {name:r.name, sub:[r.admin2, r.admin1, r.country_code && r.country_code !== "TR" ? r.country : null].filter(Boolean).join(", "), lat:+r.latitude, lon:+r.longitude, kind:"Yer"};
     });
   }
-  // Re-orders the service's list: exact and prefix name matches first, then nearby places, Turkish letters folded (avcilar = Avcılar).
+  // Re-orders the service's list: exact and prefix name matches first, then nearby places, Turkish letters folded (kadikoy = Kadıköy).
   function rankPlaces(list, q, b){
     var fq = fold(q), toks = fq.split(" ").filter(Boolean), seen = {};
     return list.filter(function(r){
@@ -1433,7 +1438,7 @@ button{font:inherit;color:inherit}
       if (my === SEARCH.seq) setStatus(errMsg(e), {label:"Tekrar dene", fn:function(){ runSearch(q, true); }});
     } finally { if (explicit) setBusy(false); }
   }
-  function noResults(res){ setStatus(res.length ? "" : "Sonuç bulunamadı. Daha kısa yaz ya da yanına semtini ekle (ör. “fakülte sarıyer”)."); }
+  function noResults(res){ setStatus(res.length ? "" : "Sonuç bulunamadı. Daha kısa yaz ya da yanına semtini ekle (ör. “kütüphane kadıköy”)."); }
   async function saveHere(){
     if (busy) return;
     var saved = null;
@@ -1551,6 +1556,30 @@ button{font:inherit;color:inherit}
     else if (e.key === "Escape") { e.preventDefault(); closeSearch(); }
   });
   $("saveHere").addEventListener("click", saveHere);
+
+  /* ---- wipe everything stored on this device (two taps, no browser dialog) ---- */
+  var resetTimer = null;
+  $("resetBtn").addEventListener("click", function(){
+    var b = $("resetBtn");
+    if (b.dataset.armed !== "1") {
+      b.dataset.armed = "1"; b.setAttribute("aria-pressed", "true"); b.textContent = "Emin misin? Silmek için tekrar bas";
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(function(){ b.dataset.armed = ""; b.setAttribute("aria-pressed", "false"); b.textContent = "Tüm verilerimi sil"; }, 5000);
+      return;
+    }
+    clearTimeout(resetTimer);
+    b.dataset.armed = ""; b.setAttribute("aria-pressed", "false"); b.textContent = "Tüm verilerimi sil";
+    try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + ":ioshint"); localStorage.removeItem("negiysem:v1"); } catch (e) {}
+    S.places = []; S.sel = "auto"; S.hours = 6; S.feel = "normal"; S.act = "city";
+    S.manual = {temp:17, sky:"partly", wind:"breezy"}; S.mode = "manual"; S.live = null;
+    S.routes = []; S.trips = []; S.dayMode = true; S.dayWx = null; S.choice = {date:"", picks:{}};
+    SEARCH.cache = {}; lastWearSig = "";
+    closeSearch(); togglePanel(false); $("routine").hidden = true; hideTip();
+    if (window.NeGiysemAndroid && window.NeGiysemAndroid.reset) { try { window.NeGiysemAndroid.reset(); } catch (e) {} }
+    render();
+    window.scrollTo({top:0, behavior:"smooth"});
+    setStatus("Tüm veriler silindi; uygulama ilk açıldığı haline döndü.");
+  });
   $("cancelSearch").addEventListener("click", function(){ closeSearch(); setStatus(""); });
   $("routine").addEventListener("click", routineClick);
   $("routine").addEventListener("change", routineChange);

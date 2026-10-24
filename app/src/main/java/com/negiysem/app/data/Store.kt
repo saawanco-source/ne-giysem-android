@@ -53,6 +53,11 @@ class Store(context: Context) {
         return changed
     }
 
+    /** Forgets every place, routine, preference and cached forecast. */
+    fun clear() {
+        prefs.edit().clear().apply()
+    }
+
     fun saveWidget(json: String) {
         prefs.edit().putString("widget", json).putLong("updated", System.currentTimeMillis()).apply()
     }

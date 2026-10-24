@@ -90,7 +90,7 @@ private data class Garment(val g: String, val label: String)
 private data class WidgetData(
     val ok: Boolean, val level: Int, val headline: String, val temp: Double, val feels: Double,
     val cond: String, val isDay: Boolean, val place: String, val updated: Long,
-    val wear: List<Garment>, val take: List<Garment>, val pills: List<String>
+    val wear: List<Garment>, val take: List<Garment>, val pills: List<String>, val next: String = ""
 ) {
     companion object {
         val EMPTY = WidgetData(
@@ -120,7 +120,8 @@ private data class WidgetData(
                     updated = o.optLong("updated", 0L),
                     wear = list("wear"),
                     take = list("take"),
-                    pills = if (pillsArr == null) emptyList() else (0 until pillsArr.length()).map { pillsArr.optString(it) }
+                    pills = if (pillsArr == null) emptyList() else (0 until pillsArr.length()).map { pillsArr.optString(it) },
+                    next = o.optString("next", "")
                 )
             }.getOrDefault(EMPTY)
         }
@@ -228,8 +229,12 @@ private fun Header(d: WidgetData, p: Palette, tempSize: Int) {
                 style = style(p.ink, 13), maxLines = 1
             )
             Text(
-                if (d.ok) "Hissedilen " + deg(d.feels) + " · " + d.cond else "Bugünün kıyafeti bir bakışta",
-                style = style(p.sub, 12, bold = false), maxLines = 1
+                when {
+                    !d.ok -> "Bugünün kıyafeti bir bakışta"
+                    d.next.isNotEmpty() -> "Sıradaki: " + d.next
+                    else -> "Hissedilen " + deg(d.feels) + " · " + d.cond
+                },
+                style = style(p.sub, 12, bold = d.next.isNotEmpty()), maxLines = 1
             )
         }
         RefreshIcon(p)

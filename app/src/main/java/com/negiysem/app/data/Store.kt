@@ -15,6 +15,7 @@ class Store(context: Context) {
     val act: String get() = prefs.getString("act", "city") ?: "city"
     val hours: Int get() = prefs.getInt("hours", 6)
     val widgetJson: String? get() = prefs.getString("widget", null)
+    val routineJson: String? get() = prefs.getString("routine", null)
     val updatedAt: Long get() = prefs.getLong("updated", 0L)
 
     fun isStale(maxAgeMs: Long = 15 * 60_000L) = System.currentTimeMillis() - updatedAt > maxAgeMs
@@ -43,6 +44,11 @@ class Store(context: Context) {
                 e.putString("place", place.optString("name", "Konumun"))
             }
         }
+        val routine = o.optJSONObject("routine")?.toString()
+        if (routine != null && routine != routineJson) {
+            changed = true
+            e.putString("routine", routine)
+        }
         e.apply()
         return changed
     }
@@ -53,8 +59,9 @@ class Store(context: Context) {
 
     companion object {
         /** The compact snapshot the widget draws. */
-        fun widgetSnapshot(plan: Outfit.Plan, input: Outfit.Input, place: String): String {
+        fun widgetSnapshot(plan: Outfit.Plan, input: Outfit.Input, place: String, next: String? = null): String {
             val o = JSONObject()
+            if (!next.isNullOrBlank()) o.put("next", next)
             o.put("level", plan.level)
             o.put("headline", plan.headline)
             o.put("temp", input.now.t)

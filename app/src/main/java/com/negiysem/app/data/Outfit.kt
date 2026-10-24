@@ -194,7 +194,8 @@ object Outfit {
 
         if (lLow < level) {
             val lo = if (act == "sport") sport(lLow) else OUT[lLow]
-            val cand = (lo.wear + lo.take).firstOrNull { (it in OUTER || it in MID) && !has(it) }
+            val pool = (lo.wear + lo.take).filter { !has(it) }
+            val cand = pool.firstOrNull { it in OUTER } ?: pool.firstOrNull { it in MID }
             val dp = lowAt?.let { daypart(it) } ?: "akşam"
             if (cand != null) {
                 take = take.filter { it.g !in OUTER && it.g !in MID }.toMutableList()
@@ -210,7 +211,8 @@ object Outfit {
         if (wet) {
             pills.add(0, if (rainNow) "Yağmur yağıyor" else "Yağmur %$pMax")
             var addedCoat = false
-            if (!hasOuter && act != "sport") {
+            val takeOuter = take.any { it.g in OUTER }
+            if (!hasOuter && !takeOuter && act != "sport") {
                 wear.add(Item("yagmurluk", LABELS.getValue("yagmurluk"))); addedCoat = true
                 take = take.filter { it.g !in OUTER }.toMutableList()
             }
@@ -231,7 +233,7 @@ object Outfit {
         }
         if (windy) {
             pills.add((if (wi >= 0) WIND_NAMES[wi] + " " else "Rüzgar ") + "$windMax km/sa")
-            if (!hasOuter && level >= 4 && act != "sport") addTake("ruzgarlik")
+            if (!hasOuter && level >= 4 && act != "sport" && take.none { it.g in OUTER }) addTake("ruzgarlik")
         }
         val uv = inp.uvMax
         if (inp.uvDay && uv != null) {

@@ -103,7 +103,27 @@ jobs:
           gradle-version: "8.11.1"
 
       - name: APK'yi derle
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: Derleme hatasını özetle
+        if: failure()
+        run: |
+          note() { # one annotation per kind, newlines kept (%0A)
+            [ -s "$2" ] || return 0
+            echo "::error title=$1::$(sed -e 's/%/%25/g' -e 's/\r//g' "$2" | awk '{printf "%s%%0A", $0}')"
+          }
+          touch build.log
+          grep -A25 "What went wrong" build.log | head -80 > what.txt || true
+          grep -E "^e: " build.log | head -40 > kotlin.txt || true
+          grep -iE -A6 "AAR metadata|requires libraries and applications|minCompileSdk|Android Gradle plugin" build.log | head -60 > aar.txt || true
+          note "Gradle" what.txt
+          note "Kotlin" kotlin.txt
+          note "AAR" aar.txt
+          gradle :app:dependencies --configuration debugRuntimeClasspath --no-daemon > deps.txt 2>&1 || true
+          grep -E "(androidx|kotlin|gms)[^ ]*:[^ ]* -> " deps.txt | sed 's/^[ |+\\-]*//' | sort -u | head -60 > up.txt || true
+          note "Upgraded" up.txt
 
       - name: Dosyayı adlandır
         run: cp app/build/outputs/apk/debug/app-debug.apk NeGiysem.apk
@@ -115,6 +135,7 @@ jobs:
           path: NeGiysem.apk
 
       - name: Sürümler sayfasında yayınla
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: surum-${{ github.run_number }}

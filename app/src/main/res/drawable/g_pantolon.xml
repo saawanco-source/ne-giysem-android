@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from the web app's sticker art (pantolon). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="76dp" android:height="76dp" android:viewportWidth="76" android:viewportHeight="76">
+  <group android:pivotX="38" android:pivotY="38" android:rotation="-4">
+    <group android:translateX="6" android:translateY="6">
+      <path android:pathData="M20 7 L44 7 L46 58 L35 58 L32 25 L29 58 L18 58 Z" android:fillColor="#FFFFFFFF" android:strokeColor="#FFFFFFFF" android:strokeWidth="7.4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M19.6 13 H44.4" android:fillColor="#00000000" android:strokeColor="#FFFFFFFF" android:strokeWidth="7.4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M32 7 V13" android:fillColor="#00000000" android:strokeColor="#FFFFFFFF" android:strokeWidth="7.4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M20 7 L44 7 L46 58 L35 58 L32 25 L29 58 L18 58 Z" android:fillColor="#4B4E60" android:strokeColor="#14161F" android:strokeWidth="2.4" android:strokeAlpha="1" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M19.6 13 H44.4" android:fillColor="#00000000" android:strokeColor="#14161F" android:strokeWidth="2.4" android:strokeAlpha="1" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M32 7 V13" android:fillColor="#00000000" android:strokeColor="#14161F" android:strokeWidth="2.4" android:strokeAlpha="1" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    </group>
+  </group>
+</vector>

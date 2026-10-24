@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from the web app's sticker art (semsiye). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="76dp" android:height="76dp" android:viewportWidth="76" android:viewportHeight="76">
+  <group android:pivotX="38" android:pivotY="38" android:rotation="4">
+    <group android:translateX="6" android:translateY="6">
+      <path android:pathData="M6 34 Q32 2 58 34 Q51.5 29 45 34 Q38.5 29 32 34 Q25.5 29 19 34 Q12.5 29 6 34 Z" android:fillColor="#FFFFFFFF" android:strokeColor="#FFFFFFFF" android:strokeWidth="7.4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M32 8 Q22 18 19 34 M32 8 Q42 18 45 34" android:fillColor="#00000000" android:strokeColor="#FFFFFFFF" android:strokeWidth="7.4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M32 34 V54 Q32 59 27 59 Q23 59 23 55" android:fillColor="#00000000" android:strokeColor="#FFFFFFFF" android:strokeWidth="7.4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M6 34 Q32 2 58 34 Q51.5 29 45 34 Q38.5 29 32 34 Q25.5 29 19 34 Q12.5 29 6 34 Z" android:fillColor="#7B5CFA" android:strokeColor="#14161F" android:strokeWidth="2.4" android:strokeAlpha="1" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M32 8 Q22 18 19 34 M32 8 Q42 18 45 34" android:fillColor="#00000000" android:strokeColor="#14161F" android:strokeWidth="2.4" android:strokeAlpha="1" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M32 34 V54 Q32 59 27 59 Q23 59 23 55" android:fillColor="#00000000" android:strokeColor="#14161F" android:strokeWidth="2.4" android:strokeAlpha="1" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    </group>
+  </group>
+</vector>

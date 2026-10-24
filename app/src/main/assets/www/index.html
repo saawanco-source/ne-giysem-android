@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ne Giysem?</title>
+<!-- pwa:start -->
+<meta name="description" content="Bulunduğun yerin havasına göre bir bakışta bugünün kıyafeti.">
+<meta name="theme-color" content="#E6E86E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ne Giysem">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<!-- pwa:end -->
+<!-- shared:start -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: the whole screen takes the colour of today's temperature band; a one-line verdict and big illustrated garment stickers answer "what do I wear" at a glance. Phone: verdict, stickers, day strip, personal settings. Desktop: verdict and details left, sticker board right. */
+:root{
+  --lv:#E6E86E;
+  --field:var(--lv);
+  --ink:#14161f; --ink2:rgba(20,22,31,.68); --card:rgba(255,255,255,.55); --line:rgba(20,22,31,.13);
+  --chip:rgba(255,255,255,.78); --halo:#ffffff; --shadow:rgba(20,22,31,.28);
+  --hl-bg:#ffffff; --hl-ink:#14161f; --pill-bg:#14161f; --pill-ink:#ffffff; --focus:#14161f;
+  --font-display:"Bricolage Grotesque","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --field:color-mix(in oklab,var(--lv) 22%,#0b0d16);
+    --ink:#f6f4ee; --ink2:rgba(246,244,238,.7); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
+    --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55);
+    --hl-bg:var(--lv); --hl-ink:#14161f; --pill-bg:var(--lv); --pill-ink:#14161f; --focus:var(--lv);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"],:root[data-night="1"]{
+  --field:color-mix(in oklab,var(--lv) 22%,#0b0d16);
+  --ink:#f6f4ee; --ink2:rgba(246,244,238,.7); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
+  --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55);
+  --hl-bg:var(--lv); --hl-ink:#14161f; --pill-bg:var(--lv); --pill-ink:#14161f; --focus:var(--lv);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--field);transition:background-color .7s ease}
+body{margin:0;background:var(--field);color:var(--ink);font:500 15px/1.45 var(--font-body);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;transition:background-color .7s ease,color .7s ease}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--focus);outline-offset:3px;border-radius:8px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.app{max-width:1120px;margin:0 auto;padding-block:14px 36px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{display:flex;align-items:center;gap:8px;font:800 1.15rem/1 var(--font-display);letter-spacing:-.02em;white-space:nowrap}
+.logo svg{width:28px;height:28px;flex:none}
+.bar-r{display:flex;align-items:center;gap:8px;min-width:0}
+.place-btn{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:52vw;border:0;background:var(--chip);border-radius:999px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer}
+.place-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.place-btn svg{width:16px;height:16px;flex:none}
+.icon-btn{width:40px;height:40px;flex:none;border:0;border-radius:50%;background:var(--chip);display:grid;place-items:center;cursor:pointer}
+.icon-btn svg{width:19px;height:19px}
+.icon-btn.busy svg{animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.panel{margin-top:12px;background:var(--card);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:0;background:var(--chip);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--pill-bg);color:var(--pill-ink)}
+.chip-wrap{display:inline-flex}
+.chip-wrap .chip{border-radius:999px 0 0 999px;padding-right:10px}
+.chip-x{border:0;background:var(--chip);border-radius:0 999px 999px 0;padding:0 12px 0 6px;cursor:pointer;font-size:17px;line-height:1;color:var(--ink2)}
+.chip-wrap .chip[aria-pressed="true"]+.chip-x{background:var(--pill-bg);color:var(--pill-ink)}
+.search{display:flex;gap:8px;flex-wrap:wrap}
+.search input{flex:1 1 180px;min-width:0;border:0;background:var(--chip);color:var(--ink);border-radius:14px;padding:11px 14px;font:inherit}
+.search input::placeholder{color:var(--ink2)}
+.btn{border:0;border-radius:14px;padding:11px 16px;background:var(--pill-bg);color:var(--pill-ink);font-weight:700;cursor:pointer}
+.btn.soft{background:var(--chip);color:var(--ink)}
+.results{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.results button{width:100%;text-align:left;border:0;background:var(--chip);border-radius:14px;padding:10px 14px;cursor:pointer;font-weight:700}
+.results small{display:block;font-weight:500;color:var(--ink2)}
+
+.status{margin:10px 2px 0;font-size:14px;color:var(--ink2);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.status:empty{display:none}
+.status .act{border:0;background:none;padding:0;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--ink)}
+.ios-hint{margin-top:10px;display:flex;gap:12px;align-items:flex-start;background:var(--card);border-radius:16px;padding:10px 14px;font-size:14px}
+.ios-hint p{margin:0;flex:1;min-width:0}
+.ios-hint button{border:0;background:none;font-weight:700;cursor:pointer;padding:0}
+
+/* layout */
+.grid{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"hero" "board" "day" "me";gap:22px;margin-top:22px}
+@media (min-width:900px){
+  .grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:"hero board" "day board" "me board";grid-template-rows:auto auto 1fr;column-gap:40px;margin-top:34px}
+  .board{position:sticky;top:calc(20px + env(safe-area-inset-top,0px));align-self:start}
+}
+.hero{grid-area:hero;min-width:0}
+.board{grid-area:board;min-width:0}
+.day{grid-area:day;min-width:0}
+.me{grid-area:me;min-width:0}
+
+/* hero */
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pill{background:var(--pill-bg);color:var(--pill-ink);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;line-height:1.2}
+.pill.soft{background:var(--chip);color:var(--ink)}
+.head{margin:0;font:800 clamp(2.15rem,7.4vw,3.7rem)/1.02 var(--font-display);letter-spacing:-.035em;text-wrap:balance;max-width:16ch}
+.hl{display:inline-block;background:var(--hl-bg);color:var(--hl-ink);padding:.02em .2em .06em;border-radius:.22em;transform:rotate(-2deg);margin:0 .04em}
+.now{display:flex;align-items:center;gap:14px;margin-top:18px}
+.big{font:800 4.4rem/.9 var(--font-display);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.now .ic{width:46px;height:46px}
+.now .t1{font-weight:700;font-size:16px}
+.now .t2{color:var(--ink2);font-size:14px}
+
+/* sticker board */
+.stickers{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 2px;padding:6px 0}
+.stk{width:118px;display:flex;flex-direction:column;align-items:center;gap:4px;transform:rotate(var(--r,0deg))}
+.stk .art{width:100px;height:100px;filter:drop-shadow(3px 0 0 var(--halo)) drop-shadow(-3px 0 0 var(--halo)) drop-shadow(0 3px 0 var(--halo)) drop-shadow(0 -3px 0 var(--halo)) drop-shadow(0 10px 12px var(--shadow))}
+.stk .art svg{width:100%;height:100%;display:block}
+.stk .lab{background:var(--chip);border-radius:999px;padding:3px 10px;font-weight:700;font-size:13px;text-align:center;line-height:1.25;max-width:116px}
+.pop .stk{animation:drop .5s cubic-bezier(.2,.9,.3,1.25) both}
+.pop .stk:nth-child(2){animation-delay:.05s}.pop .stk:nth-child(3){animation-delay:.1s}.pop .stk:nth-child(4){animation-delay:.15s}.pop .stk:nth-child(5){animation-delay:.2s}.pop .stk:nth-child(6){animation-delay:.25s}
+@keyframes drop{from{transform:translateY(-14px) rotate(calc(var(--r,0deg) - 10deg)) scale(.9)}to{transform:rotate(var(--r,0deg))}}
+.stk:hover{animation:wig .5s ease}
+@keyframes wig{0%,100%{transform:rotate(var(--r,0deg))}35%{transform:rotate(calc(var(--r,0deg) + 6deg)) scale(1.04)}70%{transform:rotate(calc(var(--r,0deg) - 4deg))}}
+.take{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 10px;margin-top:10px;padding:12px;border-radius:22px;background:var(--card)}
+.take .tl{font:800 1rem/1 var(--font-display);letter-spacing:-.01em;margin-right:2px}
+.mini{display:flex;align-items:center;gap:6px;background:var(--chip);border-radius:999px;padding:4px 12px 4px 4px;font-weight:700;font-size:13px}
+.mini .art{width:36px;height:36px;filter:drop-shadow(1.5px 0 0 var(--halo)) drop-shadow(-1.5px 0 0 var(--halo)) drop-shadow(0 1.5px 0 var(--halo)) drop-shadow(0 -1.5px 0 var(--halo))}
+.mini .art svg{width:100%;height:100%;display:block}
+.tips{list-style:none;margin:12px 4px 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink2)}
+.tips li::before{content:"→ ";font-weight:700;color:var(--ink)}
+
+/* cards */
+.card{background:var(--card);border-radius:24px;padding:16px}
+.card h2{margin:0 0 12px;font:800 1.15rem/1.1 var(--font-display);letter-spacing:-.015em}
+.hours{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;margin:0 -4px}
+.h{flex:0 0 auto;min-width:50px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 4px;border-radius:16px}
+.h.now{background:var(--chip)}
+.h.low{outline:2px solid var(--ink);outline-offset:-2px}
+.h .hh{font-size:12px;color:var(--ink2);font-weight:600}
+.h .ic{width:22px;height:22px}
+.h .ht{font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+.h .hp{font-size:11px;font-weight:700;min-height:13px}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.fact{background:var(--chip);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.fact b{font-weight:800}
+.src{margin:12px 2px 0;font-size:12px;color:var(--ink2)}
+.src a{color:inherit}
+
+.row{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.row:first-of-type{margin-top:0}
+.row .rl{font-weight:700;font-size:14px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:0;background:var(--chip);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--pill-bg);color:var(--pill-ink)}
+.range{display:flex;align-items:center;gap:12px}
+.range input{flex:1;min-width:0;accent-color:var(--ink)}
+.range output{font:800 1.3rem/1 var(--font-display);min-width:3.2em;text-align:right;font-variant-numeric:tabular-nums}
+
+.foot{margin:30px 2px 0;font-size:12.5px;color:var(--ink2);max-width:70ch}
+.foot a{color:inherit}
+</style>
+<!-- shared:end -->
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="logo">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#14161f"/><g transform="rotate(-12 32 34)"><path d="M18.5 22.5 25.5 15.5h13l7 7V52h-27z" fill="#ffffff"/><circle cx="32" cy="24" r="3" fill="#14161f"/><rect x="24" y="36" width="16" height="3" rx="1.5" fill="#14161f"/><rect x="24" y="42" width="10" height="3" rx="1.5" fill="#14161f"/></g></svg>
+      <span>Ne Giysem?</span>
+    </div>
+    <div class="bar-r">
+      <button type="button" class="place-btn" id="placeBtn" aria-expanded="false" aria-controls="placePanel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>
+        <span id="placeLabel">Konum seç</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <button type="button" class="icon-btn" id="installBtn" hidden aria-label="Uygulamayı yükle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
+      </button>
+      <button type="button" class="icon-btn" id="refresh" aria-label="Hava durumunu yenile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="panel" id="placePanel" hidden>
+    <div class="chips" id="chips"></div>
+    <form class="search" id="searchForm" hidden>
+      <input id="q" type="search" placeholder="Semt ya da şehir: Kadıköy, Bolu…" autocomplete="off" aria-label="Yer ara">
+      <button type="submit" class="btn">Ara</button>
+      <button type="button" class="btn soft" id="cancelSearch">Vazgeç</button>
+    </form>
+    <ul class="results" id="results" hidden></ul>
+  </div>
+  <p class="status" id="status" aria-live="polite"></p>
+  <div class="ios-hint" id="iosHint" hidden>
+    <p>iPhone'a uygulama olarak eklemek için Safari'de Paylaş simgesine, sonra “Ana Ekrana Ekle”ye dokun.</p>
+    <button type="button" id="iosHintClose">Tamam</button>
+  </div>
+
+  <main class="grid">
+    <section class="hero" aria-label="Bugünün önerisi">
+      <div class="pills" id="pills"></div>
+      <h1 class="head" id="headline">Bugün ne giysem?</h1>
+      <div class="now">
+        <span class="big" id="bigTemp">17°</span>
+        <span id="nowIcon"></span>
+        <div><div class="t1" id="nowCond"></div><div class="t2" id="nowFeels"></div></div>
+      </div>
+    </section>
+
+    <section class="board" aria-label="Bugünün kombini">
+      <div class="stickers" id="wear"></div>
+      <div class="take" id="take" hidden></div>
+      <ul class="tips" id="tips"></ul>
+    </section>
+
+    <section class="day card" id="dayCard" hidden>
+      <h2 id="dayTitle">Gün nasıl geçecek</h2>
+      <div class="hours" id="hours"></div>
+      <div class="facts" id="facts"></div>
+      <p class="src">Hava verisi: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0)</p>
+    </section>
+
+    <section class="day card" id="manualCard">
+      <h2>Havayı elle ayarla</h2>
+      <div class="row">
+        <label class="rl" for="mTemp">Sıcaklık</label>
+        <div class="range"><input type="range" id="mTemp" min="-10" max="40" step="1" value="17"><output id="mTempOut" for="mTemp">17°</output></div>
+      </div>
+      <div class="row">
+        <span class="rl" id="lSky">Gökyüzü</span>
+        <div class="seg" role="group" aria-labelledby="lSky" data-key="sky">
+          <button type="button" data-val="sunny">Güneşli</button>
+          <button type="button" data-val="partly">Parçalı</button>
+          <button type="button" data-val="cloudy">Kapalı</button>
+          <button type="button" data-val="rain">Yağmurlu</button>
+          <button type="button" data-val="snow">Karlı</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="rl" id="lWind">Rüzgar</span>
+        <div class="seg" role="group" aria-labelledby="lWind" data-key="wind">
+          <button type="button" data-val="calm">Sakin</button>
+          <button type="button" data-val="breezy">Esintili</button>
+          <button type="button" data-val="windy">Sert</button>
+          <button type="button" data-val="storm">Fırtına</button>
+        </div>
+      </div>
+      <p class="src" id="liveHint">Canlı hava için sağ üstten konum seç.</p>
+    </section>
+
+    <section class="me card" aria-label="Kişisel ayarlar">
+      <h2>Sana göre</h2>
+      <div class="row">
+        <span class="rl" id="lHours">Dışarıda ne kadar?</span>
+        <div class="seg" role="group" aria-labelledby="lHours" data-key="hours">
+          <button type="button" data-val="3">2–3 saat</button>
+          <button type="button" data-val="6">Yarım gün</button>
+          <button type="button" data-val="12">Tüm gün</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="rl" id="lFeel">Soğuğa karşı</span>
+        <div class="seg" role="group" aria-labelledby="lFeel" data-key="feel">
+          <button type="button" data-val="cold">Çabuk üşürüm</button>
+          <button type="button" data-val="normal">Normal</button>
+          <button type="button" data-val="warm">Sıcak tutarım</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="rl" id="lAct">Ne yapacaksın?</span>
+        <div class="seg" role="group" aria-labelledby="lAct" data-key="act">
+          <button type="button" data-val="city">Şehir / okul</button>
+          <button type="button" data-val="field">Arazi / doğa</button>
+          <button type="button" data-val="sport">Spor</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <p class="foot" id="foot">Hava verisi Open-Meteo.com, konum adı BigDataCloud üzerinden alınır. Konumun yalnızca hava durumunu bulmak için bu servislere gönderilir; ayarların ve son alınan hava sadece bu cihazda saklanır.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "negiysem:v2";
+  var IS_ART = !!(window.claude && typeof window.claude.use === "function");
+
+  /* ================= state ================= */
+  var S = {places:[], sel:"auto", hours:6, feel:"normal", act:"city", manual:{temp:17, sky:"partly", wind:"breezy"}, mode:"manual", live:null};
+  (function(){
+    var d = null;
+    try { var raw = localStorage.getItem(KEY) || localStorage.getItem("negiysem:v1"); d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
+    if (!d || typeof d !== "object") return;
+    if (Array.isArray(d.places)) S.places = d.places.filter(function(p){ return p && p.id && isFinite(p.lat) && isFinite(p.lon); });
+    if (typeof d.sel === "string") S.sel = d.sel;
+    if ([3,6,12].indexOf(d.hours) >= 0) S.hours = d.hours;
+    if (["cold","normal","warm"].indexOf(d.feel) >= 0) S.feel = d.feel;
+    if (["city","field","sport"].indexOf(d.act) >= 0) S.act = d.act;
+    if (d.manual && typeof d.manual === "object") {
+      if (isFinite(d.manual.temp)) S.manual.temp = Math.max(-10, Math.min(40, +d.manual.temp));
+      if (d.manual.sky) S.manual.sky = d.manual.sky;
+      if (d.manual.wind) S.manual.wind = d.manual.wind;
+    }
+    if (d.live && d.live.wx && d.live.wx.hourly && d.live.place) S.live = d.live;
+    if (d.mode === "live" && S.live) S.mode = "live";
+  })();
+  var busy = false, lastWearSig = "";
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify({places:S.places, sel:S.sel, hours:S.hours, feel:S.feel, act:S.act, manual:S.manual, mode:S.mode, live:S.live})); } catch (e) {}
+    // Android app: share the chosen place and preferences with the home-screen widget
+    if (window.NeGiysemAndroid) {
+      var pl = S.live && S.live.place ? {name:S.live.place.name, lat:S.live.place.lat, lon:S.live.place.lon} : null;
+      try { window.NeGiysemAndroid.saveState(JSON.stringify({feel:S.feel, act:S.act, hours:S.hours, place:pl})); } catch (e) {}
+    }
+  }
+
+  /* ================= helpers ================= */
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+  function rnd(v){ var r = Math.round(v); return r === 0 ? 0 : r; }
+  function deg(v){ var r = rnd(v); return (r < 0 ? "−" + Math.abs(r) : String(r)) + "°"; }
+  function cap(s){ return s ? s.charAt(0).toLocaleUpperCase("tr") + s.slice(1) : s; }
+  function lcf(s){ return s ? s.charAt(0).toLocaleLowerCase("tr") + s.slice(1) : s; }
+  function hm(t){ return t ? String(t).slice(11,16) : ""; }
+  function num(v, d){ return Number(v).toLocaleString("tr-TR", {maximumFractionDigits: d || 0}); }
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+  function daypart(t){ var h = +String(t).slice(11,13); return h >= 5 && h <= 11 ? "sabah" : h <= 16 && h >= 12 ? "öğleden sonra" : h >= 17 && h <= 20 ? "akşam" : "gece"; }
+  var WN = ["Yıldız","Poyraz","Gündoğusu","Keşişleme","Kıble","Lodos","Günbatısı","Karayel"];
+  var WN_DIR = ["kuzeyden","kuzeydoğudan","doğudan","güneydoğudan","güneyden","güneybatıdan","batıdan","kuzeybatıdan"];
+  function windIdx(d){ return d == null || !isFinite(d) ? -1 : Math.round((((+d) % 360) + 360) % 360 / 45) % 8; }
+
+  /* ================= weather vocabulary ================= */
+  var COND = {0:"Açık",1:"Çoğunlukla açık",2:"Parçalı bulutlu",3:"Kapalı",45:"Sisli",48:"Kırağılı sis",51:"Hafif çisenti",53:"Çisenti",55:"Yoğun çisenti",56:"Donan çisenti",57:"Donan çisenti",61:"Hafif yağmur",63:"Yağmurlu",65:"Kuvvetli yağmur",66:"Donan yağmur",67:"Donan yağmur",71:"Hafif kar",73:"Karlı",75:"Yoğun kar",77:"Kar taneleri",80:"Hafif sağanak",81:"Sağanak",82:"Şiddetli sağanak",85:"Kar sağanağı",86:"Yoğun kar sağanağı",95:"Gök gürültülü fırtına",96:"Dolulu fırtına",99:"Şiddetli dolulu fırtına"};
+  function isRain(c){ return (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || c >= 95; }
+  function isSnow(c){ return (c >= 71 && c <= 77) || c === 85 || c === 86; }
+  function kindOf(c, day){
+    if (c === 0 || c === 1) return day ? "sun" : "moon";
+    if (c === 2) return day ? "partly" : "cloud";
+    if (c === 45 || c === 48) return "fog";
+    if (c >= 95) return "storm";
+    if (isSnow(c)) return "snow";
+    if (isRain(c)) return "rain";
+    return "cloud";
+  }
+  function rays(cx, cy, r1, r2, n){ var s = ""; for (var i = 0; i < n; i++) { var a = i * Math.PI * 2 / n; s += '<line x1="' + (cx + Math.cos(a) * r1).toFixed(2) + '" y1="' + (cy + Math.sin(a) * r1).toFixed(2) + '" x2="' + (cx + Math.cos(a) * r2).toFixed(2) + '" y2="' + (cy + Math.sin(a) * r2).toFixed(2) + '"/>'; } return s; }
+  var CL_UP = "M7 15h10a4.2 4.2 0 0 0 .7-8.35A5.6 5.6 0 0 0 6.9 7.6 3.7 3.7 0 0 0 7 15z";
+  function icon(kind){
+    var w = function(inner){ return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>'; };
+    switch (kind) {
+      case "sun": return w('<circle cx="12" cy="12" r="4.2"/>' + rays(12,12,6.6,8.8,8));
+      case "moon": return w('<path d="M19.5 14.6A7.6 7.6 0 0 1 9.4 4.5a7.6 7.6 0 1 0 10.1 10.1z"/>');
+      case "partly": return w('<circle cx="8.4" cy="8.2" r="3"/>' + rays(8.4,8.2,4.6,6.1,8) + '<path d="M9.2 20h8.3a3.6 3.6 0 0 0 .6-7.15 4.8 4.8 0 0 0-9.3 1A3.1 3.1 0 0 0 9.2 20z" fill="var(--field)"/>');
+      case "rain": return w('<path d="' + CL_UP + '"/><line x1="8.5" y1="18" x2="7.5" y2="21"/><line x1="12.5" y1="18" x2="11.5" y2="21"/><line x1="16.5" y1="18" x2="15.5" y2="21"/>');
+      case "snow": return w('<path d="' + CL_UP + '"/><circle cx="8" cy="19" r=".9" fill="currentColor"/><circle cx="12" cy="20.5" r=".9" fill="currentColor"/><circle cx="16" cy="19" r=".9" fill="currentColor"/>');
+      case "storm": return w('<path d="' + CL_UP + '"/><polyline points="12.8 16 10.6 19.4 13.4 19.4 11.4 22.6"/>');
+      case "fog": return w('<line x1="4" y1="9" x2="20" y2="9"/><line x1="3" y1="13" x2="18" y2="13"/><line x1="6" y1="17" x2="21" y2="17"/>');
+      default: return w('<path d="M7 19h10a4.2 4.2 0 0 0 .7-8.35A5.6 5.6 0 0 0 6.9 11.6 3.7 3.7 0 0 0 7 19z"/>');
+    }
+  }
+
+  /* ================= garment stickers ================= */
+  var INK = "#14161f";
+  var LS = "M23 9 L13 12 L7 42 L14 44 L19 25 L19 55 L45 55 L45 25 L50 44 L57 42 L51 12 L41 9 Q32 16 23 9 Z";
+  var COAT = "M23 8 L13 11 L7 45 L14 47 L19 27 L18 58 L46 58 L45 27 L50 47 L57 45 L51 11 L41 8 Q32 14 23 8 Z";
+  var SNEAK = "M6 42 Q6 30 16 30 L26 30 Q30 30 33 34 L38 38 L52 40 Q59 41 59 47 L59 50 L6 50 Z";
+  var PANTS = "M20 7 L44 7 L46 58 L35 58 L32 25 L29 58 L18 58 Z";
+  var ART = {
+    tshirt: '<path d="M23 9 L13 13 L5 24 L13 30 L18 26 L18 55 L46 55 L46 26 L51 30 L59 24 L51 13 L41 9 Q32 17 23 9 Z" fill="#ffffff"/><path d="M26 10 Q32 14.5 38 10" fill="none"/>',
+    longsleeve: '<path d="' + LS + '" fill="#f3ead9"/><path d="M26 10 Q32 14 38 10" fill="none"/><path d="M8.2 37.5 L15 39.4 M55.8 37.5 L49 39.4" fill="none"/>',
+    thermal: '<path d="' + LS + '" fill="#e0d9fb"/><g stroke-width="1.3" opacity=".55"><path d="M21 30 H43 M21 36 H43 M21 42 H43 M21 48 H43" fill="none"/></g>',
+    sweatshirt: '<path d="M23 9 Q22 2 32 2 Q42 2 41 9" fill="#8f9db6"/><path d="' + LS + '" fill="#9eabc2"/><path d="M24 41 H40 L42 50 H22 Z" fill="none"/><path d="M29 12 V20 M35 12 V20" fill="none"/><path d="M8.2 37.5 L15 39.4 M55.8 37.5 L49 39.4" fill="none"/>',
+    hirka: '<path d="' + LS + '" fill="#d0914a"/><path d="M23 9 L32 30 L41 9" fill="none"/><path d="M32 30 V55" fill="none"/><circle cx="35" cy="36" r="1.6" fill="' + INK + '"/><circle cx="35" cy="43" r="1.6" fill="' + INK + '"/><circle cx="35" cy="50" r="1.6" fill="' + INK + '"/>',
+    kazak: '<path d="' + LS + '" fill="#e0564e"/><path d="M20 30 L24 34 L28 30 L32 34 L36 30 L40 34 L44 30" fill="none"/><path d="M20 38 L24 42 L28 38 L32 42 L36 38 L40 42 L44 38" fill="none"/><path d="M19 50 H45" fill="none"/><path d="M26 10 Q32 14 38 10" fill="none"/>',
+    ceket: '<path d="' + LS + '" fill="#5584dc"/><path d="M23 9 L27 21 L32 15 L37 21 L41 9" fill="#3f6cc4"/><path d="M32 15 V55" fill="none"/><path d="M22 29 H29 V34 H22 Z M35 29 H42 V34 H35 Z" fill="none"/>',
+    mont: '<path d="' + COAT + '" fill="#4f7358"/><path d="M23 8 L28 20 L32 13 L36 20 L41 8" fill="#3f604a"/><path d="M32 13 V58" fill="none"/><circle cx="28" cy="30" r="1.6" fill="' + INK + '"/><circle cx="28" cy="40" r="1.6" fill="' + INK + '"/><circle cx="36" cy="30" r="1.6" fill="' + INK + '"/><circle cx="36" cy="40" r="1.6" fill="' + INK + '"/>',
+    kaban: '<path d="' + COAT + '" fill="#86593a"/><path d="M23 8 L29 24 L32 18 L35 24 L41 8" fill="#6f4a2f"/><path d="M32 18 V58" fill="none"/><path d="M19 39 H45" stroke-width="3.2" fill="none"/><circle cx="35.5" cy="30" r="1.6" fill="' + INK + '"/><circle cx="35.5" cy="47" r="1.6" fill="' + INK + '"/>',
+    sisme: '<path d="M22 10 Q12 12 9 22 L6 43 Q6 47 11 47 L15 47 L18 31 L18 55 Q18 58 22 58 L42 58 Q46 58 46 55 L46 31 L49 47 L53 47 Q58 47 58 43 L55 22 Q52 12 42 10 Q32 15 22 10 Z" fill="#33437f"/><path d="M19 23 Q32 27 45 23 M19 32 Q32 36 45 32 M19 41 Q32 45 45 41 M19 50 Q32 54 45 50" fill="none"/><path d="M32 13 V58" fill="none"/>',
+    parka: '<path d="M22 10 Q21 2 32 2 Q43 2 42 10 Q32 15 22 10 Z" fill="#5d6b2d"/><path d="' + COAT + '" fill="#6f7f35"/><path d="M22 10 Q32 16 42 10" stroke="#efe2c4" stroke-width="5" fill="none"/><path d="M22 10 Q32 16 42 10" fill="none"/><path d="M32 15 V58" fill="none"/><path d="M21 33 H29 V40 H21 Z M35 33 H43 V40 H35 Z" fill="none"/>',
+    yagmurluk: '<path d="M22 10 Q21 2 32 2 Q43 2 42 10 Q32 15 22 10 Z" fill="#f2b51f"/><path d="' + COAT + '" fill="#ffcb3d"/><path d="M32 14 V58" fill="none"/><circle cx="35" cy="24" r="1.6" fill="' + INK + '"/><circle cx="35" cy="34" r="1.6" fill="' + INK + '"/><circle cx="35" cy="44" r="1.6" fill="' + INK + '"/>',
+    ruzgarlik: '<path d="M23 9 Q22 3 32 3 Q42 3 41 9" fill="#2a9d8f"/><path d="' + LS + '" fill="#3cc2b1"/><path d="M19.6 24 H44.4 V31 H19.6 Z" fill="#2a9d8f"/><path d="M32 12 V55" fill="none"/>',
+    jean: '<path d="' + PANTS + '" fill="#3f71d8"/><path d="M19.6 13 H44.4" fill="none"/><path d="M22 13 Q23 19 28 19 M42 13 Q41 19 36 19" fill="none"/><path d="M32 7 V13" fill="none"/>',
+    pantolon: '<path d="' + PANTS + '" fill="#4b4e60"/><path d="M19.6 13 H44.4" fill="none"/><path d="M32 7 V13" fill="none"/>',
+    sort: '<path d="M18 14 L46 14 L48 42 L35 42 L32 27 L29 42 L16 42 Z" fill="#78aee6"/><path d="M17.6 20 H46.4" fill="none"/><path d="M32 14 V20" fill="none"/>',
+    tayt: '<path d="M22 7 L42 7 L42.5 58 L34.5 58 L32 24 L29.5 58 L21.5 58 Z" fill="#2c2f40"/><path d="M22 12 H42" fill="none"/><path d="M24 30 L23 56 M40 30 L41 56" stroke="#7a7fa3" stroke-width="1.6" fill="none"/>',
+    sneaker: '<path d="' + SNEAK + '" fill="#ffffff"/><path d="M6 50 H59 V53 Q59 56 56 56 H9 Q6 56 6 53 Z" fill="#ef5b4a"/><path d="M27 33 L31 30 M30 36 L34 33 M33 39 L37 36" fill="none"/><path d="M40 46 Q47 42 54 45" stroke="#ef5b4a" stroke-width="2.4" fill="none"/>',
+    spor: '<path d="' + SNEAK + '" fill="#3cc2b1"/><path d="M6 50 H59 V53 Q59 56 56 56 H9 Q6 56 6 53 Z" fill="#ffffff"/><path d="M14 44 L44 44 M18 39 L40 39" stroke="#ffffff" stroke-width="2.6" fill="none"/><path d="M27 33 L31 30 M30 36 L34 33" fill="none"/>',
+    bot: '<path d="M14 9 L32 9 L32 33 L47 36 Q57 38 57 46 L57 50 L14 50 Z" fill="#7a5233"/><path d="M14 50 H57 V55 Q57 57 55 57 H16 Q14 57 14 55 Z" fill="#2a1b10"/><path d="M14 15 H32" fill="none"/><path d="M24 20 L30 18 M24 26 L30 24" fill="none"/>',
+    yuruyus: '<path d="M14 9 L32 9 L32 33 L47 36 Q57 38 57 46 L57 50 L14 50 Z" fill="#9b7a45"/><path d="M14 50 H57 V55 Q57 57 55 57 H16 Q14 57 14 55 Z" fill="#2a1b10"/><path d="M14 15 H32" fill="none"/><path d="M24 20 L30 18 M24 26 L30 24 M24 32 L30 30" stroke="#ef5b4a" stroke-width="2.6" fill="none"/>',
+    sandalet: '<path d="M6 47 Q6 42 12 42 L54 42 Q60 42 60 47 Q60 52 54 52 L12 52 Q6 52 6 47 Z" fill="#c98c5a"/><path d="M14 42 Q20 28 28 42 Z" fill="#a8693b"/><path d="M30 42 Q38 30 46 42 Z" fill="#a8693b"/>',
+    bere: '<path d="M12 42 Q12 15 32 15 Q52 15 52 42 Z" fill="#ef5b4a"/><path d="M10 42 H54 V52 H10 Z" fill="#cf4535"/><path d="M17 42 V52 M24 42 V52 M31 42 V52 M38 42 V52 M45 42 V52" stroke-width="1.6" fill="none"/><circle cx="32" cy="11" r="6" fill="#f6efe0"/>',
+    sapka: '<path d="M10 38 Q10 16 31 16 Q50 16 51 37 Z" fill="#2f3d63"/><path d="M47 35 L61 39 Q62 44 56 44 L42 42 Z" fill="#26324f"/><path d="M31 16 V37" fill="none"/><circle cx="31" cy="16" r="2" fill="' + INK + '"/>',
+    semsiye: '<path d="M6 34 Q32 2 58 34 Q51.5 29 45 34 Q38.5 29 32 34 Q25.5 29 19 34 Q12.5 29 6 34 Z" fill="#7b5cfa"/><path d="M32 8 Q22 18 19 34 M32 8 Q42 18 45 34" fill="none"/><path d="M32 34 V54 Q32 59 27 59 Q23 59 23 55" fill="none"/>',
+    gozluk: '<path d="M6 26 Q6 22 10 22 L26 22 Q29 22 29 26 L28 34 Q27 40 20 40 L14 40 Q7 40 7 34 Z" fill="#2f3550"/><path d="M35 26 Q35 22 38 22 L54 22 Q58 22 58 26 L57 34 Q57 40 50 40 L44 40 Q37 40 36 34 Z" fill="#2f3550"/><path d="M29 26 Q32 23 35 26" fill="none"/><path d="M11 27 L16 26 M40 27 L45 26" stroke="#ffffff" stroke-width="2" fill="none"/>',
+    atki: '<path d="M12 12 H52 Q56 12 56 16 V22 Q56 26 52 26 H34 V54 H22 V26 H12 Q8 26 8 22 V16 Q8 12 12 12 Z" fill="#f0c04f"/><path d="M22 34 H34 M22 42 H34" stroke="#d9534f" stroke-width="3.2" fill="none"/><path d="M24 54 V59 M28 54 V59 M32 54 V59" fill="none"/>',
+    eldiven: '<path d="M22 31 Q12 29 12 22 Q12 16 17 17 Q21 18 22 25" fill="#ef5b4a"/><path d="M22 47 V28 Q22 12 34 12 Q46 12 46 27 V47 Z" fill="#ef5b4a"/><path d="M21 46 H47 V56 H21 Z" fill="#f6efe0"/>',
+    su: '<path d="M26 5 H38 V13 H26 Z" fill="#3f71d8"/><path d="M22 18 Q22 13 26 13 L38 13 Q42 13 42 18 L42 56 Q42 59 39 59 L25 59 Q22 59 22 56 Z" fill="#9ad8f5"/><path d="M22 34 Q27 31 32 34 T42 34" fill="none"/>',
+    krem: '<path d="M20 7 L44 7 L40 49 L24 49 Z" fill="#ffb347"/><path d="M26 49 H38 V58 H26 Z" fill="#ffffff"/><circle cx="32" cy="24" r="6" fill="#fff3c4"/>',
+    corap: '<path d="M22 6 H36 V36 L48 44 Q54 48 50 54 Q46 59 40 55 L24 45 Q22 43 22 39 Z" fill="#ffffff"/><path d="M22 12 H36 M22 18 H36" stroke="#ef5b4a" stroke-width="2.6" fill="none"/>'
+  };
+  function art(g){ return '<svg viewBox="0 0 64 64" aria-hidden="true" stroke="' + INK + '" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">' + (ART[g] || ART.tshirt) + '</svg>'; }
+  var G = {tshirt:"Tişört", longsleeve:"Uzun kollu", thermal:"Termal içlik", sweatshirt:"Sweatshirt", hirka:"Hırka", kazak:"Kazak", ceket:"İnce ceket", mont:"Mont", kaban:"Kaban", sisme:"Şişme mont", parka:"Parka", yagmurluk:"Yağmurluk", ruzgarlik:"Rüzgarlık", jean:"Jean", pantolon:"Kalın pantolon", sort:"Şort", tayt:"Tayt", sneaker:"Sneaker", spor:"Spor ayakkabı", bot:"Bot", yuruyus:"Yürüyüş botu", sandalet:"Sandalet", bere:"Bere", sapka:"Şapka", semsiye:"Şemsiye", gozluk:"Güneş gözlüğü", atki:"Atkı", eldiven:"Eldiven", su:"Su", krem:"Güneş kremi", corap:"Yedek çorap"};
+  var ACC = {hirka:"Hırkanı", ceket:"İnce ceketini", mont:"Montunu", kaban:"Kabanını", sisme:"Şişme montunu", parka:"Parkanı", kazak:"Kazağını", sweatshirt:"Sweatshirtünü", bere:"Bereni", atki:"Atkını", ruzgarlik:"Rüzgarlığını", yagmurluk:"Yağmurluğunu", eldiven:"Eldivenlerini"};
+  var OUTER = ["ceket","mont","kaban","sisme","parka","yagmurluk","ruzgarlik"], MID = ["hirka","sweatshirt","kazak"];
+  var SHOES = ["sneaker","spor","bot","yuruyus","sandalet"], BOTTOMS = ["jean","pantolon","sort","tayt"];
+
+  /* ================= outfit rules ================= */
+  var LV = [
+    {name:"Dondurucu", min:-Infinity, color:"#86AEFF"},
+    {name:"Çok soğuk", min:-3, color:"#9CCBF7"},
+    {name:"Soğuk", min:3, color:"#86D6C6"},
+    {name:"Soğukça", min:8, color:"#AEDD8E"},
+    {name:"Serin", min:13, color:"#E6E86E"},
+    {name:"Ilık", min:17, color:"#FFD65E"},
+    {name:"Sıcak", min:21, color:"#FFAD62"},
+    {name:"Çok sıcak", min:26, color:"#FF8270"}
+  ];
+  var OUT = [
+    {wear:["thermal","kazak","parka","pantolon","bot","bere"], take:["eldiven","atki"], head:"Kat kat giy: termal, kazak, {parka}."},
+    {wear:["kazak","sisme","pantolon","bot","bere"], take:["eldiven","atki"], head:"{Şişme mont}, bere, eldiven: tam kış."},
+    {wear:["kazak","kaban","pantolon","bot"], take:["atki","bere"], head:"{Kaban} ve atkı zamanı."},
+    {wear:["kazak","mont","jean","sneaker"], take:[], head:"Kazak üstüne {mont} giy."},
+    {wear:["sweatshirt","jean","sneaker"], take:["ceket"], head:"{Sweatshirt} havası, ince ceketi yanına al."},
+    {wear:["tshirt","jean","sneaker"], take:["hirka"], head:"{Tişört} yeter, yanına ince bir hırka al."},
+    {wear:["tshirt","jean","sneaker"], take:[], head:"Bugün {tişört} havası."},
+    {wear:["tshirt","sort","sandalet","sapka"], take:["su"], head:"En {hafif} kıyafetlerini giy, bol su iç."}
+  ];
+  var SPORT = function(L){
+    if (L >= 6) return {wear:["tshirt","sort","spor"], take:["su"], head:"{Şort} ve tişörtle çık, su al."};
+    if (L >= 4) return {wear:["longsleeve","tayt","spor"], take:["su"], head:"{Uzun kollu} ve tayt yeter."};
+    if (L >= 2) return {wear:["longsleeve","ruzgarlik","tayt","spor"], take:["su"], head:"Tayta {rüzgarlık} ekle, ısınınca açarsın."};
+    return {wear:["thermal","ruzgarlik","tayt","spor","bere"], take:["eldiven"], head:"{Termal} katman ve rüzgarlık şart."};
+  };
+  var FEEL_OFF = {cold:-3, normal:0, warm:3}, ACT_OFF = {city:0, field:-1, sport:6};
+  function levelOf(E){ var l = 0; for (var i = 0; i < LV.length; i++) if (E >= LV[i].min) l = i; return l; }
+
+  function plan(inp, P){
+    var off = (FEEL_OFF[P.feel] || 0) + (ACT_OFF[P.act] || 0);
+    var W = inp.window.filter(function(h){ return isFinite(h.app); });
+    var rawNow = inp.now.app, rawLow = rawNow, rawHigh = rawNow, lowAt = null, highAt = null;
+    W.forEach(function(h){ if (h.app < rawLow) { rawLow = h.app; lowAt = h.time; } if (h.app > rawHigh) { rawHigh = h.app; highAt = h.time; } });
+    var E = rawNow + off, L = levelOf(E);
+    var Llow = Math.min(L, levelOf(rawLow + off + 0.7)), Lhigh = Math.max(L, levelOf(rawHigh + off - 0.7));
+    var base = P.act === "sport" ? SPORT(L) : OUT[L];
+    var wear = base.wear.map(function(g){ return {g:g, label:G[g]}; });
+    var take = base.take.map(function(g){ return {g:g, label:G[g]}; });
+    var head = base.head, pills = [], notes = [];
+    function has(g){ return wear.some(function(w){ return w.g === g; }); }
+    function swap(list, g, label){ var it = {g:g, label:label || G[g]}; for (var i = 0; i < wear.length; i++) if (list.indexOf(wear[i].g) >= 0) { wear[i] = it; return; } wear.push(it); }
+    function addTake(g, label, first){ if (has(g) || take.some(function(t){ return t.g === g; })) return; var it = {g:g, label:label || G[g]}; if (first) take.unshift(it); else take.push(it); }
+    function strip(s){ return s.replace(/[{}]/g, ""); }
+
+    var codes = [inp.now.code].concat(W.map(function(h){ return h.code; }));
+    var pMax = Math.round(Math.max.apply(null, [0].concat(W.map(function(h){ return h.p || 0; }))));
+    var windMax = Math.round(Math.max.apply(null, [inp.now.wind || 0].concat(W.map(function(h){ return h.wind || 0; }))));
+    var gust = Math.round(inp.now.gust || 0);
+    var wi = windIdx(inp.now.dir);
+    var rainNow = isRain(inp.now.code) || (inp.now.precip || 0) >= 0.2;
+    var snowy = codes.some(isSnow);
+    var wet = rainNow || pMax >= 60 || (codes.some(isRain) && pMax >= 40);
+    var maybe = !wet && !snowy && pMax >= 30;
+    var windy = windMax >= 28 || gust >= 45;
+    var stormy = windMax >= 45 || gust >= 70;
+    var hasOuter = wear.some(function(w){ return OUTER.indexOf(w.g) >= 0; });
+
+    if (P.act === "field") {
+      swap(BOTTOMS, "pantolon", "Uzun pantolon");
+      swap(SHOES, "yuruyus");
+      if (L >= 5 && !has("sapka")) wear.push({g:"sapka", label:G.sapka});
+      if (rawNow >= 7) notes.push("Açık renk giy, paçaları çorabın içine al: keneyi fark etmek kolaylaşır.");
+    }
+    if (P.act === "sport") notes.push("Isınınca terleyeceğin için bir kat eksik önerildi; bitince kuru bir üst giy.");
+
+    if (Llow < L) {
+      var lo = P.act === "sport" ? SPORT(Llow) : OUT[Llow];
+      var cand = lo.wear.concat(lo.take).filter(function(g){ return (OUTER.indexOf(g) >= 0 || MID.indexOf(g) >= 0) && !has(g); })[0];
+      var dp = lowAt ? daypart(lowAt) : "akşam";
+      if (cand) { take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0 && MID.indexOf(t.g) < 0; }); addTake(cand, null, true); }
+      if (cand && ACC[cand] && P.act !== "sport") head = "{" + ACC[cand] + "} yanına al, " + dp + " serinliyor.";
+      pills.push(cap(dp) + " " + deg(rawLow));
+    } else if (Lhigh > L && highAt) {
+      var dpH = daypart(highAt);
+      pills.push(cap(dpH) + " " + deg(rawHigh));
+      notes.push(cap(dpH) + " ısınıyor; kolay çıkarılan bir katman seç.");
+    }
+
+    if (wet) {
+      pills.unshift(rainNow ? "Yağmur yağıyor" : "Yağmur %" + pMax);
+      var addedCoat = false;
+      if (!hasOuter && P.act !== "sport") {
+        wear.push({g:"yagmurluk", label:G.yagmurluk}); addedCoat = true;
+        take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0; });
+      } else if (hasOuter) notes.push("Dış katmanın su geçirmez olsun.");
+      if (P.act === "city" && wear.some(function(w){ return w.g === "sneaker" || w.g === "sandalet"; })) swap(SHOES, "bot", "Su geçirmez ayakkabı");
+      if (windy) head = "{Kapüşonlu} bir şey giy, rüzgarda şemsiye uçar.";
+      else {
+        addTake("semsiye", null, true);
+        head = addedCoat ? "{Yağmurluğunu} giy, şemsiyeni al." : "{Şemsiyeni} al; " + lcf(strip(head));
+      }
+    } else if (maybe) {
+      addTake("semsiye", "Şemsiye (%" + pMax + ")");
+      pills.push("Yağmur ihtimali %" + pMax);
+    }
+    if (snowy) {
+      pills.unshift("Kar");
+      if (P.act !== "sport") swap(SHOES, "bot", "Kaymaz bot");
+      addTake("eldiven");
+    }
+    if (windy) {
+      pills.push((wi >= 0 ? WN[wi] + " " : "Rüzgar ") + windMax + " km/sa");
+      if (!hasOuter && L >= 4 && P.act !== "sport") addTake("ruzgarlik");
+      if (!wet) notes.unshift((wi >= 0 ? WN[wi] : "Rüzgar") + " sert esiyor, yakanı kapat.");
+      if (stormy) notes.push("Rüzgar çok sert; şemsiye yerine kapüşon kullan.");
+    }
+    if (inp.uvDay && inp.uvMax != null) {
+      if (inp.uvMax >= 6) { addTake("gozluk"); addTake("krem"); addTake("sapka"); pills.push("UV yüksek"); }
+      else if (inp.uvMax >= 3 && rawNow >= 15) addTake("gozluk");
+    }
+    if (rawNow >= 24 && (inp.now.rh || 0) >= 70) notes.push("Nem yüksek; pamuk ya da keten seç.");
+    if (codes.some(function(c){ return c === 45 || c === 48; })) pills.push("Sis");
+    if (P.act === "field" && wet) addTake("corap");
+
+    return {L:L, E:E, rawNow:rawNow, rawLow:rawLow, off:off, wear:wear.slice(0, 6), take:take.slice(0, 5), head:head, pills:pills.slice(0, 3), notes:notes.slice(0, 2), pMax:pMax, windMax:windMax, gust:gust, wi:wi};
+  }
+
+  /* ================= inputs ================= */
+  var SKY = {
+    sunny:{label:"Güneşli", code:0, p:0, rh:50, uv:function(t){ return t >= 20 ? 7 : t >= 10 ? 4 : 2; }},
+    partly:{label:"Parçalı bulutlu", code:2, p:10, rh:60, uv:function(t){ return t >= 20 ? 5 : 3; }},
+    cloudy:{label:"Kapalı", code:3, p:20, rh:70, uv:function(){ return 1; }},
+    rain:{label:"Yağmurlu", code:63, p:90, rh:90, uv:function(){ return 1; }, rain:true},
+    snow:{label:"Karlı", code:73, p:90, rh:85, uv:function(){ return 1; }}
+  };
+  var WIND = {calm:{kmh:5, gust:10, chill:0}, breezy:{kmh:15, gust:25, chill:1}, windy:{kmh:32, gust:50, chill:3}, storm:{kmh:55, gust:80, chill:5}};
+  function manualInput(){
+    var m = S.manual, sky = SKY[m.sky] || SKY.partly, w = WIND[m.wind] || WIND.breezy, t = m.temp;
+    var app = t - w.chill * (t < 20 ? 1 : 0.5);
+    return {kind:"manual", now:{t:t, app:app, code:sky.code, isDay:1, wind:w.kmh, gust:w.gust, dir:null, rh:sky.rh, precip:sky.rain ? 1 : 0},
+            window:[{time:null, app:app, t:t, p:sky.p, code:sky.code, wind:w.kmh, day:1}], uvMax:sky.uv(t), uvDay:true, sunset:null};
+  }
+  function liveInput(){
+    var lv = S.live; if (!lv || !lv.wx) return null;
+    var wx = lv.wx, H = wx.hourly, C = wx.current || {}, D = wx.daily || {};
+    if (!H || !Array.isArray(H.time) || !H.time.length) return null;
+    var nowKey = new Date(Date.now() + (wx.utc_offset_seconds || 0) * 1000).toISOString().slice(0,13);
+    var idx = -1;
+    for (var i = 0; i < H.time.length; i++) if (String(H.time[i]).slice(0,13) === nowKey) { idx = i; break; }
+    if (idx < 0) { if (nowKey < String(H.time[0]).slice(0,13)) idx = 0; else return null; }
+    var age = (Date.now() - lv.fetchedAt) / 60000;
+    var pk = function(a, j){ return a ? a[j] : null; };
+    var now = (age < 45 && C.temperature_2m != null)
+      ? {t:C.temperature_2m, app:C.apparent_temperature, code:C.weather_code, isDay:C.is_day, wind:C.wind_speed_10m, gust:C.wind_gusts_10m, dir:C.wind_direction_10m, rh:C.relative_humidity_2m, precip:C.precipitation}
+      : {t:H.temperature_2m[idx], app:H.apparent_temperature[idx], code:H.weather_code[idx], isDay:pk(H.is_day, idx), wind:pk(H.wind_speed_10m, idx), gust:0, dir:pk(H.wind_direction_10m, idx), rh:null, precip:0};
+    var win = [];
+    for (var k = 0; k <= S.hours && idx + k < H.time.length; k++) { var j = idx + k;
+      win.push({time:H.time[j], app:H.apparent_temperature[j], t:H.temperature_2m[j], p:(H.precipitation_probability && H.precipitation_probability[j]) || 0, code:H.weather_code[j], wind:pk(H.wind_speed_10m, j), day:pk(H.is_day, j)}); }
+    var di = (D.time || []).indexOf(nowKey.slice(0,10));
+    var sunset = di >= 0 && D.sunset ? D.sunset[di] : null;
+    return {kind:"live", now:now, window:win, uvMax: di >= 0 && D.uv_index_max ? D.uv_index_max[di] : null,
+            uvDay: win.some(function(h){ var hr = +String(h.time).slice(11,13); return hr >= 10 && hr <= 16; }), sunset: sunset ? hm(sunset) : null, age:age};
+  }
+  function currentInput(){ if (S.mode === "live") { var li = liveInput(); if (li) return li; S.mode = "manual"; } return manualInput(); }
+
+  /* ================= render ================= */
+  function headHTML(s){ return esc(s).replace(/\{([^}]*)\}/g, '<span class="hl">$1</span>'); }
+  var ROT = [-5, 4, -2, 6, -4, 3];
+  function render(){
+    var inp = currentInput(), p = plan(inp, S), live = inp.kind === "live";
+    var root = document.documentElement;
+    root.style.setProperty("--lv", LV[p.L].color);
+    var night = live && inp.now.isDay === 0;
+    if (night) root.setAttribute("data-night", "1"); else root.removeAttribute("data-night");
+    var tc = document.querySelector('meta[name="theme-color"]');
+    var dark = night || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+    if (tc) tc.setAttribute("content", dark ? "#15171f" : LV[p.L].color);
+    if (window.NeGiysemAndroid) { try { window.NeGiysemAndroid.setTheme(dark ? "#15171f" : LV[p.L].color, !!dark); } catch (e) {} }
+
+    $("placeLabel").textContent = live ? S.live.place.name : "Elle ayar";
+    $("pills").innerHTML = [LV[p.L].name].map(function(x){ return '<span class="pill soft">' + esc(x) + '</span>'; }).join("") + p.pills.map(function(x){ return '<span class="pill">' + esc(x) + '</span>'; }).join("");
+    $("headline").innerHTML = headHTML(p.head);
+    $("bigTemp").textContent = deg(inp.now.t);
+    $("nowIcon").innerHTML = icon(kindOf(inp.now.code, inp.now.isDay));
+    $("nowCond").textContent = live ? (COND[inp.now.code] || "") : (SKY[S.manual.sky] || SKY.partly).label;
+    $("nowFeels").textContent = "Hissedilen " + deg(inp.now.app) + (p.off ? " · sana göre " + deg(p.E) : "");
+
+    var sig = p.wear.map(function(w){ return w.g; }).join(",");
+    var wearEl = $("wear");
+    wearEl.innerHTML = p.wear.map(function(w, i){ return '<div class="stk" style="--r:' + ROT[i % ROT.length] + 'deg"><div class="art">' + art(w.g) + '</div><span class="lab">' + esc(w.label) + '</span></div>'; }).join("");
+    if (sig !== lastWearSig) { wearEl.classList.remove("pop"); void wearEl.offsetWidth; wearEl.classList.add("pop"); lastWearSig = sig; }
+    var tk = $("take");
+    tk.hidden = !p.take.length;
+    tk.innerHTML = '<span class="tl">Yanına al</span>' + p.take.map(function(t){ return '<span class="mini"><span class="art">' + art(t.g) + '</span>' + esc(t.label) + '</span>'; }).join("");
+    $("tips").innerHTML = p.notes.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join("");
+
+    $("dayCard").hidden = !live; $("manualCard").hidden = live;
+    if (live) {
+      var lowI = -1, lowV = Infinity;
+      inp.window.forEach(function(h, i){ if (i > 0 && h.app < lowV - 0.4) { lowV = h.app; lowI = i; } });
+      if (!(lowV < inp.now.app - 1)) lowI = -1;
+      $("dayTitle").textContent = "Önümüzdeki " + S.hours + " saat";
+      $("hours").innerHTML = inp.window.map(function(h, i){
+        var pr = Math.round(h.p || 0);
+        return '<div class="h' + (i === 0 ? ' now' : '') + (i === lowI ? ' low' : '') + '"><span class="hh">' + (i === 0 ? "Şimdi" : hm(h.time)) + '</span>' + icon(kindOf(h.code, h.day)) + '<span class="ht">' + deg(h.app) + '</span><span class="hp">' + (pr >= 20 ? "%" + pr : "") + '</span></div>';
+      }).join("");
+      var n = inp.now, f = [];
+      f.push((p.wi >= 0 ? '<b>' + WN[p.wi] + '</b> · ' : 'Rüzgar ') + rnd(n.wind || 0) + ' km/sa');
+      f.push('Yağış <b>%' + p.pMax + '</b>');
+      if (n.rh != null) f.push('Nem <b>%' + rnd(n.rh) + '</b>');
+      if (inp.uvMax != null) f.push('UV <b>' + num(inp.uvMax, 1) + '</b>');
+      if (inp.sunset) f.push('Gün batımı <b>' + inp.sunset + '</b>');
+      var lv = S.live, age = inp.age;
+      f.push('Güncelleme <b>' + new Date(lv.fetchedAt).toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}) + '</b>' + (age > 90 ? ' · ' + Math.round(age / 60) + ' saat önce' : ''));
+      $("facts").innerHTML = f.map(function(x){ return '<span class="fact">' + x + '</span>'; }).join("");
+    } else {
+      var r = $("mTemp"); if (+r.value !== S.manual.temp) r.value = S.manual.temp;
+      $("mTempOut").textContent = deg(S.manual.temp);
+    }
+    document.querySelectorAll(".seg").forEach(function(g){
+      var key = g.dataset.key, cur = key === "sky" || key === "wind" ? S.manual[key] : String(S[key]);
+      g.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.val === String(cur) ? "true" : "false"); });
+    });
+    renderChips();
+  }
+  function renderChips(){
+    var c = $("chips"); c.textContent = "";
+    var live = S.mode === "live";
+    function mk(text, pressed, fn){ var b = document.createElement("button"); b.type = "button"; b.className = "chip"; if (pressed !== null) b.setAttribute("aria-pressed", pressed ? "true" : "false"); b.textContent = text; b.addEventListener("click", fn); return b; }
+    var autoName = S.live && S.live.placeKey === "auto" ? S.live.place.name : "";
+    c.appendChild(mk("Konumum" + (autoName ? " · " + autoName : ""), live && S.sel === "auto", function(){ selectPlace("auto"); }));
+    S.places.forEach(function(p){
+      var wrap = document.createElement("span"); wrap.className = "chip-wrap";
+      wrap.appendChild(mk(p.name, live && S.sel === p.id, function(){ selectPlace(p.id); }));
+      var x = document.createElement("button"); x.type = "button"; x.className = "chip-x"; x.textContent = "×"; x.setAttribute("aria-label", p.name + " kaydını sil");
+      x.addEventListener("click", function(){ removePlace(p.id); }); wrap.appendChild(x); c.appendChild(wrap);
+    });
+    c.appendChild(mk("+ Yer ekle", null, openSearch));
+    c.appendChild(mk("Elle ayarla", !live, function(){ S.mode = "manual"; save(); togglePanel(false); render(); }));
+  }
+
+  /* ================= status ================= */
+  function setStatus(msg, action){
+    var el = $("status"); el.textContent = "";
+    if (msg) { var t = document.createElement("span"); t.textContent = msg; el.appendChild(t); }
+    if (action) { var b = document.createElement("button"); b.type = "button"; b.className = "act"; b.textContent = action.label; b.addEventListener("click", action.fn); el.appendChild(b); }
+  }
+  function setBusy(on){ busy = on; var b = $("refresh"); b.classList.toggle("busy", on); b.setAttribute("aria-busy", on ? "true" : "false"); }
+  function togglePanel(open){ var p = $("placePanel"); p.hidden = !open; $("placeBtn").setAttribute("aria-expanded", open ? "true" : "false"); }
+
+  /* ================= data sources ================= */
+  function forecastURL(lat, lon){
+    return "https://api.open-meteo.com/v1/forecast?latitude=" + (+lat).toFixed(4) + "&longitude=" + (+lon).toFixed(4) +
+      "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
+      "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
+      "&daily=uv_index_max,sunset&timezone=auto&forecast_days=2";
+  }
+  function geocodeURL(q){ return "https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(q) + "&count=6&language=tr&format=json"; }
+
+  // --- web (installed app / website): device GPS and direct requests
+  var WEB = {
+    fetchJSON: function(url, ms){
+      var ctl = ("AbortController" in window) ? new AbortController() : null;
+      var timer = setTimeout(function(){ if (ctl) ctl.abort(); }, ms || 12000);
+      return fetch(url, ctl ? {signal:ctl.signal} : {}).then(function(r){ if (!r.ok) throw {code:"http", status:r.status}; return r.json(); }, function(){ throw {code:"network"}; })
+        .then(function(j){ clearTimeout(timer); return j; }, function(e){ clearTimeout(timer); throw e; });
+    },
+    position: function(){
+      return new Promise(function(res, rej){
+        if (!("geolocation" in navigator)) { rej({code:"geo_unsupported"}); return; }
+        navigator.geolocation.getCurrentPosition(function(p){ res(p.coords); }, function(e){ rej({code: e.code === 1 ? "geo_denied" : e.code === 3 ? "geo_timeout" : "geo_unavailable"}); }, {enableHighAccuracy:false, timeout:12000, maximumAge:600000});
+      });
+    },
+    autoPlace: async function(){
+      var BDC = "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=tr";
+      try {
+        var c = await WEB.position();
+        var place = {name:"Konumun", sub:"Cihaz konumu", lat:c.latitude, lon:c.longitude};
+        try { var g = await WEB.fetchJSON(BDC + "&latitude=" + c.latitude + "&longitude=" + c.longitude, 8000); place.name = g.locality || g.city || g.principalSubdivision || place.name; } catch (e) {}
+        return {place:place, note:null};
+      } catch (e) {
+        if (!/^geo_/.test(e.code || "")) throw e;
+        var ip = await WEB.fetchJSON(BDC, 8000);
+        if (!isFinite(ip.latitude) || !isFinite(ip.longitude)) throw {code:"geo_none"};
+        return {place:{name: ip.city || ip.locality || ip.principalSubdivision || "Konumun", sub:"Yaklaşık konum", lat:+ip.latitude, lon:+ip.longitude},
+                note: e.code === "geo_denied" ? "Konum izni olmadığı için yaklaşık konum kullanıldı. Daha isabetli sonuç için konum izni ver ya da yer ekle." : "Konum bulunamadı; yaklaşık konum kullanıldı."};
+      }
+    },
+    forecast: function(lat, lon){ return WEB.fetchJSON(forecastURL(lat, lon)); },
+    search: function(q){ return WEB.fetchJSON(geocodeURL(q)).then(function(j){ return Array.isArray(j.results) ? j.results : []; }); }
+  };
+
+  // --- Claude preview: reads the same sources through Claude's browser in the desktop app
+  var HOST = "host:claude_browser", mcp = null, perms = null, mcpState = IS_ART ? "pending" : "web", tabId = null;
+  var ARTD = {
+    call: function(tool, input){
+      return mcp.callTool(HOST, tool, input, {cache:false}).catch(function(e){
+        if (e && e.retryable) return sleep(Math.min(e.retryAfterMs || 1200, 5000) + Math.random() * 400).then(function(){ return mcp.callTool(HOST, tool, input, {cache:false}); });
+        throw e;
+      });
+    },
+    text: function(r){
+      if (!r) return ""; if (typeof r.payload === "string") return r.payload;
+      var t = (r.content || []).filter(function(b){ return b && b.type === "text"; }).map(function(b){ return b.text; });
+      if (t.length) return t.join("\n");
+      return r.payload != null ? (typeof r.payload === "object" ? JSON.stringify(r.payload) : String(r.payload)) : "";
+    },
+    json: function(t){
+      var body = String(t), sep = body.indexOf("\n---\n"); if (sep >= 0) body = body.slice(sep + 5);
+      var tc = body.indexOf("\nTab Context:"); if (tc >= 0) body = body.slice(0, tc);
+      var s = body.indexOf("{"), e = body.lastIndexOf("}"); if (s < 0 || e <= s) return null;
+      try { return JSON.parse(body.slice(s, e + 1)); } catch (err) { return null; }
+    },
+    ourTab: async function(){
+      if (!tabId) return null;
+      try {
+        var m = ARTD.text(await ARTD.call("get_page_text", {tabId:tabId, max_chars:600})).match(/URL:\s*(\S+)/);
+        if (m && /^https:\/\/(get\.geojs\.io|api\.open-meteo\.com|geocoding-api\.open-meteo\.com)\//.test(m[1])) return tabId;
+      } catch (e) { if (!(e && e.code === "tool_error")) throw e; }
+      tabId = null; return null;
+    },
+    get: async function(url){
+      if (!mcp) throw {code:"server_not_connected"};
+      var tab = await ARTD.ourTab();
+      if (tab) await ARTD.call("navigate", {tabId:tab, url:url});
+      else {
+        var m = ARTD.text(await ARTD.call("preview_start", {url:url})).match(/tabId["']?\s*[:=]?\s*["']?([A-Za-z0-9_-]+)/i);
+        if (!m) throw {code:"parse"};
+        tab = tabId = m[1];
+      }
+      for (var i = 0; i < 5; i++) { var j = ARTD.json(ARTD.text(await ARTD.call("get_page_text", {tabId:tab, max_chars:60000}))); if (j) return j; await sleep(700); }
+      throw {code:"parse"};
+    },
+    autoPlace: async function(){
+      var g = await ARTD.get("https://get.geojs.io/v1/ip/geo.json");
+      var lat = parseFloat(g.latitude), lon = parseFloat(g.longitude);
+      if (!isFinite(lat) || !isFinite(lon)) throw {code:"geo_none"};
+      return {place:{name: g.city || g.region || "Konumun", sub:"Yaklaşık konum", lat:lat, lon:lon}, note:"Önizlemede konum internet bağlantına göre yaklaşık bulunur; semt için yer ekle."};
+    },
+    forecast: function(lat, lon){ return ARTD.get(forecastURL(lat, lon)); },
+    search: function(q){ return ARTD.get(geocodeURL(q)).then(function(j){ return Array.isArray(j.results) ? j.results : []; }); }
+  };
+  var DATA = IS_ART ? ARTD : WEB;
+  var NO_LIVE = "Canlı hava bu önizlemede yalnızca Claude masaüstü uygulamasında çalışır; burada havayı elle ayarlayabilirsin.";
+
+  function errMsg(e){
+    var c = (e && e.code) || "unknown";
+    if (!navigator.onLine) return "Çevrimdışısın.";
+    switch (c) {
+      case "server_not_connected": case "not_granted": case "capability_disabled": case "capability_removed": mcpState = "no"; return NO_LIVE;
+      case "not_in_manifest": return "Bu sayfanın Claude'un tarayıcısını kullanma izni kapalı; sayfanın İzinler menüsünden açabilirsin.";
+      case "approval_required": case "cancelled": return "Tarayıcıyı kullanmak için onay gerekiyor.";
+      case "tool_error": return "Tarayıcı sayfayı açamadı" + (e.message ? ": " + String(e.message).slice(0, 140) : ".");
+      case "geo_none": return "Konum bulunamadı. Yer ekleyip onu seçebilirsin.";
+      case "http": return e.status === 429 ? "Hava servisi şu an çok yoğun; biraz sonra tekrar dene." : "Hava servisine ulaşılamadı.";
+      default: return "Hava durumu alınamadı. İnternet bağlantını kontrol et.";
+    }
+  }
+
+  async function fetchLive(){
+    if (busy) return;
+    if (IS_ART && !mcp) { setStatus(mcpState === "pending" ? "Claude bağlantısı hazırlanıyor, birazdan tekrar dene." : NO_LIVE); return; }
+    var p = null;
+    if (S.sel !== "auto") { p = S.places.filter(function(x){ return x.id === S.sel; })[0]; if (!p) S.sel = "auto"; }
+    setBusy(true);
+    try {
+      var place, note = null;
+      if (S.sel === "auto") { setStatus("Konumun bulunuyor…"); var r = await DATA.autoPlace(); place = r.place; note = r.note; }
+      else place = {name:p.name, sub:p.sub || "", lat:p.lat, lon:p.lon};
+      setStatus(place.name + " için hava alınıyor…");
+      var wx = await DATA.forecast(place.lat, place.lon);
+      if (!wx || !wx.hourly || !Array.isArray(wx.hourly.time)) throw {code:"parse"};
+      S.live = {placeKey:S.sel, place:place, wx:wx, fetchedAt:Date.now()};
+      S.mode = "live"; save(); render(); setStatus(note || "");
+    } catch (e) {
+      setStatus(errMsg(e) + (S.mode === "live" ? " Son alınan hava gösteriliyor." : ""), mcpState === "no" ? null : {label:"Tekrar dene", fn:fetchLive});
+      render();
+    } finally { setBusy(false); }
+  }
+  function selectPlace(id){ S.sel = id; save(); togglePanel(false); fetchLive(); }
+  function removePlace(id){
+    var i = -1; S.places.forEach(function(p, k){ if (p.id === id) i = k; }); if (i < 0) return;
+    var p = S.places.splice(i, 1)[0]; if (S.sel === id) S.sel = "auto";
+    save(); render();
+    setStatus(p.name + " silindi.", {label:"Geri al", fn:function(){ S.places.splice(i, 0, p); save(); render(); setStatus(""); }});
+  }
+  function openSearch(){ if (IS_ART && mcpState === "no") { setStatus(NO_LIVE); return; } $("searchForm").hidden = false; $("q").focus(); }
+  function closeSearch(){ $("searchForm").hidden = true; $("results").hidden = true; $("results").textContent = ""; $("q").value = ""; }
+  async function doSearch(q){
+    if (busy) return;
+    setBusy(true); setStatus("“" + q + "” aranıyor…");
+    try {
+      var res = await DATA.search(q), ul = $("results"); ul.textContent = "";
+      res.forEach(function(r){
+        var li = document.createElement("li"), b = document.createElement("button"); b.type = "button";
+        b.innerHTML = esc(r.name) + "<small>" + esc([r.admin2, r.admin1, r.country].filter(Boolean).join(", ")) + "</small>";
+        b.addEventListener("click", function(){
+          var id = "p" + Date.now().toString(36);
+          S.places.push({id:id, name:String(r.name), sub:String(r.admin1 || r.country || ""), lat:+r.latitude, lon:+r.longitude});
+          S.sel = id; save(); closeSearch(); togglePanel(false); fetchLive();
+        });
+        li.appendChild(b); ul.appendChild(li);
+      });
+      ul.hidden = !res.length;
+      setStatus(res.length ? "Kaydetmek için bir sonuç seç." : "Sonuç bulunamadı; başka bir yazımla dene.");
+    } catch (e) { setStatus(errMsg(e), {label:"Tekrar dene", fn:function(){ doSearch(q); }}); }
+    finally { setBusy(false); }
+  }
+
+  /* ================= events ================= */
+  document.addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest(".seg button"); if (!b) return;
+    var key = b.parentElement.dataset.key, v = b.dataset.val;
+    if (key === "hours") S.hours = +v; else if (key === "sky" || key === "wind") S.manual[key] = v; else S[key] = v;
+    save(); render();
+  });
+  $("mTemp").addEventListener("input", function(e){ S.manual.temp = +e.target.value; save(); render(); });
+  $("refresh").addEventListener("click", function(){ fetchLive(); });
+  $("placeBtn").addEventListener("click", function(){ togglePanel($("placePanel").hidden); });
+  $("searchForm").addEventListener("submit", function(e){ e.preventDefault(); var q = $("q").value.trim(); if (q) doSearch(q); });
+  $("cancelSearch").addEventListener("click", function(){ closeSearch(); setStatus(""); });
+
+  /* ================= install (web only) ================= */
+  var deferredPrompt = null;
+  if (!IS_ART) {
+    var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+    window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); deferredPrompt = e; $("installBtn").hidden = false; });
+    window.addEventListener("appinstalled", function(){ deferredPrompt = null; $("installBtn").hidden = true; });
+    $("installBtn").addEventListener("click", function(){ if (!deferredPrompt) return; deferredPrompt.prompt(); Promise.resolve(deferredPrompt.userChoice).catch(function(){}).then(function(){ deferredPrompt = null; $("installBtn").hidden = true; }); });
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var seen = false; try { seen = localStorage.getItem(KEY + ":ioshint") === "1"; } catch (e) {}
+    if (isIOS && !standalone && !seen) $("iosHint").hidden = false;
+    if ("serviceWorker" in navigator && location.protocol === "https:" && !window.NeGiysemAndroid) window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+  } else {
+    $("foot").textContent = "Önizleme: canlı hava, bu sayfa Claude masaüstü uygulamasında açıkken Claude'un tarayıcısıyla Open-Meteo.com'dan okunur. Yüklenebilir uygulama sürümü cihaz konumunu kullanır.";
+  }
+  $("iosHintClose").addEventListener("click", function(){ $("iosHint").hidden = true; try { localStorage.setItem(KEY + ":ioshint", "1"); } catch (e) {} });
+
+  /* ================= boot ================= */
+  async function maybeRefresh(){
+    if (busy) return;
+    if (!navigator.onLine) { if (S.live) setStatus("Çevrimdışısın; son alınan hava gösteriliyor."); return; }
+    if (S.mode === "manual" && S.live) return;
+    var age = S.live ? Date.now() - S.live.fetchedAt : Infinity;
+    if (age < 20 * 60000) return;
+    if (IS_ART) {
+      if (!mcp) return;
+      var st = "prompt"; if (perms) { try { st = await perms.state("mcp:" + HOST); } catch (e) { st = "unavailable"; } }
+      if (st === "unavailable") { mcpState = "no"; render(); return; }
+      if (st === "granted") fetchLive(); else if (!S.live) setStatus("Canlı hava için yenile düğmesine bas ya da sağ üstten konum seç.");
+      return;
+    }
+    if (S.sel !== "auto") { fetchLive(); return; }
+    var gs = "prompt";
+    try { if (navigator.permissions && navigator.permissions.query) gs = (await navigator.permissions.query({name:"geolocation"})).state; } catch (e) {}
+    if (gs === "granted") fetchLive(); else if (!S.live) setStatus("Başlamak için yenile düğmesine bas ya da sağ üstten konum seç.");
+  }
+  render();
+  if (IS_ART) {
+    (async function(){
+      try { mcp = await window.claude.use("mcp"); } catch (e) { mcp = null; }
+      mcpState = mcp ? "yes" : "no";
+      if (mcp) { try { perms = await window.claude.use("permissions"); } catch (e) { perms = null; } }
+      if (!mcp) $("liveHint").textContent = NO_LIVE;
+      maybeRefresh();
+    })();
+  } else {
+    maybeRefresh();
+  }
+  document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") maybeRefresh(); });
+  window.addEventListener("online", function(){ maybeRefresh(); });
+})();
+</script>
+</body>
+</html>

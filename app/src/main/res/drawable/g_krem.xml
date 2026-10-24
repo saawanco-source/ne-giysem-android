@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from the web app's sticker art (krem). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="76dp" android:height="76dp" android:viewportWidth="76" android:viewportHeight="76">
+  <group android:pivotX="38" android:pivotY="38" android:rotation="-5">
+    <group android:translateX="6" android:translateY="6">
+      <path android:pathData="M20 7 L44 7 L40 49 L24 49 Z" android:fillColor="#FFFFFFFF" android:strokeColor="#FFFFFFFF" android:strokeWidth="7.4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M26 49 H38 V58 H26 Z" android:fillColor="#FFFFFFFF" android:strokeColor="#FFFFFFFF" android:strokeWidth="7.4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M26,24a6,6 0 1,0 12,0a6,6 0 1,0 -12,0Z" android:fillColor="#FFFFFFFF" android:strokeColor="#FFFFFFFF" android:strokeWidth="7.4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M20 7 L44 7 L40 49 L24 49 Z" android:fillColor="#FFB347" android:strokeColor="#14161F" android:strokeWidth="2.4" android:strokeAlpha="1" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M26 49 H38 V58 H26 Z" android:fillColor="#FFFFFF" android:strokeColor="#14161F" android:strokeWidth="2.4" android:strokeAlpha="1" android:strokeLineCap="round" android:strokeLineJoin="round" />
+      <path android:pathData="M26,24a6,6 0 1,0 12,0a6,6 0 1,0 -12,0Z" android:fillColor="#FFF3C4" android:strokeColor="#14161F" android:strokeWidth="2.4" android:strokeAlpha="1" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    </group>
+  </group>
+</vector>

@@ -65,6 +65,16 @@ button{font:inherit;color:inherit}
 
 .app{max-width:1120px;margin:0 auto;padding-block:14px 36px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
+/* pull to refresh: a round sticker that comes down from the top and turns into the spinner */
+html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
+.ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:60;width:44px;height:44px;margin-left:-22px;border-radius:50%;
+  background:var(--tip-bg);color:var(--tip-ink);box-shadow:0 8px 20px -8px var(--shadow),0 0 0 1px var(--line);display:grid;place-items:center;
+  transform:translateY(-52px);opacity:0;pointer-events:none}
+.ptr svg{width:21px;height:21px}
+.ptr.back{transition:transform .28s cubic-bezier(.2,.9,.3,1),opacity .28s ease,background-color .2s ease}
+.ptr.ready{background:var(--pill-bg);color:var(--pill-ink)}
+.ptr.spin svg{animation:spin .9s linear infinite}
+
 /* top bar */
 .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 .logo{display:flex;align-items:center;gap:8px;font:800 1.15rem/1 var(--font-display);letter-spacing:-.02em;white-space:nowrap}
@@ -1837,6 +1847,58 @@ button{font:inherit;color:inherit}
     }
     if (e.target.closest("#dayToggle")) { S.dayMode = !S.dayMode; save(); render(); }
   });
+
+  /* ================= pull to refresh ================= */
+  // The Android app and the installed web app have no browser refresh gesture, so the page brings its own:
+  // pulling down at the top of the page refreshes the weather, like the refresh button.
+  (function(){
+    if (IS_ART) return;
+    var ind = document.createElement("div");
+    ind.className = "ptr"; ind.setAttribute("aria-hidden", "true");
+    ind.innerHTML = $("refresh").innerHTML;
+    document.body.appendChild(ind);
+    document.documentElement.classList.add("ptr-on");
+    var startY = null, startX = 0, active = false, dist = 0, running = false;
+    var READY = 64, MAX = 110;
+    function atTop(){ return (document.scrollingElement || document.documentElement).scrollTop <= 0; }
+    function skip(t){ return !t || !t.closest || !!t.closest("input, select, textarea, .hours, .tip-card"); }
+    function draw(d, animate){
+      ind.classList.toggle("back", !!animate);
+      ind.style.transform = "translateY(" + Math.round(d - 52) + "px)" + (running ? "" : " rotate(" + Math.round(d * 3.2) + "deg)");
+      ind.style.opacity = d > 4 ? String(Math.min(1, d / 40)) : "0";
+      ind.classList.toggle("ready", d >= READY && !running);
+    }
+    function reset(){ startY = null; active = false; dist = 0; }
+    document.addEventListener("touchstart", function(e){
+      if (running || e.touches.length !== 1 || !atTop() || skip(e.target)) { startY = null; return; }
+      startY = e.touches[0].clientY; startX = e.touches[0].clientX; active = false; dist = 0;
+    }, {passive:true});
+    document.addEventListener("touchmove", function(e){
+      if (startY == null) return;
+      var dy = e.touches[0].clientY - startY, dx = e.touches[0].clientX - startX;
+      if (!active) {
+        if (dy > 8 && dy > Math.abs(dx) * 1.5 && atTop()) active = true;          // a downward pull at the top
+        else if (dy < -4 || Math.abs(dx) > 14) { startY = null; return; }           // scrolling or swiping instead
+        else return;
+      }
+      if (e.cancelable) e.preventDefault();                                           // no page bounce under the indicator
+      dist = Math.min(MAX, dy * 0.55);
+      draw(dist, false);
+    }, {passive:false});
+    function release(){
+      if (startY == null) return;
+      var go = active && dist >= READY;
+      reset();
+      if (!go || busy) { draw(0, true); return; }
+      running = true; ind.classList.add("spin"); draw(96, true); // rests just under the top bar while loading
+      var t0 = Date.now();
+      Promise.resolve(fetchLive()).catch(function(){}).then(function(){
+        setTimeout(function(){ running = false; ind.classList.remove("spin"); draw(0, true); }, Math.max(0, 450 - (Date.now() - t0)));
+      });
+    }
+    document.addEventListener("touchend", release, {passive:true});
+    document.addEventListener("touchcancel", function(){ reset(); draw(0, true); }, {passive:true});
+  })();
 
   /* ================= install (web only) ================= */
   var deferredPrompt = null;

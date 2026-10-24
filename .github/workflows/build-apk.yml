@@ -193,8 +193,8 @@ jobs:
           MODE: ${{ steps.key.outputs.mode }}
         run: |
           BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
-          apk=out/NeGiysem.apk; aab=out/NeGiysem.aab; problems=""
-          problem() { problems="$problems$1%0A"; echo "!! $1"; }
+          apk=out/NeGiysem.apk; aab=out/NeGiysem.aab
+          problem() { echo "!! $1"; } # collected from the report below; any one stops the build before publishing
           expected="android.permission.INTERNET android.permission.ACCESS_COARSE_LOCATION android.permission.ACCESS_FINE_LOCATION
             android.permission.ACCESS_NETWORK_STATE android.permission.WAKE_LOCK android.permission.RECEIVE_BOOT_COMPLETED
             android.permission.FOREGROUND_SERVICE com.google.android.gms.permission.AD_ID android.permission.ACCESS_ADSERVICES_AD_ID

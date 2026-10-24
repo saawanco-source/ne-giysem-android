@@ -74,6 +74,20 @@ H.run({
     await s.close();
   },
 
+  // Android draws a square blue flash over tapped elements unless the page turns it off.
+  async noTapFlash(t) {
+    const s = await t.open({ seed: seed() });
+    await s.goto(); await sleep(300);
+    await s.openPanel();
+    const r = await s.page.evaluate(() => ["#refresh", "#placeBtn", ".stk", ".mini", "#chips .chip", ".seg button", "summary", ".src a"].map((sel) => {
+      const e = document.querySelector(sel); if (!e) return sel + ": missing";
+      const c = getComputedStyle(e).webkitTapHighlightColor;
+      return /rgba\(0, 0, 0, 0\)|transparent/.test(c) ? null : sel + ": " + c;
+    }).filter(Boolean));
+    check("no tap flash on buttons, stickers, chips and links", !r.length, r);
+    await s.close();
+  },
+
   async pullWhileLoading(t) {
     const s = await t.open({ seed: seed(), net: { delay: { forecast: 1500, photon: 0, omgeo: 0, bdc: 0 } } });
     await s.goto(); await sleep(400);

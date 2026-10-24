@@ -36,6 +36,9 @@ H.run({
     const wx = rain(fc(14), 24 + 8, 13, 63, 90); // tomorrow wet all day
     for (const theme of ["light", "dark"]) {
       const s = await t.open({ seed: seed(wx), ctx: theme === "dark" ? DARK : {} });
+      // Daytime in Istanbul, so today's row still has hours ahead whatever time the suite runs.
+      const ist = new Date(Date.now() + 3 * 3600e3), at10 = Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate(), 7, 0);
+      await s.page.clock.setFixedTime(new Date(at10));
       await s.goto(); await sleep(400);
       const rows = await s.page.$$eval("#week .wk-row", (b) => b.map((x) => ({ text: x.innerText.replace(/\s+/g, " ").trim(), arts: x.querySelectorAll(".wk-arts .art svg").length, expanded: x.getAttribute("aria-expanded") })));
       if (theme === "light") {

@@ -58,12 +58,13 @@ object Updater {
             return
         }
         val snapshot = withContext(Dispatchers.IO) {
+            val lang = store.lang
             var lat = store.lat
             var lon = store.lon
             var name = store.placeName ?: "Konumun"
             if (lat == null || lon == null) {
                 // No place chosen in the app yet: approximate location from the internet connection.
-                val ip = getJson(if (Config.API.isNotEmpty()) Config.API + "/api/ip" else "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=tr")
+                val ip = getJson(if (Config.API.isNotEmpty()) Config.API + "/api/ip" else "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=$lang")
                 val la = ip.optDouble("latitude", Double.NaN)
                 val lo = ip.optDouble("longitude", Double.NaN)
                 if (la.isNaN() || lo.isNaN()) throw IOException("no location")
@@ -79,9 +80,9 @@ object Updater {
             tripPlaces.forEachIndexed { i, p -> all.getOrNull(i + 1)?.let { byPlace[p.id] = it } }
 
             val input = Outfit.parse(wx, store.hours) ?: throw IOException("unexpected forecast")
-            val day = routine?.let { Day.compute(it, byPlace) }
-            val plan = Outfit.plan(day?.input ?: input, store.feel, store.act, store.who, store.missing)
-            Store.widgetSnapshot(plan, input, name, day?.next)
+            val day = routine?.let { Day.compute(it, byPlace, lang = lang) }
+            val plan = Outfit.plan(day?.input ?: input, store.feel, store.act, store.who, store.missing, lang)
+            Store.widgetSnapshot(plan, input, Outfit.ownName(name, lang), day?.next, lang)
         }
         if (Store(context).generation != gen) return // data was deleted while this refresh ran
         store.saveWidget(snapshot)

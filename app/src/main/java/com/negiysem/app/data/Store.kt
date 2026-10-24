@@ -3,6 +3,7 @@ package com.negiysem.app.data
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.Locale
 
 /** Small on-device store shared by the app screen, the widget and the background refresh. */
 class Store(context: Context) {
@@ -17,6 +18,11 @@ class Store(context: Context) {
     /** The person the app screen is dressing: age group and the pieces missing from their wardrobe. */
     val who: String get() = prefs.getString("who", "me") ?: "me"
     val missing: Set<String> get() = prefs.getString("missing", "")?.split(",")?.filter { it.isNotBlank() }?.toSet() ?: emptySet()
+    /**
+     * "tr" or "en", as chosen on the app screen; until the app sends one, the phone's language decides
+     * (Turkish on a Turkish phone, English otherwise), like the page.
+     */
+    val lang: String get() = prefs.getString("lang", null)?.takeIf { it == "tr" || it == "en" } ?: deviceLang()
     val widgetJson: String? get() = prefs.getString("widget", null)
     val routineJson: String? get() = prefs.getString("routine", null)
     val updatedAt: Long get() = prefs.getLong("updated", 0L)
@@ -43,6 +49,12 @@ class Store(context: Context) {
             ?.sorted()?.joinToString(",") ?: ""
         if (feel != this.feel || act != this.act || hours != this.hours || who != this.who || miss != prefs.getString("missing", "")) changed = true
         e.putString("feel", feel).putString("act", act).putInt("hours", hours).putString("who", who).putString("missing", miss)
+        // The widget speaks the app's language: a new one redraws it.
+        val newLang = o.optString("lang", "").takeIf { it == "tr" || it == "en" }
+        if (newLang != null) {
+            if (newLang != prefs.getString("lang", null)) changed = true
+            e.putString("lang", newLang)
+        }
         val place = o.optJSONObject("place")
         if (place != null) {
             val la = place.optDouble("lat", Double.NaN)
@@ -76,15 +88,18 @@ class Store(context: Context) {
     }
 
     companion object {
-        /** The compact snapshot the widget draws. */
-        fun widgetSnapshot(plan: Outfit.Plan, input: Outfit.Input, place: String, next: String? = null): String {
+        fun deviceLang(): String = if (Locale.getDefault().language == "tr") "tr" else "en"
+
+        /** The compact snapshot the widget draws; its texts are in [lang], which the widget's own words follow too. */
+        fun widgetSnapshot(plan: Outfit.Plan, input: Outfit.Input, place: String, next: String? = null, lang: String = "tr"): String {
             val o = JSONObject()
             if (!next.isNullOrBlank()) o.put("next", next)
+            o.put("lang", lang)
             o.put("level", plan.level)
             o.put("headline", plan.headline)
             o.put("temp", input.now.t)
             o.put("feels", input.now.app)
-            o.put("cond", Outfit.condition(input.now.code))
+            o.put("cond", Outfit.condition(input.now.code, lang))
             o.put("isDay", input.now.isDay)
             o.put("place", place)
             o.put("updated", System.currentTimeMillis())

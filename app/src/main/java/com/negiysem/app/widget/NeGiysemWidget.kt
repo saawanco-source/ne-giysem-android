@@ -55,6 +55,8 @@ class NeGiysemWidget : GlanceAppWidget() {
 
     companion object {
         val PLAN = stringPreferencesKey("plan")
+        /** The app's language ("tr" / "en") for the widget's own words when there is no snapshot yet. */
+        val LANG = stringPreferencesKey("lang")
         // Sizes Android lays the widget out for; the layout picked for each keeps its content inside the box.
         private val SMALL = DpSize(110.dp, 110.dp)
         private val WIDE = DpSize(250.dp, 110.dp)
@@ -66,8 +68,9 @@ class NeGiysemWidget : GlanceAppWidget() {
         suspend fun pushAll(context: Context, json: String) {
             val ids = GlanceAppWidgetManager(context).getGlanceIds(NeGiysemWidget::class.java)
             val widget = NeGiysemWidget()
+            val lang = Store(context).lang
             for (id in ids) {
-                updateAppWidgetState(context, id) { prefs -> prefs[PLAN] = json }
+                updateAppWidgetState(context, id) { prefs -> prefs[PLAN] = json; prefs[LANG] = lang }
                 widget.update(context, id)
             }
         }
@@ -77,15 +80,33 @@ class NeGiysemWidget : GlanceAppWidget() {
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val stored = Store(context).widgetJson
-        if (stored != null) {
-            updateAppWidgetState(context, id) { prefs -> if (prefs[PLAN] == null) prefs[PLAN] = stored }
+        val store = Store(context)
+        val stored = store.widgetJson
+        val lang = store.lang
+        updateAppWidgetState(context, id) { prefs ->
+            if (stored != null && prefs[PLAN] == null) prefs[PLAN] = stored
+            prefs[LANG] = lang
         }
         provideContent {
             val prefs = currentState<Preferences>()
-            Body(WidgetData.from(prefs[PLAN]))
+            Body(WidgetData.from(prefs[PLAN], prefs[LANG] ?: lang))
         }
     }
+}
+
+/** The widget's own words in the app's language (the snapshot's texts already come in it). */
+private object Words {
+    private val EN = mapOf(
+        "Uygulamayı aç ve konumunu seç." to "Open the app and choose your location.",
+        "Bugünün kıyafeti bir bakışta" to "Today's outfit at a glance",
+        "Yenile" to "Refresh",
+        "Son güncelleme" to "Last updated",
+        "Sıradaki: " to "Next: ",
+        "Hissedilen " to "Feels like ",
+        "Yanına al: " to "Take along: ",
+        "Güncelleme" to "Updated"
+    )
+    fun of(s: String, lang: String) = if (lang == "en") EN[s] ?: s else s
 }
 
 private data class Garment(val g: String, val label: String)
@@ -93,19 +114,23 @@ private data class Garment(val g: String, val label: String)
 private data class WidgetData(
     val ok: Boolean, val level: Int, val headline: String, val temp: Double, val feels: Double,
     val cond: String, val isDay: Boolean, val place: String, val updated: Long,
-    val wear: List<Garment>, val take: List<Garment>, val pills: List<String>, val next: String = ""
+    val wear: List<Garment>, val take: List<Garment>, val pills: List<String>, val next: String = "", val lang: String = "tr"
 ) {
+    fun w(s: String) = Words.of(s, lang)
+
     companion object {
-        val EMPTY = WidgetData(
-            ok = false, level = 5, headline = "Uygulamayı aç ve konumunu seç.", temp = Double.NaN, feels = Double.NaN,
+        fun empty(lang: String) = WidgetData(
+            ok = false, level = 5, headline = Words.of("Uygulamayı aç ve konumunu seç.", lang), temp = Double.NaN, feels = Double.NaN,
             cond = "", isDay = true, place = "Ne Giysem?", updated = 0L,
-            wear = listOf(Garment("tshirt", "Tişört")), take = emptyList(), pills = emptyList()
+            wear = listOf(Garment("tshirt", Outfit.label("tshirt", lang))), take = emptyList(), pills = emptyList(), lang = lang
         )
 
-        fun from(json: String?): WidgetData {
-            if (json.isNullOrBlank()) return EMPTY
+        /** [lang] is used for the empty widget; a snapshot carries its own (one from before languages existed is Turkish). */
+        fun from(json: String?, lang: String = "tr"): WidgetData {
+            if (json.isNullOrBlank()) return empty(lang)
             return runCatching {
                 val o = JSONObject(json)
+                val sLang = o.optString("lang", "tr").takeIf { it == "tr" || it == "en" } ?: "tr"
                 fun list(key: String): List<Garment> {
                     val a = o.optJSONArray(key) ?: return emptyList()
                     return (0 until a.length()).mapNotNull { i -> a.optJSONObject(i)?.let { Garment(it.optString("g"), it.optString("label")) } }
@@ -119,14 +144,15 @@ private data class WidgetData(
                     feels = o.optDouble("feels", Double.NaN),
                     cond = o.optString("cond"),
                     isDay = o.optBoolean("isDay", true),
-                    place = o.optString("place", "Konumun"),
+                    place = Outfit.ownName(o.optString("place", "Konumun"), sLang),
                     updated = o.optLong("updated", 0L),
                     wear = list("wear"),
                     take = list("take"),
                     pills = if (pillsArr == null) emptyList() else (0 until pillsArr.length()).map { pillsArr.optString(it) },
-                    next = o.optString("next", "")
+                    next = o.optString("next", ""),
+                    lang = sLang
                 )
-            }.getOrDefault(EMPTY)
+            }.getOrDefault(empty(lang))
         }
     }
 }
@@ -176,7 +202,7 @@ private fun Sticker(g: Garment, size: Dp) {
 }
 
 @Composable
-private fun RefreshIcon(p: Palette) {
+private fun RefreshIcon(p: Palette, d: WidgetData) {
     // A 40 dp touch area around the 22 dp icon.
     Box(
         modifier = GlanceModifier.size(40.dp).clickable(actionRunCallback<RefreshAction>()),
@@ -184,7 +210,7 @@ private fun RefreshIcon(p: Palette) {
     ) {
         Image(
             provider = ImageProvider(if (p.night) R.drawable.ic_refresh_light else R.drawable.ic_refresh_ink),
-            contentDescription = "Yenile",
+            contentDescription = d.w("Yenile"),
             modifier = GlanceModifier.size(22.dp)
         )
     }
@@ -193,7 +219,7 @@ private fun RefreshIcon(p: Palette) {
 /** "Son güncelleme 08:10" when the snapshot is more than two hours old (the phone may have put the app to sleep). */
 private fun staleText(d: WidgetData): String? {
     if (!d.ok || d.updated <= 0 || System.currentTimeMillis() - d.updated < 2 * 3_600_000L) return null
-    return "Son güncelleme " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(d.updated))
+    return d.w("Son güncelleme") + " " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(d.updated))
 }
 
 @Composable
@@ -221,9 +247,9 @@ private fun SmallLayout(d: WidgetData, p: Palette) {
     Column(modifier = GlanceModifier.fillMaxSize().padding(10.dp)) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(deg(d.temp), style = style(p.ink, 28), modifier = GlanceModifier.defaultWeight(), maxLines = 1)
-            RefreshIcon(p)
+            RefreshIcon(p, d)
         }
-        Text(staleText(d) ?: if (d.ok) Outfit.LEVEL_NAMES[d.level] else "Ne Giysem?", style = style(p.sub, 12), maxLines = 1)
+        Text(staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?", style = style(p.sub, 12), maxLines = 1)
         Spacer(GlanceModifier.defaultWeight())
         Row(verticalAlignment = Alignment.CenterVertically) {
             d.wear.take(2).forEachIndexed { i, g ->
@@ -241,20 +267,20 @@ private fun Header(d: WidgetData, p: Palette, tempSize: Int) {
         Spacer(GlanceModifier.width(10.dp))
         Column(modifier = GlanceModifier.defaultWeight()) {
             Text(
-                if (d.ok) d.place + " · " + Outfit.LEVEL_NAMES[d.level] else "Ne Giysem?",
+                if (d.ok) d.place + " · " + Outfit.levelName(d.level, d.lang) else "Ne Giysem?",
                 style = style(p.ink, 13), maxLines = 1
             )
             Text(
                 when {
-                    !d.ok -> "Bugünün kıyafeti bir bakışta"
+                    !d.ok -> d.w("Bugünün kıyafeti bir bakışta")
                     staleText(d) != null -> staleText(d)!!
-                    d.next.isNotEmpty() -> "Sıradaki: " + d.next
-                    else -> "Hissedilen " + deg(d.feels) + " · " + d.cond
+                    d.next.isNotEmpty() -> d.w("Sıradaki: ") + d.next
+                    else -> d.w("Hissedilen ") + deg(d.feels) + " · " + d.cond
                 },
                 style = style(p.sub, 12, bold = d.next.isNotEmpty() || staleText(d) != null), maxLines = 1
             )
         }
-        RefreshIcon(p)
+        RefreshIcon(p, d)
     }
 }
 
@@ -313,9 +339,9 @@ private fun TallLayout(d: WidgetData, p: Palette, roomy: Boolean) {
         if (d.take.isNotEmpty() || d.updated > 0) {
             Spacer(GlanceModifier.height(8.dp))
             val time = if (d.updated > 0) SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(d.updated)) else ""
-            val takeText = if (d.take.isNotEmpty()) "Yanına al: " + d.take.take(3).joinToString(", ") { it.label } else ""
+            val takeText = if (d.take.isNotEmpty()) d.w("Yanına al: ") + d.take.take(3).joinToString(", ") { it.label } else ""
             Text(
-                listOf(takeText, if (time.isNotEmpty()) "Güncelleme $time" else "").filter { it.isNotEmpty() }.joinToString("  ·  "),
+                listOf(takeText, if (time.isNotEmpty()) d.w("Güncelleme") + " " + time else "").filter { it.isNotEmpty() }.joinToString("  ·  "),
                 style = style(p.sub, 12), maxLines = if (roomy) 2 else 1
             )
         }

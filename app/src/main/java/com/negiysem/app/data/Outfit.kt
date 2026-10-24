@@ -10,12 +10,17 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-/** Same outfit rules as the web app (index.html → plan()), ported for the home-screen widget. */
+/**
+ * Same outfit rules as the web app (index.html → plan()), ported for the home-screen widget.
+ * [lang] is "tr" or "en"; the English text is the web app's English (index.html → EN), word for word
+ * (tests/parity compares both languages). What the engine decides never depends on the language.
+ */
 object Outfit {
 
     private val TR = Locale("tr", "TR")
 
     val LEVEL_NAMES = listOf("Dondurucu", "Çok soğuk", "Soğuk", "Soğukça", "Serin", "Ilık", "Sıcak", "Çok sıcak")
+    val LEVEL_NAMES_EN = listOf("Freezing", "Very cold", "Cold", "Chilly", "Cool", "Mild", "Warm", "Hot")
     private val LEVEL_MIN = doubleArrayOf(Double.NEGATIVE_INFINITY, -3.0, 3.0, 8.0, 13.0, 17.0, 21.0, 26.0)
     val LEVEL_COLORS = longArrayOf(0xFF86AEFF, 0xFF9CCBF7, 0xFF86D6C6, 0xFFAEDD8E, 0xFFE6E86E, 0xFFFFD65E, 0xFFFFAD62, 0xFFFF8270)
 
@@ -27,6 +32,15 @@ object Outfit {
         "spor" to "Spor ayakkabı", "bot" to "Bot", "yuruyus" to "Yürüyüş botu", "sandalet" to "Sandalet", "bere" to "Bere",
         "sapka" to "Şapka", "semsiye" to "Şemsiye", "gozluk" to "Güneş gözlüğü", "atki" to "Atkı", "eldiven" to "Eldiven",
         "su" to "Su", "krem" to "Güneş kremi", "corap" to "Yedek çorap"
+    )
+    val LABELS_EN = mapOf(
+        "tshirt" to "T-shirt", "longsleeve" to "Long sleeve", "thermal" to "Thermal top", "sweatshirt" to "Sweatshirt",
+        "hirka" to "Cardigan", "kazak" to "Sweater", "ceket" to "Light jacket", "mont" to "Jacket", "kaban" to "Wool coat",
+        "sisme" to "Puffer jacket", "parka" to "Parka", "yagmurluk" to "Raincoat", "ruzgarlik" to "Windbreaker",
+        "jean" to "Jeans", "pantolon" to "Warm pants", "sort" to "Shorts", "tayt" to "Leggings", "sneaker" to "Sneakers",
+        "spor" to "Running shoes", "bot" to "Boots", "yuruyus" to "Hiking boots", "sandalet" to "Sandals", "bere" to "Beanie",
+        "sapka" to "Cap", "semsiye" to "Umbrella", "gozluk" to "Sunglasses", "atki" to "Scarf", "eldiven" to "Gloves",
+        "su" to "Water", "krem" to "Sunscreen", "corap" to "Spare socks"
     )
     private val ACC = mapOf(
         "hirka" to "Hırkanı", "ceket" to "İnce ceketini", "mont" to "Montunu", "kaban" to "Kabanını", "sisme" to "Şişme montunu",
@@ -59,6 +73,8 @@ object Outfit {
     )
 
     val WIND_NAMES = listOf("Yıldız", "Poyraz", "Gündoğusu", "Keşişleme", "Kıble", "Lodos", "Günbatısı", "Karayel")
+    /** English gives the compass direction instead of the Turkish wind names. */
+    val WIND_NAMES_EN = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
 
     private val COND = mapOf(
         0 to "Açık", 1 to "Çoğunlukla açık", 2 to "Parçalı bulutlu", 3 to "Kapalı", 45 to "Sisli", 48 to "Kırağılı sis",
@@ -68,6 +84,50 @@ object Outfit {
         82 to "Şiddetli sağanak", 85 to "Kar sağanağı", 86 to "Yoğun kar sağanağı", 95 to "Gök gürültülü fırtına",
         96 to "Dolulu fırtına", 99 to "Şiddetli dolulu fırtına"
     )
+
+    /** English for the engine's fixed Turkish text (headlines, labels, pills, conditions), as in index.html → EN. */
+    private val EN = mapOf(
+        // conditions
+        "Açık" to "Clear", "Çoğunlukla açık" to "Mostly clear", "Parçalı bulutlu" to "Partly cloudy", "Kapalı" to "Overcast",
+        "Sisli" to "Foggy", "Kırağılı sis" to "Freezing fog", "Hafif çisenti" to "Light drizzle", "Çisenti" to "Drizzle",
+        "Yoğun çisenti" to "Heavy drizzle", "Donan çisenti" to "Freezing drizzle", "Hafif yağmur" to "Light rain", "Yağmurlu" to "Rainy",
+        "Kuvvetli yağmur" to "Heavy rain", "Donan yağmur" to "Freezing rain", "Hafif kar" to "Light snow", "Karlı" to "Snowy",
+        "Yoğun kar" to "Heavy snow", "Kar taneleri" to "Snow grains", "Hafif sağanak" to "Light showers", "Sağanak" to "Showers",
+        "Şiddetli sağanak" to "Heavy showers", "Kar sağanağı" to "Snow showers", "Yoğun kar sağanağı" to "Heavy snow showers",
+        "Gök gürültülü fırtına" to "Thunderstorm", "Dolulu fırtına" to "Thunderstorm with hail", "Şiddetli dolulu fırtına" to "Severe thunderstorm with hail",
+        // parts of the day
+        "sabah" to "morning", "öğleden sonra" to "afternoon", "akşam" to "evening", "gece" to "night",
+        // headlines
+        "Kat kat giy: termal, kazak, {parka}." to "Layer up: thermal, sweater, {parka}.",
+        "{Şişme mont}, bere, eldiven: tam kış." to "{Puffer jacket}, beanie, gloves: full winter.",
+        "{Kaban} ve atkı zamanı." to "Time for a {wool coat} and scarf.",
+        "Kazak üstüne {mont} giy." to "Wear a {jacket} over a sweater.",
+        "{Sweatshirt} havası, ince ceketi yanına al." to "{Sweatshirt} weather, bring a light jacket.",
+        "{Tişört} yeter, yanına ince bir hırka al." to "A {T-shirt} will do, bring a light cardigan.",
+        "Bugün {tişört} havası." to "{T-shirt} weather today.",
+        "En {hafif} kıyafetlerini giy, bol su iç." to "Wear your {lightest} clothes, drink lots of water.",
+        "{Şort} ve tişörtle çık, su al." to "Go out in {shorts} and a T-shirt, take water.",
+        "{Uzun kollu} ve tayt yeter." to "A {long sleeve} and leggings will do.",
+        "Tayta {rüzgarlık} ekle, ısınınca açarsın." to "Add a {windbreaker} to your leggings, unzip it as you warm up.",
+        "{Termal} katman ve rüzgarlık şart." to "A {thermal} layer and a windbreaker are a must.",
+        "Yağmur var: su itici {rüzgarlık} giy, kaymayan taban seç." to "Rain today: wear a water-repellent {windbreaker} and shoes that grip.",
+        "{Kapüşonlu yağmurluğunu} giy; rüzgarda şemsiye uçar." to "Wear your {hooded raincoat}; umbrellas fly away in this wind.",
+        "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgarda şemsiye uçar." to "Wear a waterproof, {hooded} outer layer; umbrellas fly away in this wind.",
+        "{Yağmurluğunu} giy, şemsiyeni al." to "Wear your {raincoat}, take your umbrella.",
+        // labels set by the weather
+        "Uzun pantolon" to "Long pants", "Su itici rüzgarlık" to "Water-repellent windbreaker", "İnce yağmurluk" to "Light raincoat",
+        "Su geçirmez ayakkabı" to "Waterproof shoes", "Kaymaz bot" to "Non-slip boots",
+        // pills
+        "Yağmur yağıyor" to "Raining", "Kar yağıyor" to "Snowing", "Kar" to "Snow", "Buzlanma" to "Icy", "Fırtına" to "Storm",
+        "UV yüksek" to "High UV", "Sis" to "Fog",
+        // my day (Day.kt) and stored names
+        "Bugün" to "Today", "Yarın" to "Tomorrow",
+        "Pazar" to "Sunday", "Pazartesi" to "Monday", "Salı" to "Tuesday", "Çarşamba" to "Wednesday", "Perşembe" to "Thursday",
+        "Cuma" to "Friday", "Cumartesi" to "Saturday",
+        "Konumun" to "Your location", "Kayıtlı yer" to "Saved place"
+    )
+    /** Names the app stores itself in Turkish (a place without a name); anything else is the person's own text. */
+    private val OWN = setOf("Konumun", "Kayıtlı yer")
 
     private data class Base(val wear: List<String>, val take: List<String>, val head: String)
 
@@ -102,18 +162,34 @@ object Outfit {
         val pills: List<String>, val mine: Double
     )
 
+    /** Fixed Turkish text in [lang] ("tr" leaves it as it is). */
+    fun t(s: String, lang: String): String = if (lang == "en") EN[s] ?: s else s
+    /** A name the app stored itself ("Konumun") in [lang]; the person's own names stay as they are. */
+    fun ownName(s: String, lang: String): String = if (s in OWN) t(s, lang) else s
+    fun label(g: String, lang: String = "tr"): String = (if (lang == "en") LABELS_EN else LABELS).getValue(g)
+    fun levelName(level: Int, lang: String = "tr"): String = (if (lang == "en") LEVEL_NAMES_EN else LEVEL_NAMES)[level]
+
     fun isRain(c: Int) = (c in 51..67) || (c in 80..82) || c >= 95
     fun isSnow(c: Int) = (c in 71..77) || c == 85 || c == 86
-    fun condition(c: Int): String = COND[c] ?: ""
+    fun condition(c: Int, lang: String = "tr"): String = t(COND[c] ?: "", lang)
     private fun levelOf(e: Double): Int { var l = 0; for (i in LEVEL_MIN.indices) if (e >= LEVEL_MIN[i]) l = i; return l }
     private fun windIdx(d: Double?): Int = if (d == null || d.isNaN()) -1 else (((d % 360 + 360) % 360) / 45.0).roundToInt() % 8
     fun deg(v: Double): String { val r = v.roundToInt(); return (if (r < 0) "−${-r}" else "$r") + "°" }
-    private fun cap(s: String) = if (s.isEmpty()) s else s.substring(0, 1).uppercase(TR) + s.substring(1)
-    private fun lcf(s: String) = if (s.isEmpty()) s else s.substring(0, 1).lowercase(TR) + s.substring(1)
+    private fun cap(s: String, en: Boolean) = if (s.isEmpty()) s else s.substring(0, 1).uppercase(if (en) Locale.ROOT else TR) + s.substring(1)
+    /** First letter in lower case; English keeps "T-shirt" and acronyms as they are (same as the page's lcf()). */
+    private fun lcf(s: String, en: Boolean): String = when {
+        s.isEmpty() -> s
+        en -> if (Regex("^[A-Z][-A-Z]").containsMatchIn(s)) s else s.substring(0, 1).lowercase(Locale.ROOT) + s.substring(1)
+        else -> s.substring(0, 1).lowercase(TR) + s.substring(1)
+    }
+    /** A name used inside a sentence (the page's low()). */
+    private fun low(s: String, en: Boolean) = if (en) lcf(s, true) else s.lowercase(TR)
     private fun daypart(t: String): String {
         val h = t.substring(11, 13).toIntOrNull() ?: 18
         return when (h) { in 5..11 -> "sabah"; in 12..16 -> "öğleden sonra"; in 17..20 -> "akşam"; else -> "gece" }
     }
+    /** "akşam soğuyor" / "it gets cold in the evening" */
+    private fun dpAt(dp: String) = when (dp) { "sabah" -> "in the morning"; "öğleden sonra" -> "in the afternoon"; "akşam" -> "in the evening"; else -> "at night" }
 
     private fun JSONArray?.d(i: Int): Double = if (this == null || i >= length() || isNull(i)) Double.NaN else optDouble(i, Double.NaN)
     private fun JSONObject?.d(k: String): Double = if (this == null || isNull(k)) Double.NaN else optDouble(k, Double.NaN)
@@ -172,11 +248,14 @@ object Outfit {
     /**
      * [who]: "me", "child" or "elder" (children and older people are dressed as if it were 2° colder).
      * [missing]: pieces the person doesn't have; the closest piece they do have is suggested instead.
+     * [lang]: "tr" or "en", the language of the headline, labels and pills.
      */
-    fun plan(inp: Input, feel: String, act: String, who: String = "me", missing: Set<String> = emptySet()): Plan {
+    fun plan(inp: Input, feel: String, act: String, who: String = "me", missing: Set<String> = emptySet(), lang: String = "tr"): Plan {
+        val en = lang == "en"
         val off = (when (feel) { "cold" -> -3.0; "warm" -> 3.0; else -> 0.0 }) + (when (act) { "field" -> -1.0; "sport" -> 6.0; else -> 0.0 }) +
             (WHO_OFF[who] ?: 0.0)
         fun owned(g: String) = g !in missing
+        fun lab(g: String) = label(g, lang)
         val w = inp.window.filter { !it.app.isNaN() }
         val rawNow = inp.now.app
         var rawLow = rawNow; var rawHigh = rawNow; var lowAt: String? = null; var highAt: String? = null
@@ -192,17 +271,19 @@ object Outfit {
         val sport = act == "sport"
         val base = if (sport) sport(level) else OUT[level]
         val night = !inp.now.isDay && !inp.uvDay
-        val wear = base.wear.filter { !(night && it == "sapka") }.map { Item(it, LABELS.getValue(it)) }.toMutableList()
-        var take = base.take.map { Item(it, LABELS.getValue(it)) }.toMutableList()
-        var head = base.head
+        val wear = base.wear.filter { !(night && it == "sapka") }.map { Item(it, lab(it)) }.toMutableList()
+        var take = base.take.map { Item(it, lab(it)) }.toMutableList()
+        // head is the verdict shown; headT the same verdict in Turkish, for noticing the pieces it names (below).
+        var head = t(base.head, lang)
+        var headT = base.head
         val pills = ArrayList<String>()
 
         fun has(g: String) = wear.any { it.g == g }
-        fun swap(group: Set<String>, g: String, label: String = LABELS.getValue(g)) {
+        fun swap(group: Set<String>, g: String, label: String = lab(g)) {
             val i = wear.indexOfFirst { it.g in group }
             if (i >= 0) wear[i] = Item(g, label) else wear.add(Item(g, label))
         }
-        fun addTake(g: String, label: String = LABELS.getValue(g), first: Boolean = false) {
+        fun addTake(g: String, label: String = lab(g), first: Boolean = false) {
             if (has(g) || take.any { it.g == g }) return
             if (first) take.add(0, Item(g, label)) else take.add(Item(g, label))
         }
@@ -228,9 +309,9 @@ object Outfit {
         val hasOuter = wear.any { it.g in OUTER }
 
         if (act == "field") {
-            swap(BOTTOMS, "pantolon", "Uzun pantolon")
+            swap(BOTTOMS, "pantolon", t("Uzun pantolon", lang))
             swap(SHOES, "yuruyus")
-            if (level >= 5 && !night && !has("sapka")) wear.add(Item("sapka", LABELS.getValue("sapka")))
+            if (level >= 5 && !night && !has("sapka")) wear.add(Item("sapka", lab("sapka")))
         }
 
         var lowPool: List<String> = emptyList()
@@ -249,19 +330,23 @@ object Outfit {
                 addTake(cand, first = true)
                 carry = cand
                 val acc = ACC[cand]
-                if (acc != null && !sport) head = "{$acc} yanına al, $dp " + (if (rawLow + off < 8) "soğuyor" else "serinliyor") + "."
+                if (acc != null && !sport) {
+                    val cold = rawLow + off < 8
+                    headT = "{$acc} yanına al, $dp " + (if (cold) "soğuyor" else "serinliyor") + "."
+                    head = if (en) "Take your {" + low(lab(cand), true) + "}, it gets " + (if (cold) "cold" else "chilly") + " " + dpAt(dp) + "." else headT
+                }
             }
-            pills.add(cap(dp) + " " + deg(rawLow))
+            pills.add(cap(t(dp, lang), en) + " " + deg(rawLow))
         } else if (lHigh > level && highAt != null) {
-            pills.add(cap(daypart(highAt)) + " " + deg(rawHigh))
+            pills.add(cap(t(daypart(highAt), lang), en) + " " + deg(rawHigh))
         }
 
         if (wet) {
-            pills.add(0, if (rainNow) "Yağmur yağıyor" else "Yağmur %$pMax")
+            pills.add(0, if (rainNow) t("Yağmur yağıyor", lang) else if (en) "Rain $pMax%" else "Yağmur %$pMax")
             if (sport) {
                 // No umbrella while running: a water-repellent shell instead.
-                if (!has("ruzgarlik")) wear.add(Item("ruzgarlik", "Su itici rüzgarlık"))
-                head = "Yağmur var: su itici {rüzgarlık} giy, kaymayan taban seç."
+                if (!has("ruzgarlik")) wear.add(Item("ruzgarlik", t("Su itici rüzgarlık", lang)))
+                headT = "Yağmur var: su itici {rüzgarlık} giy, kaymayan taban seç."; head = t(headT, lang)
             } else {
                 var addedCoat = false
                 val hot = level >= 6
@@ -269,41 +354,52 @@ object Outfit {
                     // Something waterproof is worn, not carried: a raincoat replaces the jacket to take along.
                     val dropped = takesOuter()
                     take = take.filter { it.g !in OUTER }.toMutableList()
-                    wear.add(Item("yagmurluk", if (hot) "İnce yağmurluk" else LABELS.getValue("yagmurluk"))); addedCoat = true
+                    wear.add(Item("yagmurluk", if (hot) t("İnce yağmurluk", lang) else lab("yagmurluk"))); addedCoat = true
                     if (dropped && carry != null && carry in OUTER) lowPool.firstOrNull { it in MID && !has(it) }?.let { addTake(it, first = true) }
                 }
-                if (act == "city" && !hot && wear.any { it.g == "sneaker" || it.g == "sandalet" }) swap(SHOES, "bot", "Su geçirmez ayakkabı")
-                if (windy) head = if (addedCoat) "{Kapüşonlu yağmurluğunu} giy; rüzgarda şemsiye uçar." else "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgarda şemsiye uçar."
-                else {
+                if (act == "city" && !hot && wear.any { it.g == "sneaker" || it.g == "sandalet" }) swap(SHOES, "bot", t("Su geçirmez ayakkabı", lang))
+                if (windy) {
+                    headT = if (addedCoat) "{Kapüşonlu yağmurluğunu} giy; rüzgarda şemsiye uçar." else "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgarda şemsiye uçar."
+                    head = t(headT, lang)
+                } else {
                     addTake("semsiye", first = true)
-                    head = if (addedCoat) "{Yağmurluğunu} giy, şemsiyeni al." else "{Şemsiyeni} al; " + lcf(strip(head))
+                    if (addedCoat) { headT = "{Yağmurluğunu} giy, şemsiyeni al."; head = t(headT, lang) }
+                    else {
+                        val umbT = "{Şemsiyeni} al; " + lcf(strip(headT), false)
+                        head = if (en) "Take your {umbrella}; " + lcf(strip(head), true) else umbT
+                        headT = umbT
+                    }
                 }
             }
         } else if (maybe) {
-            pills.add("Yağmur ihtimali %$pMax")
-            if (!windy && !sport) addTake("semsiye", "Şemsiye (%$pMax)")
+            pills.add(if (en) "Chance of rain $pMax%" else "Yağmur ihtimali %$pMax")
+            if (!windy && !sport) addTake("semsiye", if (en) "Umbrella ($pMax%)" else "Şemsiye (%$pMax)")
         }
         if (snowy) {
-            pills.add(0, if (snowNow) "Kar yağıyor" else "Kar")
-            if (!sport) swap(SHOES, "bot", "Kaymaz bot")
+            pills.add(0, t(if (snowNow) "Kar yağıyor" else "Kar", lang))
+            if (!sport) swap(SHOES, "bot", t("Kaymaz bot", lang))
             addTake("eldiven")
         }
         if (icy) {
-            pills.add(0, "Buzlanma")
-            if (act == "city") swap(SHOES, "bot", "Kaymaz bot")
+            pills.add(0, t("Buzlanma", lang))
+            if (act == "city") swap(SHOES, "bot", t("Kaymaz bot", lang))
         }
-        if (thunder) pills.add(0, "Fırtına")
+        if (thunder) pills.add(0, t("Fırtına", lang))
         if (windy) {
-            pills.add((if (wi >= 0) WIND_NAMES[wi] + " " else "Rüzgar ") + (if (windMax >= 28) "$windMax km/sa" else "hamlede $gust km/sa"))
+            // "Poyraz 32 km/sa" / "NE wind 32 km/h"
+            pills.add(
+                if (en) (if (wi >= 0) WIND_NAMES_EN[wi] + " wind" else "Wind") + (if (windMax >= 28) " $windMax km/h" else ", gusts $gust km/h")
+                else (if (wi >= 0) WIND_NAMES[wi] + " " else "Rüzgar ") + (if (windMax >= 28) "$windMax km/sa" else "hamlede $gust km/sa")
+            )
             if (!hasOuter && level in 4..5 && !sport && outerNow() == null && !takesOuter()) addTake("ruzgarlik")
         }
         val rainAllDay = wet && w.isNotEmpty() && w.all { isRain(it.code) }
         val uv = inp.uvMax
         if (inp.uvDay && uv != null && !rainAllDay) {
-            if (uv >= 6) { addTake("gozluk"); addTake("krem"); addTake("sapka"); pills.add("UV yüksek") }
+            if (uv >= 6) { addTake("gozluk"); addTake("krem"); addTake("sapka"); pills.add(t("UV yüksek", lang)) }
             else if (uv >= 3 && rawNow >= 15) addTake("gozluk")
         }
-        if (codes.any { it == 45 || it == 48 }) pills.add("Sis")
+        if (codes.any { it == 45 || it == 48 }) pills.add(t("Sis", lang))
         if (act == "field" && wet) addTake("corap")
 
         // Wardrobe: a missing piece becomes the closest one the person has; clothes with no stand-in stay (marked), accessories go.
@@ -317,7 +413,7 @@ object Outfit {
                     val alt = SUBS[g].orEmpty().firstOrNull { x -> owned(x) && !has(x) && take.none { it.g == x } }
                     lost.add(g)
                     when {
-                        alt != null -> list[i] = Item(alt, LABELS.getValue(alt))
+                        alt != null -> list[i] = Item(alt, lab(alt))
                         li == 0 && g in MUST -> list[i] = list[i].copy(need = true)
                         else -> list.removeAt(i)
                     }
@@ -326,19 +422,27 @@ object Outfit {
             }
         }
         // A headline that names a piece the person doesn't have is rewritten from what they will actually wear.
-        val hl = head.lowercase(TR)
+        // (Decided on the Turkish verdict, so both languages rewrite the same verdicts.)
+        val hl = headT.lowercase(TR)
         if (wear.isNotEmpty() && lost.any { g -> val st = STEMS[g]; st != null && hl.contains(st) && wear.none { it.g == g } }) {
             val outerIt = wear.firstOrNull { it.g in OUTER }
             val midIt = wear.firstOrNull { it.g in MID }
             val firstIt = outerIt ?: midIt ?: wear[0]
             val carryIt = take.firstOrNull { it.g != "semsiye" }
-            val gh = "{" + firstIt.label + "}" + (if (outerIt != null && midIt != null) " ve " + midIt.label.lowercase(TR) else "") + " giy" +
-                (if (carryIt != null) ", yanına " + carryIt.label.lowercase(TR) + " al" else "") + "."
-            head = if (head.startsWith("{Şemsiyeni} al; ") && take.any { it.g == "semsiye" }) "{Şemsiyeni} al; " + lcf(strip(gh)) else gh
+            val gh = if (en) "Wear the {" + low(firstIt.label, true) + "}" + (if (outerIt != null && midIt != null) " and " + low(midIt.label, true) else "") +
+                    (if (carryIt != null) ", bring the " + low(carryIt.label, true) else "") + "."
+                else "{" + firstIt.label + "}" + (if (outerIt != null && midIt != null) " ve " + midIt.label.lowercase(TR) else "") + " giy" +
+                    (if (carryIt != null) ", yanına " + carryIt.label.lowercase(TR) + " al" else "") + "."
+            head = if (headT.startsWith("{Şemsiyeni} al; ") && take.any { it.g == "semsiye" })
+                (if (en) "Take your {umbrella}; " else "{Şemsiyeni} al; ") + lcf(strip(gh), en) else gh
         }
 
         return Plan(level, head, wear.take(6), take.take(5), pills.take(3), e)
     }
 
-    fun windName(dir: Double?): String? { val i = windIdx(dir); return if (i >= 0) WIND_NAMES[i] else null }
+    /** The wind's name for a direction: "Poyraz" / "NE wind". */
+    fun windName(dir: Double?, lang: String = "tr"): String? {
+        val i = windIdx(dir)
+        return if (i < 0) null else if (lang == "en") WIND_NAMES_EN[i] + " wind" else WIND_NAMES[i]
+    }
 }

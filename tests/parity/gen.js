@@ -54,7 +54,8 @@ function genWx(opts) {
 
 const pad = n => ("0" + n).slice(-2);
 function genRoutine() {
-  const places = [{ id: "P1", name: "Ev", lat: 41.0, lon: 28.7 }, { id: "P2", name: "Okul", lat: 41.17, lon: 28.99 }];
+  // "Kayıtlı yer" is the name the app gives a saved place itself; both sides show it in the case's language.
+  const places = [{ id: "P1", name: C(0.15) ? "Kayıtlı yer" : "Ev", lat: 41.0, lon: 28.7 }, { id: "P2", name: "Okul", lat: 41.17, lon: 28.99 }];
   if (C(0.5)) places.push({ id: "P3", name: "Spor salonu", lat: 41.05, lon: 29.0 });
   const ids = places.map(p => p.id).concat(C(0.05) ? ["P9"] : []);
   const trips = [], routes = [];
@@ -88,7 +89,8 @@ for (let i = 0; i < N; i++) {
   // The person being dressed: age group and (in a third of the cases) a few pieces missing from the wardrobe.
   const ALL = ["tshirt","longsleeve","thermal","sweatshirt","hirka","kazak","ceket","ruzgarlik","yagmurluk","mont","kaban","sisme","parka","jean","pantolon","sort","tayt","sneaker","spor","bot","yuruyus","sandalet","bere","atki","eldiven","sapka","gozluk","semsiye","krem"];
   const missing = C(0.33) ? ALL.filter(() => C(0.25)) : [];
-  const c = { id: "c" + i, who: P(["me", "me", "child", "elder"]), missing, hours: P([3, 6, 12]), feel: P(["cold", "normal", "warm"]), act: P(["city", "field", "sport"]), agoMin: C(0.8) ? 0 : P([30, 50, 120]),
+  // lang: the app's language, half the cases in each (headline, labels, pills and the "next" line must match in both)
+  const c = { id: "c" + i, lang: P(["tr", "en"]), who: P(["me", "me", "child", "elder"]), missing, hours: P([3, 6, 12]), feel: P(["cold", "normal", "warm"]), act: P(["city", "field", "sport"]), agoMin: C(0.8) ? 0 : P([30, 50, 120]),
     wx: genWx({ offset, edge, days: 8 }) };
   if (edge) c.edge = edge[0];
   if (C(0.45)) {
@@ -99,4 +101,4 @@ for (let i = 0; i < N; i++) {
   cases.push(c);
 }
 fs.writeFileSync(process.argv[2], JSON.stringify(cases));
-console.log("cases", cases.length, "routine", cases.filter(c => c.routine).length, "edge", cases.filter(c => c.edge).length);
+console.log("cases", cases.length, "routine", cases.filter(c => c.routine).length, "edge", cases.filter(c => c.edge).length, "en", cases.filter(c => c.lang === "en").length);

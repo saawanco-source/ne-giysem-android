@@ -3,7 +3,8 @@ const fs = require("fs");
 const js = JSON.parse(fs.readFileSync(process.argv[2], "utf8")), kt = JSON.parse(fs.readFileSync(process.argv[3], "utf8"));
 const cases = process.argv[4] ? JSON.parse(fs.readFileSync(process.argv[4], "utf8")) : null;
 const byId = {}; kt.forEach(r => byId[r.id] = r);
-const F = ["err", "useDay", "level", "head", "wear", "take", "pills"];
+// next: the widget's "next trip" line (day names, "Tomorrow", "outside N min") in the case's language
+const F = ["err", "useDay", "level", "head", "wear", "take", "pills", "next"];
 let mism = 0, n = 0; const kinds = {}, ex = {};
 js.forEach((a, i) => {
   const b = byId[a.id]; n++;
@@ -11,7 +12,7 @@ js.forEach((a, i) => {
   if (diffs.length) {
     mism++;
     const c = cases && cases[i];
-    const k = diffs.join("+") + (c && c.edge ? " [edge " + c.edge + "]" : c && c.routine ? " [routine]" : "");
+    const k = diffs.join("+") + (c && c.edge ? " [edge " + c.edge + "]" : c && c.routine ? " [routine]" : "") + (c && c.lang ? " [" + c.lang + "]" : "");
     kinds[k] = (kinds[k] || 0) + 1;
     (ex[k] = ex[k] || []).push({ id: a.id, js: Object.fromEntries(diffs.map(f => [f, a[f]])), kt: Object.fromEntries(diffs.map(f => [f, b[f]])), jsE: a.E, ktE: b.E, extra: { off: a.dayOffset, lead: a.lead, items: a.dayItems } });
   }

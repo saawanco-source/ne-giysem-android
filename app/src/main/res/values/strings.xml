@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Default (any phone language but Turkish, like the app screen's default): English. Turkish is in values-tr. -->
 <resources>
     <string name="app_name">Ne Giysem?</string>
     <string name="widget_name">Ne Giysem?</string>
-    <string name="widget_desc">Bugünün kıyafeti bir bakışta</string>
+    <string name="widget_desc">Today\'s outfit at a glance</string>
 </resources>

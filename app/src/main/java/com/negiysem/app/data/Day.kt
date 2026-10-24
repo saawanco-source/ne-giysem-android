@@ -149,7 +149,8 @@ object Day {
     }
     private val DAY_NAMES = listOf("Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi")
 
-    fun compute(r: Routine, byPlace: Map<String, JSONObject>, now: Long = System.currentTimeMillis()): Result? {
+    /** [lang] ("tr" or "en") is the language of the "next" line: "Yarın 08:00 Ev → Okul · Rota 1 · dışarıda 12 dk". */
+    fun compute(r: Routine, byPlace: Map<String, JSONObject>, now: Long = System.currentTimeMillis(), lang: String = "tr"): Result? {
         if (!r.dayMode || r.trips.isEmpty() || byPlace.isEmpty()) return null
         val todayDow = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1 // 0 = Sunday, like JavaScript
         fun place(id: String) = r.places.firstOrNull { it.id == id }
@@ -180,17 +181,18 @@ object Day {
         val lead = offset == 0 || (offset == 1 && Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17)
 
         val first = items.first()
-        val fromName = place(first.trip.from)?.name ?: ""
-        val toName = place(first.trip.to)?.name ?: ""
+        val en = lang == "en"
+        val fromName = Outfit.ownName(place(first.trip.from)?.name ?: "", lang)
+        val toName = Outfit.ownName(place(first.trip.to)?.name ?: "", lang)
         val next = buildString {
             when (offset) {
                 0 -> {}
-                1 -> append("Yarın ")
-                7 -> append("Haftaya ").append(DAY_NAMES[todayDow]).append(" ")
-                else -> append(DAY_NAMES[(todayDow + offset) % 7]).append(" ")
+                1 -> append(Outfit.t("Yarın", lang)).append(" ")
+                7 -> append(if (en) "Next " else "Haftaya ").append(Outfit.t(DAY_NAMES[todayDow], lang)).append(" ")
+                else -> append(Outfit.t(DAY_NAMES[(todayDow + offset) % 7], lang)).append(" ")
             }
             append(first.trip.time).append(" ").append(fromName).append(" → ").append(toName)
-            if (first.route != null && first.ex != null) append(" · ").append(first.route.name).append(" · dışarıda ").append(first.ex.outMin).append(" dk")
+            if (first.route != null && first.ex != null) append(" · ").append(first.route.name).append(if (en) " · outside " else " · dışarıda ").append(first.ex.outMin).append(if (en) " min" else " dk")
         }
         if (!lead) return Result(null, next)
 

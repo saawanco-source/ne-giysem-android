@@ -14,6 +14,7 @@ fun main(args: Array<String>) {
         val r = JSONObject().put("id", c.optString("id"))
         try {
             val wx = c.optJSONObject("wx")!!
+            val lang = c.optString("lang", "tr")
             val fetchedAt = now - c.optLong("agoMin", 0L) * 60_000L
             val hours = c.optInt("hours", 6)
             val input = Outfit.parse(wx, hours, fetchedAt)
@@ -28,9 +29,9 @@ fun main(args: Array<String>) {
                 if (routine != null && bp != null) {
                     Day.tripPlaces(routine).forEach { p -> bp.optJSONObject(p.id)?.let { byPlace[p.id] = it } }
                 }
-                val day = routine?.let { Day.compute(it, byPlace) }
+                val day = routine?.let { Day.compute(it, byPlace, lang = lang) }
                 val miss = c.optJSONArray("missing")?.let { a -> (0 until a.length()).map { a.optString(it) }.toSet() } ?: emptySet()
-                val plan = Outfit.plan(day?.input ?: input, c.optString("feel", "normal"), c.optString("act", "city"), c.optString("who", "me"), miss)
+                val plan = Outfit.plan(day?.input ?: input, c.optString("feel", "normal"), c.optString("act", "city"), c.optString("who", "me"), miss, lang)
                 r.put("useDay", day?.input != null)
                 r.put("level", plan.level)
                 r.put("head", plan.headline)

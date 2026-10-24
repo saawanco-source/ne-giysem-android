@@ -85,8 +85,14 @@ button{font:inherit;color:inherit}
 .btn{border:0;border-radius:14px;padding:11px 16px;background:var(--pill-bg);color:var(--pill-ink);font-weight:700;cursor:pointer}
 .btn.soft{background:var(--chip);color:var(--ink)}
 .results{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.results button{width:100%;text-align:left;border:0;background:var(--chip);border-radius:14px;padding:10px 14px;cursor:pointer;font-weight:700}
-.results small{display:block;font-weight:500;color:var(--ink2)}
+.results button{width:100%;text-align:left;border:0;background:var(--chip);border-radius:14px;padding:10px 14px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:10px}
+.results button[aria-selected="true"]{box-shadow:inset 0 0 0 2px var(--ink)}
+.results .rt{flex:1;min-width:0}
+.results .rt mark{background:none;color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.results small{display:block;font-weight:500;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.results .kind{flex:none;font-size:11.5px;font-weight:800;background:var(--card);border-radius:999px;padding:3px 8px}
+.chip.here{display:inline-flex;align-items:center;gap:6px;align-self:flex-start}
+.chip.here svg{width:16px;height:16px}
 
 .status{margin:10px 2px 0;font-size:14px;color:var(--ink2);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .status:empty{display:none}
@@ -242,12 +248,17 @@ button{font:inherit;color:inherit}
 
   <div class="panel" id="placePanel" hidden>
     <div class="chips" id="chips"></div>
-    <form class="search" id="searchForm" hidden>
-      <input id="q" type="search" placeholder="Semt ya da şehir: Kadıköy, Bolu…" autocomplete="off" aria-label="Yer ara">
+    <form class="search" id="searchForm" hidden role="search">
+      <input id="q" type="search" placeholder="Semt, okul, durak ya da adres: Bahçeköy, Orman Fakültesi…" autocomplete="off" spellcheck="false"
+             role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="results" aria-label="Yer ara">
       <button type="submit" class="btn">Ara</button>
       <button type="button" class="btn soft" id="cancelSearch">Vazgeç</button>
     </form>
-    <ul class="results" id="results" hidden></ul>
+    <button type="button" class="chip here" id="saveHere" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7.5"/></svg>
+      Şu an bulunduğum yeri kaydet
+    </button>
+    <ul class="results" id="results" role="listbox" aria-label="Arama sonuçları" hidden></ul>
   </div>
   <p class="status" id="status" aria-live="polite"></p>
   <div class="ios-hint" id="iosHint" hidden>
@@ -354,7 +365,7 @@ button{font:inherit;color:inherit}
     <section class="edit card" id="routine" hidden aria-label="Rutinim"></section>
   </main>
 
-  <p class="foot" id="foot">Hava verisi Open-Meteo.com, konum adı BigDataCloud üzerinden alınır. Konumun yalnızca hava durumunu bulmak için bu servislere gönderilir; ayarların ve son alınan hava sadece bu cihazda saklanır.</p>
+  <p class="foot" id="foot">Hava verisi Open-Meteo.com, konum adı BigDataCloud, yer arama Photon üzerinden alınır (harita verisi © OpenStreetMap katkıcıları). Konumun yalnızca hava durumunu bulmak için bu servislere gönderilir; ayarların ve son alınan hava sadece bu cihazda saklanır.</p>
 </div>
 
 <script>
@@ -885,8 +896,13 @@ button{font:inherit;color:inherit}
     var pl = S.places;
     function opts(sel){ return pl.map(function(p){ return '<option value="' + esc(p.id) + '"' + (p.id === sel ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join("") + (sel && !placeById(sel) ? '<option value="' + esc(sel) + '" selected>(silinmiş yer)</option>' : ''); }
     var h = '<h2>Rutinim</h2><p class="lead">Gün içinde gittiğin yerleri, saatlerini ve o yollarda kullandığın rotaları ekle. Kıyafet yalnızca dışarıda geçireceğin anlara göre seçilir. Bu bilgiler sadece bu cihazda saklanır.</p>';
-    h += '<h3>Yerler</h3><div class="chips">' + pl.map(function(p){ return '<span class="chip">' + esc(p.name) + '</span>'; }).join("") +
-      '<button type="button" class="chip" data-act="addplace">+ Yer ekle</button></div>';
+    h += '<h3>Yerler</h3>';
+    pl.forEach(function(p){
+      h += '<div class="ed-row"><input class="name" value="' + esc(p.name) + '" data-place="' + esc(p.id) + '" data-k="name" aria-label="Yer adı" placeholder="Ev, Okul…">' +
+        (p.sub ? '<span class="lbl">' + esc(p.sub) + '</span>' : '') +
+        '<button type="button" class="x" data-act="delplace" data-place="' + esc(p.id) + '" aria-label="Yeri sil">×</button></div>';
+    });
+    h += '<div class="add-steps"><button type="button" class="mini-btn" data-act="addplace">+ Yer ekle</button></div>';
     if (pl.length < 2) h += '<p class="warn">Yolculuk eklemek için en az iki yer kaydet (ör. Ev ve Okul).</p>';
     h += '<h3>Yolculuklar</h3>';
     if (!S.trips.length) h += '<p class="empty">Henüz yolculuk yok.</p>';
@@ -934,6 +950,11 @@ button{font:inherit;color:inherit}
       var d = +b.dataset.day, i = t.days.indexOf(d);
       if (i >= 0) t.days.splice(i, 1); else t.days.push(d);
     } else if (act === "addplace") { togglePanel(true); openSearch(); window.scrollTo({top:0, behavior:"smooth"}); return; }
+    else if (act === "delplace") {
+      var pid = b.dataset.place;
+      if (S.trips.some(function(x){ return x.from === pid || x.to === pid; })) { setStatus("Bu yer bir yolculukta kullanılıyor; önce o yolculuğu sil."); window.scrollTo({top:0, behavior:"smooth"}); return; }
+      removePlace(pid); return;
+    }
     else if (act === "addtrip") {
       var a = S.places[0], z = S.places[1];
       S.trips.push({id:uid(), from:a.id, to:z.id, time:"08:00", days:[1,2,3,4,5]});
@@ -958,7 +979,8 @@ button{font:inherit;color:inherit}
   }
   function routineChange(e){
     var x = e.target, k = x.dataset && x.dataset.k; if (!k) return;
-    if (x.dataset.trip) { var t = tripById(x.dataset.trip); if (!t) return; t[k] = x.value; }
+    if (x.dataset.place) { var pp = placeById(x.dataset.place); if (!pp || !x.value.trim()) return; pp.name = x.value.trim(); }
+    else if (x.dataset.trip) { var t = tripById(x.dataset.trip); if (!t) return; t[k] = x.value; }
     else if (x.dataset.route) {
       var r = routeById(x.dataset.route); if (!r) return;
       if (x.dataset.step != null) { var st = r.steps[+x.dataset.step]; if (!st) return; st[k] = k === "min" ? Math.max(1, Math.min(240, Math.round(+x.value) || 1)) : x.value; }
@@ -1002,7 +1024,78 @@ button{font:inherit;color:inherit}
       "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
       "&daily=uv_index_max,sunset&timezone=auto&forecast_days=2";
   }
-  function geocodeURL(q){ return "https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(q) + "&count=6&language=tr&format=json"; }
+  function geocodeURL(q){ return "https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(q) + "&count=8&language=tr&format=json"; }
+
+  /* ---- place search: Photon (OpenStreetMap: neighbourhoods, schools, stops, addresses), Open-Meteo as a fallback ---- */
+  function searchBias(){
+    if (S.live && S.live.place && isFinite(S.live.place.lat)) return S.live.place;
+    return S.places[0] || {lat:41.01, lon:28.97};
+  }
+  function photonURL(q, b){
+    return "https://photon.komoot.io/api/?q=" + encodeURIComponent(q) + "&limit=12" +
+      (b ? "&lat=" + (+b.lat).toFixed(3) + "&lon=" + (+b.lon).toFixed(3) + "&zoom=10&location_bias_scale=0.1" : "");
+  }
+  var KIND = {
+    place:{city:"Şehir", town:"İlçe", village:"Köy", suburb:"Semt", quarter:"Mahalle", neighbourhood:"Mahalle", hamlet:"Köy", locality:"Yer", island:"Ada"},
+    boundary:{administrative:"Bölge"},
+    highway:{bus_stop:"Durak", platform:"Durak"},
+    railway:{station:"İstasyon", halt:"İstasyon", stop:"İstasyon", tram_stop:"Tramvay", subway_entrance:"Metro girişi"},
+    public_transport:{station:"İstasyon", stop_position:"Durak", platform:"Durak"},
+    amenity:{university:"Üniversite", college:"Okul", school:"Okul", kindergarten:"Okul", hospital:"Hastane", ferry_terminal:"İskele", bus_station:"Otogar", library:"Kütüphane", cafe:"Kafe", restaurant:"Restoran"},
+    building:{university:"Üniversite", school:"Okul", dormitory:"Yurt"},
+    office:{university:"Üniversite"},
+    leisure:{park:"Park", nature_reserve:"Doğa alanı", sports_centre:"Spor merkezi", stadium:"Stadyum"},
+    natural:{wood:"Orman", beach:"Plaj", peak:"Tepe"},
+    shop:{mall:"AVM"}
+  };
+  function fold(s){
+    return String(s || "").toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ş/g, "s").replace(/ç/g, "c").replace(/ğ/g, "g")
+      .replace(/ö/g, "o").replace(/ü/g, "u").replace(/[âà]/g, "a").replace(/[îì]/g, "i").replace(/[ûù]/g, "u").replace(/\s+/g, " ").trim();
+  }
+  function km(a, b){
+    var R = 6371, toR = Math.PI / 180, dLa = (b.lat - a.lat) * toR, dLo = (b.lon - a.lon) * toR;
+    var h = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(a.lat * toR) * Math.cos(b.lat * toR) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function fromPhoton(j){
+    return (j && j.features || []).map(function(f){
+      var p = f.properties || {}, c = (f.geometry || {}).coordinates || [];
+      var name = p.name || [p.street, p.housenumber].filter(Boolean).join(" ");
+      if (!name || c.length < 2) return null;
+      var sub = [p.street && p.name ? p.street : null, p.district || p.locality, p.city || p.county, p.state, p.countrycode && p.countrycode !== "TR" ? p.country : null]
+        .filter(function(x, i, a){ return x && x !== name && a.indexOf(x) === i; }).join(", ");
+      var g = KIND[p.osm_key];
+      return {name:name, sub:sub, lat:+c[1], lon:+c[0], kind:(g && g[p.osm_value]) || (p.osm_key === "place" ? "Yer" : p.housenumber ? "Adres" : "")};
+    }).filter(Boolean);
+  }
+  function fromOpenMeteo(j){
+    return (j && j.results || []).map(function(r){
+      return {name:r.name, sub:[r.admin2, r.admin1, r.country_code && r.country_code !== "TR" ? r.country : null].filter(Boolean).join(", "), lat:+r.latitude, lon:+r.longitude, kind:"Yer"};
+    });
+  }
+  // Re-orders the service's list: exact and prefix name matches first, then nearby places, Turkish letters folded (avcilar = Avcılar).
+  function rankPlaces(list, q, b){
+    var fq = fold(q), toks = fq.split(" ").filter(Boolean), seen = {};
+    return list.filter(function(r){
+      var k = fold(r.name) + "|" + fold(r.sub) + "|" + r.kind;
+      if (seen[k]) return false; seen[k] = 1; return true;
+    }).map(function(r, i){
+      var fn = fold(r.name), all = fold(r.name + " " + r.sub), s = -i * 0.2;
+      if (fn === fq) s += 6; else if (fn.indexOf(fq) === 0) s += 4; else if (fn.indexOf(fq) >= 0) s += 2;
+      if (toks.length > 1 && toks.every(function(t){ return all.indexOf(t) >= 0; })) s += 2.5;
+      if (b) { var d = km(b, r); s += d < 25 ? 3 : d < 80 ? 1.5 : d < 300 ? 0.5 : 0; r.km = d; }
+      if (["Şehir","İlçe","Semt","Mahalle"].indexOf(r.kind) >= 0) s += 0.8;
+      r._s = s; return r;
+    }).sort(function(a, c){ return c._s - a._s; }).slice(0, 8);
+  }
+  async function findPlaces(get, q){
+    var b = searchBias(), list = [], failed = null;
+    try { list = fromPhoton(await get(photonURL(q, b))); } catch (e) { failed = e; }
+    if (list.length < 3) {
+      try { list = list.concat(fromOpenMeteo(await get(geocodeURL(q)))); } catch (e) { if (failed) throw failed; }
+    }
+    return rankPlaces(list, q, b);
+  }
 
   // --- web (installed app / website): device GPS and direct requests
   var WEB = {
@@ -1034,7 +1127,7 @@ button{font:inherit;color:inherit}
       }
     },
     forecasts: function(pts){ return WEB.fetchJSON(forecastURL(pts)).then(function(j){ return Array.isArray(j) ? j : [j]; }); },
-    search: function(q){ return WEB.fetchJSON(geocodeURL(q)).then(function(j){ return Array.isArray(j.results) ? j.results : []; }); }
+    search: function(q){ return findPlaces(function(u){ return WEB.fetchJSON(u, 8000); }, q); }
   };
 
   // --- Claude preview: reads the same sources through Claude's browser in the desktop app
@@ -1063,7 +1156,7 @@ button{font:inherit;color:inherit}
       if (!tabId) return null;
       try {
         var m = ARTD.text(await ARTD.call("get_page_text", {tabId:tabId, max_chars:600})).match(/URL:\s*(\S+)/);
-        if (m && /^https:\/\/(get\.geojs\.io|api\.open-meteo\.com|geocoding-api\.open-meteo\.com)\//.test(m[1])) return tabId;
+        if (m && /^https:\/\/(get\.geojs\.io|api\.open-meteo\.com|geocoding-api\.open-meteo\.com|photon\.komoot\.io)\//.test(m[1])) return tabId;
       } catch (e) { if (!(e && e.code === "tool_error")) throw e; }
       tabId = null; return null;
     },
@@ -1086,7 +1179,7 @@ button{font:inherit;color:inherit}
       return {place:{name: g.city || g.region || "Konumun", sub:"Yaklaşık konum", lat:lat, lon:lon}, note:"Önizlemede konum internet bağlantına göre yaklaşık bulunur; semt için yer ekle."};
     },
     forecasts: function(pts){ return ARTD.get(forecastURL(pts)).then(function(j){ return Array.isArray(j) ? j : [j]; }); },
-    search: function(q){ return ARTD.get(geocodeURL(q)).then(function(j){ return Array.isArray(j.results) ? j.results : []; }); }
+    search: function(q){ return findPlaces(ARTD.get, q); }
   };
   var DATA = IS_ART ? ARTD : WEB;
   var NO_LIVE = "Canlı hava bu önizlemede yalnızca Claude masaüstü uygulamasında çalışır; burada havayı elle ayarlayabilirsin.";
@@ -1137,27 +1230,86 @@ button{font:inherit;color:inherit}
     save(); render();
     setStatus(p.name + " silindi.", {label:"Geri al", fn:function(){ S.places.splice(i, 0, p); save(); render(); setStatus(""); }});
   }
-  function openSearch(){ if (IS_ART && mcpState === "no") { setStatus(NO_LIVE); return; } $("searchForm").hidden = false; $("q").focus(); }
-  function closeSearch(){ $("searchForm").hidden = true; $("results").hidden = true; $("results").textContent = ""; $("q").value = ""; }
-  async function doSearch(q){
-    if (busy) return;
-    setBusy(true); setStatus("“" + q + "” aranıyor…");
+  /* ---- search box: suggestions while typing (installed app and website); in the Claude preview only on "Ara" ---- */
+  var SEARCH = {seq:0, timer:null, cache:{}, list:[], active:-1, shownFor:""};
+  function openSearch(){
+    if (IS_ART && mcpState === "no") { setStatus(NO_LIVE); return; }
+    $("searchForm").hidden = false; $("saveHere").hidden = IS_ART; $("q").focus();
+  }
+  function closeSearch(){ $("searchForm").hidden = true; $("saveHere").hidden = true; SEARCH.seq++; clearTimeout(SEARCH.timer); showResults([], ""); $("q").value = ""; }
+  function fold1(c){
+    var l = c.toLocaleLowerCase("tr"); if (l.length !== 1) l = c.toLowerCase().charAt(0);
+    return {"ı":"i", "ş":"s", "ç":"c", "ğ":"g", "ö":"o", "ü":"u", "â":"a", "î":"i", "û":"u"}[l] || l;
+  }
+  function markMatch(name, q){
+    var fn = String(name).split("").map(fold1).join(""), fq = fold(q), i = fq ? fn.indexOf(fq) : -1;
+    if (i < 0) return esc(name);
+    return esc(name.slice(0, i)) + "<mark>" + esc(name.slice(i, i + fq.length)) + "</mark>" + esc(name.slice(i + fq.length));
+  }
+  function showResults(list, q){
+    SEARCH.list = list; SEARCH.active = list.length ? 0 : -1; SEARCH.shownFor = fold(q);
+    var ul = $("results"); ul.textContent = "";
+    list.forEach(function(r, i){
+      var li = document.createElement("li"), b = document.createElement("button");
+      li.setAttribute("role", "presentation"); b.type = "button"; b.id = "res-" + i; b.setAttribute("role", "option");
+      var dist = r.km != null && r.km < 1000 ? " · " + (r.km < 10 ? num(r.km, 1) : Math.round(r.km)) + " km" : "";
+      b.innerHTML = '<span class="rt">' + markMatch(r.name, q) + '<small>' + esc(r.sub || "") + dist + '</small></span>' + (r.kind ? '<span class="kind">' + esc(r.kind) + '</span>' : '');
+      b.addEventListener("click", function(){ choosePlace(r); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    ul.hidden = !list.length;
+    $("q").setAttribute("aria-expanded", list.length ? "true" : "false");
+    markActive();
+  }
+  function markActive(){
+    $("results").querySelectorAll("button").forEach(function(b, i){ b.setAttribute("aria-selected", i === SEARCH.active ? "true" : "false"); });
+    if (SEARCH.active >= 0) $("q").setAttribute("aria-activedescendant", "res-" + SEARCH.active); else $("q").removeAttribute("aria-activedescendant");
+  }
+  function choosePlace(r){
+    var id = "p" + uid();
+    S.places.push({id:id, name:String(r.name), sub:String(r.sub || ""), lat:+r.lat, lon:+r.lon});
+    S.sel = id; save(); closeSearch(); togglePanel(false); fetchLive();
+  }
+  function queueSearch(){
+    var q = $("q").value.trim();
+    clearTimeout(SEARCH.timer);
+    if (IS_ART) return;
+    if (q.length < 3) { SEARCH.seq++; showResults([], q); return; }
+    SEARCH.timer = setTimeout(function(){ runSearch(q, false); }, 400);
+  }
+  async function runSearch(q, explicit){
+    var key = fold(q), my = ++SEARCH.seq;
+    if (SEARCH.cache[key]) { showResults(SEARCH.cache[key], q); if (explicit || !SEARCH.cache[key].length) noResults(SEARCH.cache[key]); return; }
+    if (explicit) { if (busy) return; setBusy(true); setStatus("“" + q + "” aranıyor…"); }
     try {
-      var res = await DATA.search(q), ul = $("results"); ul.textContent = "";
-      res.forEach(function(r){
-        var li = document.createElement("li"), b = document.createElement("button"); b.type = "button";
-        b.innerHTML = esc(r.name) + "<small>" + esc([r.admin2, r.admin1, r.country].filter(Boolean).join(", ")) + "</small>";
-        b.addEventListener("click", function(){
-          var id = "p" + Date.now().toString(36);
-          S.places.push({id:id, name:String(r.name), sub:String(r.admin1 || r.country || ""), lat:+r.latitude, lon:+r.longitude});
-          S.sel = id; save(); closeSearch(); togglePanel(false); fetchLive();
-        });
-        li.appendChild(b); ul.appendChild(li);
-      });
-      ul.hidden = !res.length;
-      setStatus(res.length ? "Kaydetmek için bir sonuç seç." : "Sonuç bulunamadı; başka bir yazımla dene.");
-    } catch (e) { setStatus(errMsg(e), {label:"Tekrar dene", fn:function(){ doSearch(q); }}); }
-    finally { setBusy(false); }
+      var res = await DATA.search(q);
+      SEARCH.cache[key] = res;
+      if (my !== SEARCH.seq) return; // a newer search is on its way
+      showResults(res, q);
+      noResults(res);
+    } catch (e) {
+      if (my === SEARCH.seq) setStatus(errMsg(e), {label:"Tekrar dene", fn:function(){ runSearch(q, true); }});
+    } finally { if (explicit) setBusy(false); }
+  }
+  function noResults(res){ setStatus(res.length ? "" : "Sonuç bulunamadı. Daha kısa yaz ya da yanına semtini ekle (ör. “fakülte sarıyer”)."); }
+  async function saveHere(){
+    if (busy) return;
+    var saved = null;
+    setBusy(true); setStatus("Konumun bulunuyor…");
+    try {
+      var c = await WEB.position(), name = "Kayıtlı yer", sub = "";
+      try {
+        var g = await WEB.fetchJSON("https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=tr&latitude=" + c.latitude + "&longitude=" + c.longitude, 8000);
+        name = g.locality || g.city || name;
+        sub = [g.city, g.principalSubdivision].filter(function(x, i, a){ return x && x !== name && a.indexOf(x) === i; }).join(", ");
+      } catch (e) { /* the name is optional */ }
+      var id = "p" + uid();
+      S.places.push({id:id, name:name, sub:sub, lat:c.latitude, lon:c.longitude});
+      S.sel = id; save(); closeSearch(); togglePanel(false); saved = name;
+    } catch (e) {
+      setStatus(e && e.code === "geo_denied" ? "Konum izni gerekiyor; tarayıcı ya da telefon ayarlarından izin ver." : "Konum bulunamadı, birazdan tekrar dene.");
+    } finally { setBusy(false); }
+    if (saved) { await fetchLive(); setStatus(saved + " kaydedildi. “Ev” gibi bir ad verebilirsin.", {label:"Adını değiştir", fn:openRoutine}); }
   }
 
   /* ================= events ================= */
@@ -1170,7 +1322,20 @@ button{font:inherit;color:inherit}
   $("mTemp").addEventListener("input", function(e){ S.manual.temp = +e.target.value; save(); render(); });
   $("refresh").addEventListener("click", function(){ fetchLive(); });
   $("placeBtn").addEventListener("click", function(){ togglePanel($("placePanel").hidden); });
-  $("searchForm").addEventListener("submit", function(e){ e.preventDefault(); var q = $("q").value.trim(); if (q) doSearch(q); });
+  $("searchForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var q = $("q").value.trim(); if (!q) return;
+    if (SEARCH.list.length && SEARCH.active >= 0 && SEARCH.shownFor === fold(q)) choosePlace(SEARCH.list[SEARCH.active]);
+    else { clearTimeout(SEARCH.timer); runSearch(q, true); }
+  });
+  $("q").addEventListener("input", queueSearch);
+  $("q").addEventListener("keydown", function(e){
+    var n = SEARCH.list.length;
+    if (e.key === "ArrowDown" && n) { e.preventDefault(); SEARCH.active = (SEARCH.active + 1) % n; markActive(); }
+    else if (e.key === "ArrowUp" && n) { e.preventDefault(); SEARCH.active = (SEARCH.active - 1 + n) % n; markActive(); }
+    else if (e.key === "Escape") { e.preventDefault(); closeSearch(); }
+  });
+  $("saveHere").addEventListener("click", saveHere);
   $("cancelSearch").addEventListener("click", function(){ closeSearch(); setStatus(""); });
   $("routine").addEventListener("click", routineClick);
   $("routine").addEventListener("change", routineChange);

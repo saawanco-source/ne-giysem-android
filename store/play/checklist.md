@@ -8,18 +8,21 @@ Uygulama: **Ne Giysem?** · paket adı `com.negiysem.app` · ücretsiz · reklam
 
 ## 0. Kodda yapılacaklar (yüklemeden önce)
 
-Bu klasördeki dosyalar mevcut koda dokunmadı; aşağıdakiler ayrıca yapılmalı.
+İlk dört madde `play-release` dalında yapıldı (24 Ekim 2026); `main`’e birleştirilince geçerli olur.
 
-- [ ] **Hedef API 36.** `app/build.gradle.kts` şu an `compileSdk = 35`, `targetSdk = 35`. 31 Ağustos 2026’dan beri yeni uygulamalar ve güncellemeler **Android 16 (API 36)** hedeflemeden Play’e gönderilemiyor; gerekirse 1 Kasım 2026’ya kadar uzatma istenebiliyor. → <https://developer.android.com/google/play/requirements/target-sdk>
-- [ ] **Android 16’da geri tuşu.** API 36 hedefleyen uygulamada Android 16 cihazlarda `onBackPressed` artık çağrılmıyor (predictive back). `MainActivity.onBackPressed` içindeki `web.goBack()` çalışmaz hâle gelir: `OnBackInvokedCallback`’e geç ya da geçici olarak manifestte `android:enableOnBackInvokedCallback="false"` kullan; kenardan kenara (edge-to-edge) görünümden çıkılamıyor, Android 15/16 cihazda dene. → <https://developer.android.com/about/versions/16/behavior-changes-16>
-- [ ] **Yayın imzası.** `app/debug.keystore` ile Play’e yükleme yapılmaz. Ayrı bir **yükleme anahtarı** (upload key) oluştur, parolalarıyla birlikte güvenli iki yere yedekle, depoya koyma. GitHub Actions’a `bundleRelease` ile **AAB** üreten bir iş ekle (şu an APK üretiyor). → <https://support.google.com/googleplay/android-developer/answer/9842756>
-- [ ] **versionCode** her yüklemede bir öncekinden büyük olmalı (şu an `GITHUB_RUN_NUMBER`, yoksa 7).
+- [x] **Hedef API 36.** `compileSdk = 36`, `targetSdk = 36`, `minSdk = 26` (AGP 8.13.2, Gradle 8.14.6, Kotlin 2.3.21). 31 Ağustos 2026’dan beri yeni uygulamalar ve güncellemeler **Android 16 (API 36)** hedeflemeden Play’e gönderilemiyor (uzatma en geç 1 Kasım 2026’ya kadar). Bulut derlemesindeki “Dosyaları denetle” adımı her seferinde kontrol ediyor. → <https://developer.android.com/google/play/requirements/target-sdk>
+- [x] **Android 16’da geri tuşu.** API 36 hedefleyen uygulamada Android 16’da `onBackPressed` çağrılmıyor. Android 13+ için `OnBackInvokedCallback` (yalnızca sayfada geri gidilecek yer varken; yoksa sistem uygulamayı kapatır), Android 8–12 için eski `onBackPressed`; manifestte `android:enableOnBackInvokedCallback="true"`. Kenardan kenara görünüm Android 15’ten beri destekli. Android 13+ bir telefonda geri tuşunu/hareketini dene. → <https://developer.android.com/about/versions/16/behavior-changes-16>
+- [x] **Büyük ekran (Android 16).** Uygulama yön, en-boy oranı ya da yeniden boyutlandırma kısıtı koymuyor; reklam şeridi pencere genişliği değişince (döndürme, bölünmüş ekran, katlanabilir) yeniden boyutlanıyor.
+- [x] **Yayın imzası (kod tarafı).** Bulut derlemesi, GitHub secret’ları varken yükleme anahtarıyla imzalı `NeGiysem.aab` (Play’e yüklenecek) ve `NeGiysem.apk` üretiyor; yokken eskisi gibi debug APK. Anahtar Claude tarafından oluşturuldu, depoda yok. → `RELEASE.md`
+- [ ] **Secret’ları ekle ve anahtarı yedekle** (sen yapacaksın): `RELEASE.md` §2–3. Yükleme anahtarıyla imzalı ilk APK eski sürümün üstüne kurulmaz, bir kez kaldır (§4).
+- [x] **versionCode** her bulut derlemesinde çalıştırma numarası (`GITHUB_RUN_NUMBER`), yani her seferinde büyüyor. İş akışı dosyasının adını değiştirme.
+- [ ] **`Config.API`** (`app/src/main/java/com/negiysem/app/Config.kt`): kendi sunucunun adresi (ör. `https://{{ALAN_ADI}}`). Boşken widget MET Norway ve Photon’a doğrudan gider (yalnızca geliştirme için) ve reklam şeridi hiç açılmaz. Yayından önce doldur; reklam için `ADMOB_APP_ID` ve `ADMOB_BANNER_ID` secret’ları da gerekir.
 - [ ] **Uygulama içinde gizlilik linki.** Play, gizlilik politikasının hem Play Console’daki alanda hem de **uygulamanın içinde** bulunmasını istiyor. Sayfanın altına `https://{{ALAN_ADI}}/gizlilik.html` bağlantısı ekle (tam adres: `gizlilik.html` APK’ya kopyalanmıyor, link tarayıcıda açılır). → <https://support.google.com/googleplay/android-developer/answer/10144311>
 - [ ] **Android’de bağış ve AdSense yok.** Web sayfası `window.NeGiysemAndroid` varken bağış bağlantısını ve AdSense kodunu göstermemeli; uygulamada yalnızca AdMob. Geliştiriciye bağış için Play dışı ödeme yoluna yönlendirmek ödeme politikasıyla çakışabilir. → <https://support.google.com/googleplay/android-developer/answer/9858738>
 - [ ] **Kaynak yazısı.** Sayfanın altındaki “Hava verisi Open-Meteo.com, konum adı BigDataCloud” metnini yeni kaynaklara göre değiştir: “Hava verisi © MET Norway (CC BY 4.0), harita verisi © OpenStreetMap katkıcıları”.
 - [ ] **Reklam yerleşimi** `ads-declaration.md` §3’teki listeye uygun (düğmelere yapışık banner yok, widget’ta reklam yok, “Reklam” etiketi var).
-- [ ] **İsteğe bağlı:** Yaklaşık konum yetiyorsa `ACCESS_FINE_LOCATION`’ı manifestten ve izin isteğinden kaldır (Veri güvenliği formu sadeleşir, bkz. `data-safety.md`). Yazı tiplerini Google Fonts yerine APK’nın içine koy (çevrimdışı da çalışır, Google’a IP gitmez).
-- [ ] Birleştirilmiş manifestte `com.google.android.gms.permission.AD_ID` izni var (AdMob ekler).
+- [ ] **İsteğe bağlı:** (24 Ekim 2026: `ACCESS_FINE_LOCATION` manifestte hâlâ var.) Yaklaşık konum yetiyorsa `ACCESS_FINE_LOCATION`’ı manifestten ve izin isteğinden kaldır (Veri güvenliği formu sadeleşir, bkz. `data-safety.md`). Yazı tiplerini Google Fonts yerine APK’nın içine koy (çevrimdışı da çalışır, Google’a IP gitmez).
+- [x] Birleştirilmiş manifestte `com.google.android.gms.permission.AD_ID` izni var (AdMob ekler); AdMob `APPLICATION_ID` ve FileProvider da var. Bulut derlemesinin denetim raporu her seferinde kontrol ediyor ve beklenmeyen bir izin görürse derlemeyi durduruyor.
 
 ## 1. Geliştirici hesabı
 
@@ -64,7 +67,7 @@ Bu klasördeki dosyalar mevcut koda dokunmadı; aşağıdakiler ayrıca yapılma
 ## 5. Uygulama imzalama ve paket biçimi
 
 - [ ] Yeni uygulamalar **Android App Bundle (AAB)** ile yayımlanır (Ağustos 2021’den beri zorunlu); AAB için **Play Uygulama İmzalama** gerekli. → <https://support.google.com/googleplay/android-developer/answer/9844279>
-- [ ] Yeni uygulama otomatik olarak Google’ın oluşturduğu uygulama imzalama anahtarına kaydolur; sen AAB’yi **yükleme anahtarınla** imzalarsın. Yükleme anahtarı kaybolursa Google sıfırlayabilir ama yedeği yine sakla.
+- [ ] Yeni uygulama otomatik olarak Google’ın oluşturduğu uygulama imzalama anahtarına kaydolur; sen AAB’yi **yükleme anahtarınla** imzalarsın (bulut derlemesi bunu kendisi yapar). Yükleme anahtarı kaybolursa Google sıfırlayabilir ama yedeği yine sakla. AAB’yi indirip yükleme adımları: `RELEASE.md` §5.
 
 ## 6. Dahili test (Test etme → Dahili test)
 
@@ -94,7 +97,7 @@ Bu klasördeki dosyalar mevcut koda dokunmadı; aşağıdakiler ayrıca yapılma
 ## 9. Ülkeler ve fiyat
 
 - [ ] Fiyat: **Ücretsiz.** (Ücretsiz yayımlanan bir uygulama sonradan ücretliye çevrilemez. → <https://support.google.com/googleplay/android-developer/answer/6334373>)
-- [ ] Ülkeler: Başlangıçta **Türkiye**. Avrupa Ekonomik Alanı, Birleşik Krallık ya da İsviçre eklenecekse önce Android’e Google UMP rıza ekranı ekle ya da kişiselleştirilmemiş reklam iste (`ads-declaration.md` §4).
+- [ ] Ülkeler: Başlangıçta **Türkiye**. Android uygulamasında Google UMP rıza ekranı kodu var (reklamdan önce, yasanın istediği yerde gösterilir). Avrupa Ekonomik Alanı, Birleşik Krallık ya da İsviçre eklenecekse önce AdMob → **Gizlilik ve mesajlaşma**’da GDPR mesajını oluştur ve yayımla (`ads-declaration.md` §4).
 
 ## 10. Üretim sürümü
 

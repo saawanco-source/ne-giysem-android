@@ -23,7 +23,7 @@ Uygulama içeriği sayfasında “Reklam kimliği” kartı varsa:
 
 **Amaçlar:** Reklam veya pazarlama; Analiz; Sahtekârlığı önleme, güvenlik ve uyumluluk. (Google Mobile Ads SDK reklam kimliğini bu amaçlarla kullanır.)
 
-Teknik kontrol: Android 13+ hedefleyen uygulamalar `com.google.android.gms.permission.AD_ID` iznini bildirmelidir; Google Mobile Ads SDK bu izni kendi manifestiyle ekler. Derledikten sonra birleştirilmiş manifestte (`app/build/intermediates/merged_manifests/...` ya da Android Studio → Merged Manifest) iznin olduğunu kontrol et. Reklam kimliğini istemiyorsan izni `tools:node="remove"` ile kaldırabilirsin; o zaman bu cevap “Hayır” olur ve `data-safety.md` güncellenir.
+Teknik kontrol: Android 13+ hedefleyen uygulamalar `com.google.android.gms.permission.AD_ID` iznini bildirmelidir; Google Mobile Ads SDK bu izni kendi manifestiyle ekler. Bulut derlemesinin “Dosyaları denetle” adımı birleştirilmiş manifestte bu iznin olduğunu her seferinde kontrol ediyor (24 Ekim 2026: var); yoksa derleme durur. Reklam kimliğini istemiyorsan izni `tools:node="remove"` ile kaldırabilirsin; o zaman bu cevap “Hayır” olur ve `data-safety.md` güncellenir.
 
 ## 3. Reklam yerleşimi — politika kontrol listesi
 
@@ -42,4 +42,4 @@ Google Play “Rahatsız edici reklamlar” kuralları ve AdMob politikaları i�
 ## 4. Rıza (açık konu)
 
 - Web sitesinde kişiselleştirilmiş reklam için rıza ekranı planlandı (“Reklam tercihleri” bağlantısı ile yeniden açılır). Avrupa Ekonomik Alanı, Birleşik Krallık ve İsviçre’den gelen ziyaretçilerde kişiselleştirilmiş reklam için **Google sertifikalı, IAB TCF uyumlu bir rıza platformu (CMP)** zorunlu (AEA/BK 16 Ocak 2024’ten, İsviçre 31 Temmuz 2024’ten beri). AdSense’in kendi “Gizlilik ve mesajlaşma” aracı bu şartı karşılar. Kaynak: <https://support.google.com/admob/answer/13554116>
-- Android uygulamasında şu an rıza ekranı planlanmadı. Uygulama AEA/BK/İsviçre’de yayımlanacaksa Google’ın **User Messaging Platform (UMP) SDK**’sını ekle ya da yalnızca kişiselleştirilmemiş reklam iste. KVKK açısından da kişiselleştirilmiş reklam için açık rıza gerekip gerekmediğini hukukçuya sor (bkz. `../README.md`). Değişirse gizlilik metinlerindeki “Android uygulaması (Google AdMob)” paragrafını güncelle.
+- Android uygulamasında Google’ın **User Messaging Platform (UMP) SDK**’sı (4.0.0) var: reklam yüklenmeden önce rıza bilgisi istenir, gerekiyorsa rıza formu gösterilir, sayfada “Reklam tercihleri” yeniden açılabilir. Formun içeriği AdMob → **Gizlilik ve mesajlaşma**’dan gelir; uygulama AEA/BK/İsviçre’de yayımlanacaksa orada GDPR mesajını oluşturup yayımla (mesaj yoksa form çıkmaz). KVKK açısından da kişiselleştirilmiş reklam için açık rıza gerekip gerekmediğini hukukçuya sor (bkz. `../README.md`). Değişirse gizlilik metinlerindeki “Android uygulaması (Google AdMob)” paragrafını güncelle.

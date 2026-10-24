@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       deneme_imza:
-        description: "Yalnız deneme (main dışında): yayın sürümünü o an üretilen geçici bir anahtarla imzala, dosyaları test-play-N ön sürümüne koy"
+        description: "Yalnız deneme (main dışında): yayın yolunu o an üretilen geçici bir anahtarla dene. Dosyalar Play'e yüklenemez, yayımlanmaz."
         type: boolean
         default: false
 
@@ -301,16 +301,3 @@ jobs:
           name: Ne Giysem? ${{ github.run_number }}
           body_path: notes.md
           files: out/*
-
-      - name: Deneme ön sürümü (geçici anahtar, silinecek)
-        if: steps.key.outputs.mode == 'throwaway'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: test-play-${{ github.run_number }}
-          target_commitish: ${{ github.sha }}
-          name: Deneme ${{ github.run_number }} (geçici anahtar, Play'e yüklenmez)
-          prerelease: true
-          body: Geçici anahtarla imzalanmış deneme dosyaları ve denetim raporu. Silinecek.
-          files: |
-            out/*
-            verify.txt

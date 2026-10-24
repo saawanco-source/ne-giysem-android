@@ -19,7 +19,7 @@ for (const c of cases) {
     const inp = E.liveInput();
     if (!inp) { r.err = "noinput"; } else {
       const day = E.dayPlan(), useDay = !!(day && day.inp && day.lead);
-      const p = E.plan(useDay ? day.inp : inp, S);
+      const p = E.plan(useDay ? day.inp : inp, { feel: S.feel, act: S.act, who: c.who || "me", missing: c.missing || [] });
       r.useDay = useDay; r.level = p.L; r.head = p.head;
       r.wear = p.wear.map(w => w.g + ":" + w.label); r.take = p.take.map(w => w.g + ":" + w.label); r.pills = p.pills;
       r.E = Math.round(p.E * 1000) / 1000;

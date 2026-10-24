@@ -3,12 +3,14 @@ package com.negiysem.app
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.util.Base64
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -21,6 +23,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import androidx.core.content.FileProvider
 import androidx.webkit.WebViewAssetLoader
 import com.negiysem.app.data.Store
 import com.negiysem.app.widget.NeGiysemWidget
@@ -30,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * The app screen: the same Ne Giysem? web app, bundled inside the APK and shown full screen.
@@ -171,6 +175,32 @@ class MainActivity : Activity() {
                 runCatching { NeGiysemWidget.pushAll(ctx, "") }
                 if (Scheduler.hasWidgets(ctx)) Scheduler.schedule(ctx) // stays empty: the refresh skips a wiped store
             }
+        }
+
+        /** "Paylaş": the picture the page drew (PNG as base64) goes to the phone's share sheet (Instagram, WhatsApp, Galeri…). */
+        @JavascriptInterface
+        fun shareImage(base64: String, fileName: String, caption: String) {
+            if (base64.length > 20_000_000) return
+            val bytes = runCatching { Base64.decode(base64, Base64.DEFAULT) }.getOrNull() ?: return
+            val dir = File(cacheDir, "shared").apply { mkdirs() }
+            dir.listFiles()?.forEach { it.delete() } // only the latest picture is kept
+            val safe = fileName.replace(Regex("[^A-Za-z0-9._-]"), "_").let { if (it.endsWith(".png")) it else "ne-giysem.png" }
+            val file = File(dir, safe).apply { writeBytes(bytes) }
+            val uri = FileProvider.getUriForFile(this@MainActivity, "$packageName.files", file)
+            val send = Intent(Intent.ACTION_SEND)
+                .setType("image/png")
+                .putExtra(Intent.EXTRA_STREAM, uri)
+                .putExtra(Intent.EXTRA_TEXT, caption)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            send.clipData = ClipData.newRawUri(safe, uri)
+            runOnUiThread { runCatching { startActivity(Intent.createChooser(send, "Paylaş")) } }
+        }
+
+        /** Text to share (e.g. the packing list) through the phone's share sheet. */
+        @JavascriptInterface
+        fun shareText(text: String, title: String) {
+            val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text).putExtra(Intent.EXTRA_SUBJECT, title)
+            runOnUiThread { runCatching { startActivity(Intent.createChooser(send, title)) } }
         }
 
         /** Lets the page tell whether asking for the position would show Android's permission dialog. */

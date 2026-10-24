@@ -85,7 +85,10 @@ const cases = [];
 for (let i = 0; i < N; i++) {
   const offset = C(0.85) ? 10800 : P([0, 3600, 19800, -18000, 32400]);
   const edge = C(0.08) ? [P(EDGES)] : null;
-  const c = { id: "c" + i, hours: P([3, 6, 12]), feel: P(["cold", "normal", "warm"]), act: P(["city", "field", "sport"]), agoMin: C(0.8) ? 0 : P([30, 50, 120]),
+  // The person being dressed: age group and (in a third of the cases) a few pieces missing from the wardrobe.
+  const ALL = ["tshirt","longsleeve","thermal","sweatshirt","hirka","kazak","ceket","ruzgarlik","yagmurluk","mont","kaban","sisme","parka","jean","pantolon","sort","tayt","sneaker","spor","bot","yuruyus","sandalet","bere","atki","eldiven","sapka","gozluk","semsiye","krem"];
+  const missing = C(0.33) ? ALL.filter(() => C(0.25)) : [];
+  const c = { id: "c" + i, who: P(["me", "me", "child", "elder"]), missing, hours: P([3, 6, 12]), feel: P(["cold", "normal", "warm"]), act: P(["city", "field", "sport"]), agoMin: C(0.8) ? 0 : P([30, 50, 120]),
     wx: genWx({ offset, edge, days: 8 }) };
   if (edge) c.edge = edge[0];
   if (C(0.45)) {

@@ -1,6 +1,7 @@
 package com.negiysem.app.data
 
 import android.content.Context
+import com.negiysem.app.Config
 import com.negiysem.app.widget.NeGiysemWidget
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,9 +35,10 @@ object Updater {
 
     /** Open-Meteo answers a single object for one place and a list for several. */
     private fun getForecasts(points: List<Pair<Double, Double>>): List<JSONObject> {
-        val url = "https://api.open-meteo.com/v1/forecast" +
-            "?latitude=" + points.joinToString(",") { String.format(Locale.US, "%.4f", it.first) } +
-            "&longitude=" + points.joinToString(",") { String.format(Locale.US, "%.4f", it.second) } +
+        val q = "latitude=" + points.joinToString(",") { String.format(Locale.US, "%.4f", it.first) } +
+            "&longitude=" + points.joinToString(",") { String.format(Locale.US, "%.4f", it.second) }
+        // The app's own server answers in the same shape (MET Norway data); without it, Open-Meteo directly (non-commercial).
+        val url = if (Config.API.isNotEmpty()) Config.API + "/api/forecast?" + q else "https://api.open-meteo.com/v1/forecast?" + q +
             "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
             "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
             "&daily=uv_index_max,sunset&timezone=auto&forecast_days=7"
@@ -61,7 +63,7 @@ object Updater {
             var name = store.placeName ?: "Konumun"
             if (lat == null || lon == null) {
                 // No place chosen in the app yet: approximate location from the internet connection.
-                val ip = getJson("https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=tr")
+                val ip = getJson(if (Config.API.isNotEmpty()) Config.API + "/api/ip" else "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=tr")
                 val la = ip.optDouble("latitude", Double.NaN)
                 val lo = ip.optDouble("longitude", Double.NaN)
                 if (la.isNaN() || lo.isNaN()) throw IOException("no location")
@@ -78,7 +80,7 @@ object Updater {
 
             val input = Outfit.parse(wx, store.hours) ?: throw IOException("unexpected forecast")
             val day = routine?.let { Day.compute(it, byPlace) }
-            val plan = Outfit.plan(day?.input ?: input, store.feel, store.act)
+            val plan = Outfit.plan(day?.input ?: input, store.feel, store.act, store.who, store.missing)
             Store.widgetSnapshot(plan, input, name, day?.next)
         }
         if (Store(context).generation != gen) return // data was deleted while this refresh ran

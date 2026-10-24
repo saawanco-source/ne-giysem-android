@@ -37,6 +37,27 @@ object Outfit {
     private val MID = setOf("hirka", "sweatshirt", "kazak")
     private val SHOES = setOf("sneaker", "spor", "bot", "yuruyus", "sandalet")
     private val BOTTOMS = setOf("jean", "pantolon", "sort", "tayt")
+    /** Clothes kept (marked) when nothing in the wardrobe can replace them; accessories are left out instead. */
+    private val MUST = OUTER + MID + setOf("thermal", "longsleeve", "tshirt") + BOTTOMS + SHOES
+    // People and wardrobe (same as the app screen: WHO, SUBS, MUST, STEMS in index.html)
+    private val WHO_OFF = mapOf("me" to 0.0, "child" to -2.0, "elder" to -2.0)
+    private val SUBS = mapOf(
+        "parka" to listOf("sisme", "kaban", "mont"), "sisme" to listOf("parka", "kaban", "mont"), "kaban" to listOf("sisme", "mont", "parka"),
+        "mont" to listOf("kaban", "sisme", "ceket"), "ceket" to listOf("ruzgarlik", "hirka", "mont"), "ruzgarlik" to listOf("ceket", "yagmurluk", "hirka"),
+        "yagmurluk" to listOf("ruzgarlik", "ceket", "mont", "kaban", "sisme", "parka"),
+        "kazak" to listOf("sweatshirt", "hirka"), "sweatshirt" to listOf("kazak", "hirka"), "hirka" to listOf("sweatshirt", "ceket", "kazak"),
+        "thermal" to listOf("longsleeve"), "longsleeve" to listOf("thermal", "tshirt"), "tshirt" to listOf("longsleeve"),
+        "jean" to listOf("pantolon"), "pantolon" to listOf("jean"), "sort" to listOf("jean"), "tayt" to listOf("pantolon", "jean"),
+        "sneaker" to listOf("spor", "bot"), "spor" to listOf("sneaker"), "bot" to listOf("yuruyus", "sneaker"),
+        "yuruyus" to listOf("bot", "spor", "sneaker"), "sandalet" to listOf("sneaker", "spor")
+    )
+    private val STEMS = mapOf(
+        "parka" to "parka", "sisme" to "şişme mont", "kaban" to "kaban", "mont" to "mont", "ceket" to "ceket", "hirka" to "hırka",
+        "sweatshirt" to "sweatshirt", "tshirt" to "tişört", "thermal" to "termal", "kazak" to "kaza", "yagmurluk" to "yağmurlu",
+        "ruzgarlik" to "rüzgarlı", "bere" to "bere", "atki" to "atkı", "eldiven" to "eldiven", "sort" to "şort", "tayt" to "tayt",
+        "longsleeve" to "uzun kollu", "semsiye" to "şemsiye", "sapka" to "şapka"
+    )
+
     val WIND_NAMES = listOf("Yıldız", "Poyraz", "Gündoğusu", "Keşişleme", "Kıble", "Lodos", "Günbatısı", "Karayel")
 
     private val COND = mapOf(
@@ -68,7 +89,7 @@ object Outfit {
         else -> Base(listOf("thermal", "ruzgarlik", "tayt", "spor", "bere"), listOf("eldiven"), "{Termal} katman ve rüzgarlık şart.")
     }
 
-    data class Item(val g: String, val label: String)
+    data class Item(val g: String, val label: String, val need: Boolean = false)
     data class Hour(val time: String, val app: Double, val p: Double, val code: Int, val wind: Double)
     data class Now(
         val t: Double, val app: Double, val code: Int, val isDay: Boolean,
@@ -148,8 +169,14 @@ object Outfit {
         return Input(now, window, uv, uvDay)
     }
 
-    fun plan(inp: Input, feel: String, act: String): Plan {
-        val off = (when (feel) { "cold" -> -3.0; "warm" -> 3.0; else -> 0.0 }) + (when (act) { "field" -> -1.0; "sport" -> 6.0; else -> 0.0 })
+    /**
+     * [who]: "me", "child" or "elder" (children and older people are dressed as if it were 2° colder).
+     * [missing]: pieces the person doesn't have; the closest piece they do have is suggested instead.
+     */
+    fun plan(inp: Input, feel: String, act: String, who: String = "me", missing: Set<String> = emptySet()): Plan {
+        val off = (when (feel) { "cold" -> -3.0; "warm" -> 3.0; else -> 0.0 }) + (when (act) { "field" -> -1.0; "sport" -> 6.0; else -> 0.0 }) +
+            (WHO_OFF[who] ?: 0.0)
+        fun owned(g: String) = g !in missing
         val w = inp.window.filter { !it.app.isNaN() }
         val rawNow = inp.now.app
         var rawLow = rawNow; var rawHigh = rawNow; var lowAt: String? = null; var highAt: String? = null
@@ -210,7 +237,7 @@ object Outfit {
         var carry: String? = null
         if (lLow < level) {
             val lo = if (sport) sport(lLow) else OUT[lLow]
-            val pool = (lo.wear + lo.take).filter { !has(it) }
+            val pool = (lo.wear + lo.take).filter { !has(it) && owned(it) }
             lowPool = pool
             // Already wearing a coat: carry a warmer layer or a scarf/beanie, never a second coat.
             val cand = (if (hasOuter) pool.firstOrNull { it in MID } ?: pool.firstOrNull { it in setOf("atki", "bere", "eldiven") }
@@ -278,6 +305,37 @@ object Outfit {
         }
         if (codes.any { it == 45 || it == 48 }) pills.add("Sis")
         if (act == "field" && wet) addTake("corap")
+
+        // Wardrobe: a missing piece becomes the closest one the person has; clothes with no stand-in stay (marked), accessories go.
+        val lost = ArrayList<String>()
+        if (missing.isNotEmpty()) for (li in 0..1) {
+            val list = if (li == 0) wear else take
+            var i = list.size - 1
+            while (i >= 0) {
+                val g = list[i].g
+                if (!owned(g)) {
+                    val alt = SUBS[g].orEmpty().firstOrNull { x -> owned(x) && !has(x) && take.none { it.g == x } }
+                    lost.add(g)
+                    when {
+                        alt != null -> list[i] = Item(alt, LABELS.getValue(alt))
+                        li == 0 && g in MUST -> list[i] = list[i].copy(need = true)
+                        else -> list.removeAt(i)
+                    }
+                }
+                i--
+            }
+        }
+        // A headline that names a piece the person doesn't have is rewritten from what they will actually wear.
+        val hl = head.lowercase(TR)
+        if (wear.isNotEmpty() && lost.any { g -> val st = STEMS[g]; st != null && hl.contains(st) && wear.none { it.g == g } }) {
+            val outerIt = wear.firstOrNull { it.g in OUTER }
+            val midIt = wear.firstOrNull { it.g in MID }
+            val firstIt = outerIt ?: midIt ?: wear[0]
+            val carryIt = take.firstOrNull { it.g != "semsiye" }
+            val gh = "{" + firstIt.label + "}" + (if (outerIt != null && midIt != null) " ve " + midIt.label.lowercase(TR) else "") + " giy" +
+                (if (carryIt != null) ", yanına " + carryIt.label.lowercase(TR) + " al" else "") + "."
+            head = if (head.startsWith("{Şemsiyeni} al; ") && take.any { it.g == "semsiye" }) "{Şemsiyeni} al; " + lcf(strip(gh)) else gh
+        }
 
         return Plan(level, head, wear.take(6), take.take(5), pills.take(3), e)
     }

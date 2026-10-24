@@ -124,7 +124,12 @@ function makeNet() {
     log: [],
   };
 }
+// The app's own server in "API mode" (window.NG_API) answers on these paths; they count as the same kinds of calls.
+const API_ORIGIN = "https://api.test";
 function kindOf(url) {
+  if (url.startsWith(API_ORIGIN + "/api/forecast")) return "forecast";
+  if (url.startsWith(API_ORIGIN + "/api/search")) return "photon";
+  if (url.startsWith(API_ORIGIN + "/api/reverse") || url.startsWith(API_ORIGIN + "/api/ip")) return "bdc";
   if (url.includes("api.open-meteo.com/v1/forecast")) return "forecast";
   if (url.includes("photon.komoot.io")) return "photon";
   if (url.includes("geocoding-api.open-meteo.com")) return "omgeo";
@@ -165,8 +170,9 @@ async function handleRoute(net, route) {
   } else if (k === "photon") body = photonJSON(u.searchParams.get("q") || "");
   else if (k === "omgeo") body = omGeoJSON(u.searchParams.get("name") || "");
   else if (k === "bdc") {
-    if (u.searchParams.has("latitude")) {
-      const p = nearest(+u.searchParams.get("latitude"), +u.searchParams.get("longitude"), 3);
+    const la = u.searchParams.get("latitude") || u.searchParams.get("lat"), lo = u.searchParams.get("longitude") || u.searchParams.get("lon");
+    if (la != null) {
+      const p = nearest(+la, +lo, 3);
       body = p ? { locality: p.name, city: p.city || p.name, principalSubdivision: p.state } : { locality: "", city: "Bilinmeyen", principalSubdivision: "" };
     } else body = IP_GUESS;
   }
@@ -250,6 +256,7 @@ async function start() {
       await context.addInitScript(GEO_INIT);
     }
     if (o.seed) await context.addInitScript(SEED_INIT, o.seed);
+    if (o.api) await context.addInitScript((a) => { window.NG_API = a; }, API_ORIGIN);
     const page = await context.newPage();
     const errors = [], consoleErr = [];
     page.on("pageerror", (e) => errors.push(String(e && e.stack || e)));
@@ -305,4 +312,4 @@ async function run(scenarios) {
   process.exitCode = summary() ? 1 : 0;
 }
 
-module.exports = { start, run, check, note, sleep, fc, fold, PLACES, GPS, IP_GUESS, tempFor, KEY, SHOTS, kmBetween };
+module.exports = { start, run, check, note, sleep, fc, fold, PLACES, GPS, IP_GUESS, tempFor, KEY, SHOTS, kmBetween, API_ORIGIN };

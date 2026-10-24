@@ -25,6 +25,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Pictures from "Paylaş" are handed to other apps through this, never with file paths. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <receiver
             android:name=".widget.NeGiysemReceiver"
             android:exported="true"

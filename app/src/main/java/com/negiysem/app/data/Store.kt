@@ -14,6 +14,9 @@ class Store(context: Context) {
     val feel: String get() = prefs.getString("feel", "normal") ?: "normal"
     val act: String get() = prefs.getString("act", "city") ?: "city"
     val hours: Int get() = prefs.getInt("hours", 6)
+    /** The person the app screen is dressing: age group and the pieces missing from their wardrobe. */
+    val who: String get() = prefs.getString("who", "me") ?: "me"
+    val missing: Set<String> get() = prefs.getString("missing", "")?.split(",")?.filter { it.isNotBlank() }?.toSet() ?: emptySet()
     val widgetJson: String? get() = prefs.getString("widget", null)
     val routineJson: String? get() = prefs.getString("routine", null)
     val updatedAt: Long get() = prefs.getLong("updated", 0L)
@@ -35,8 +38,11 @@ class Store(context: Context) {
         val feel = o.optString("feel", feel)
         val act = o.optString("act", act)
         val hours = o.optInt("hours", hours)
-        if (feel != this.feel || act != this.act || hours != this.hours) changed = true
-        e.putString("feel", feel).putString("act", act).putInt("hours", hours)
+        val who = o.optString("who", "me").takeIf { it in setOf("me", "child", "elder") } ?: "me"
+        val miss = o.optJSONArray("missing")?.let { a -> (0 until a.length()).map { a.optString(it) }.filter { it.matches(Regex("[a-z]{2,12}")) } }
+            ?.sorted()?.joinToString(",") ?: ""
+        if (feel != this.feel || act != this.act || hours != this.hours || who != this.who || miss != prefs.getString("missing", "")) changed = true
+        e.putString("feel", feel).putString("act", act).putInt("hours", hours).putString("who", who).putString("missing", miss)
         val place = o.optJSONObject("place")
         if (place != null) {
             val la = place.optDouble("lat", Double.NaN)

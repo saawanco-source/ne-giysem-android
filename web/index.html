@@ -319,6 +319,18 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 
 /* sheets: packing list and the share picture */
 html.sheet-open,html.sheet-open body{overflow:hidden}
+/* people and wardrobe */
+.chip .who{font-weight:600;opacity:.75;margin-left:4px}
+.wd-grid{display:flex;flex-wrap:wrap;gap:8px}
+.wd{display:inline-flex;align-items:center;gap:6px;border:1.5px dashed var(--input-line);background:transparent;border-radius:999px;padding:4px 12px 4px 4px;font-weight:700;font-size:13px;cursor:pointer;color:var(--ink2)}
+.wd .art{width:34px;height:34px;opacity:.45;filter:grayscale(.6)}
+.wd .art svg{width:100%;height:100%;display:block}
+.wd[aria-pressed="true"]{border-style:solid;border-color:transparent;background:var(--chip);color:var(--ink)}
+.wd[aria-pressed="true"] .art{opacity:1;filter:none}
+.wd .st{font-weight:600;font-size:11.5px;opacity:.8}
+.pf-form{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.pf-form input{border:1.5px solid var(--input-line);background:var(--input);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;min-height:44px}
+.stk.need .lab{box-shadow:inset 0 0 0 2px var(--ink);background:transparent}
 .sheet{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center}
 .sheet-bg{position:absolute;inset:0;background:rgba(8,10,18,.52)}
 .sheet-box{position:relative;width:100%;max-width:640px;max-height:92vh;max-height:92dvh;overflow:auto;overscroll-behavior:contain;background:var(--field);color:var(--ink);
@@ -449,7 +461,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <h2 id="dayTitle">Gün nasıl geçecek</h2>
       <div class="hours" id="hours"></div>
       <div class="facts" id="facts"></div>
-      <p class="src">Hava verisi: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0)</p>
+      <p class="src" id="wxCredit">Hava verisi: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0)</p>
     </section>
 
     <section class="day card" id="manualCard">
@@ -492,6 +504,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     <section class="me card" aria-label="Kişisel ayarlar">
       <h2>Sana göre</h2>
       <div class="row">
+        <span class="rl" id="lWho">Kimin için?</span>
+        <div class="chips" id="people" role="group" aria-labelledby="lWho"></div>
+      </div>
+      <div class="row">
         <span class="rl" id="lHours">Dışarıda ne kadar?</span>
         <div class="seg" role="group" aria-labelledby="lHours" data-key="hours">
           <button type="button" data-val="3">2–3 saat</button>
@@ -514,6 +530,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           <button type="button" data-val="field">Arazi / doğa</button>
           <button type="button" data-val="sport">Spor</button>
         </div>
+      </div>
+      <div class="row">
+        <span class="rl">Dolabım</span>
+        <div class="chips"><button type="button" class="chip" id="wardBtn">Dolabımı düzenle</button></div>
+        <p class="src" id="wardHint">Dolabında olmayan parçaları işaretlersen yerine elindekiler önerilir.</p>
       </div>
       <div class="row">
         <span class="rl">Günüm</span>
@@ -544,6 +565,20 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <div id="packBody"></div>
     </section>
   </div>
+  <div class="sheet" id="personSheet" hidden>
+    <div class="sheet-bg" data-close-sheet></div>
+    <section class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="personTitle">
+      <div class="tc-head"><h2 id="personTitle" tabindex="-1">Kişi ekle</h2><button type="button" class="x" data-close-sheet aria-label="Kapat">×</button></div>
+      <div id="personBody"></div>
+    </section>
+  </div>
+  <div class="sheet" id="wardSheet" hidden>
+    <div class="sheet-bg" data-close-sheet></div>
+    <section class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="wardTitle">
+      <div class="tc-head"><h2 id="wardTitle" tabindex="-1">Dolabım</h2><button type="button" class="x" data-close-sheet aria-label="Dolabı kapat">×</button></div>
+      <div id="wardBody"></div>
+    </section>
+  </div>
   <div class="sheet" id="shareSheet" hidden>
     <div class="sheet-bg" data-close-sheet></div>
     <section class="sheet-box sh-box" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
@@ -563,10 +598,28 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   var KEY = "negiysem:v2";
   var IS_ART = !!(window.claude && typeof window.claude.use === "function");
 
+  /* ================= configuration (filled in when the app goes live) ================= */
+  // api: the app's own server (Cloudflare Pages Functions in web/functions), e.g. "https://negiysem.com".
+  // On that site itself the server is the same origin. With no server the free, non-commercial services are called
+  // directly (development, the Claude preview); ads and shop links stay off in that mode.
+  var CONFIG = {
+    api: ""
+  };
+  var API = (function(){
+    if (IS_ART) return "";
+    if (typeof window.NG_API === "string") return window.NG_API.replace(/\/$/, ""); // tests
+    var here = location.protocol === "https:" && (/\.pages\.dev$/.test(location.hostname) || (CONFIG.api && location.origin === CONFIG.api));
+    if (here) return location.origin;
+    return CONFIG.api ? CONFIG.api.replace(/\/$/, "") : "";
+  })();
+
   /* ================= state ================= */
   var S = {places:[], sel:"auto", hours:6, feel:"normal", act:"city", manual:{temp:17, sky:"partly", wind:"breezy"}, mode:"manual", live:null,
            routes:[], trips:[], dayMode:true, dayWx:null, choice:{date:"", picks:{}}, fix:null,
-           rainOff:"", pack:{place:"", days:3, start:0, ticks:{}}};
+           rainOff:"", pack:{place:"", days:3, start:0, ticks:{}},
+           // People the app dresses: each with an age group, cold sensitivity and the pieces missing from their wardrobe.
+           // The active person's sensitivity lives in S.feel while they are chosen.
+           profiles:[{id:"me", name:"Ben", who:"me", feel:"normal", missing:[]}], prof:"me"};
   (function(){
     var d = null;
     // The first version kept the same kind of data under negiysem:v1; it is read once and saved under the new key.
@@ -580,6 +633,15 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if ([3,6,12].indexOf(d.hours) >= 0) S.hours = d.hours;
     if (["cold","normal","warm"].indexOf(d.feel) >= 0) S.feel = d.feel;
     if (["city","field","sport"].indexOf(d.act) >= 0) S.act = d.act;
+    if (Array.isArray(d.profiles)) {
+      var ps = d.profiles.filter(function(p){ return p && str(p.id) && typeof p.name === "string"; }).slice(0, 8).map(function(p){
+        return {id:p.id.slice(0, 40), name:p.name.trim().slice(0, 24) || "Kişi", who:["me","child","elder"].indexOf(p.who) >= 0 ? p.who : "me",
+          feel:["cold","normal","warm"].indexOf(p.feel) >= 0 ? p.feel : "normal",
+          missing:Array.isArray(p.missing) ? p.missing.filter(function(g){ return typeof g === "string" && /^[a-z]{2,12}$/.test(g); }).slice(0, 40) : []};
+      });
+      if (ps.length) S.profiles = ps;
+    }
+    if (typeof d.prof === "string" && S.profiles.some(function(p){ return p.id === d.prof; })) S.prof = d.prof; else S.prof = S.profiles[0].id;
     if (d.manual && typeof d.manual === "object") {
       if (num(+d.manual.temp)) S.manual.temp = Math.max(-10, Math.min(40, +d.manual.temp));
       if (["sunny","partly","cloudy","rain","snow"].indexOf(d.manual.sky) >= 0) S.manual.sky = d.manual.sky;
@@ -619,14 +681,20 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     }
   })();
   var busy = false, lastWearSig = "", CUR = {wear:[], take:[]}, SHOWN = null;
+  function curProf(){ for (var i = 0; i < S.profiles.length; i++) if (S.profiles[i].id === S.prof) return S.profiles[i]; return S.profiles[0]; }
+  // What the outfit engine needs to know about the person being dressed.
+  function prefs(){ var pr = curProf(); return {feel:S.feel, act:S.act, who:pr.who, missing:pr.missing}; }
   function save(){
+    curProf().feel = S.feel;
     try { localStorage.setItem(KEY, JSON.stringify({places:S.places, sel:S.sel, hours:S.hours, feel:S.feel, act:S.act, manual:S.manual, mode:S.mode, live:S.live,
-      routes:S.routes, trips:S.trips, dayMode:S.dayMode, dayWx:S.dayWx, choice:S.choice, fix:S.fix, rainOff:S.rainOff, pack:S.pack})); } catch (e) {}
+      routes:S.routes, trips:S.trips, dayMode:S.dayMode, dayWx:S.dayWx, choice:S.choice, fix:S.fix, rainOff:S.rainOff, pack:S.pack,
+      profiles:S.profiles, prof:S.prof})); } catch (e) {}
     // Android app: share the chosen place, preferences and routine with the home-screen widget
     if (window.NeGiysemAndroid) {
       var pl = S.live && S.live.place ? {name:S.live.place.name, lat:S.live.place.lat, lon:S.live.place.lon} : null;
       var places = S.places.map(function(p){ return {id:p.id, name:p.name, lat:p.lat, lon:p.lon}; });
-      try { window.NeGiysemAndroid.saveState(JSON.stringify({feel:S.feel, act:S.act, hours:S.hours, place:pl,
+      var pr = curProf();
+      try { window.NeGiysemAndroid.saveState(JSON.stringify({feel:S.feel, act:S.act, hours:S.hours, place:pl, who:pr.who, missing:pr.missing,
         routine:{dayMode:S.dayMode, places:places, routes:S.routes, trips:S.trips, choice:S.choice}})); } catch (e) {}
     }
   }
@@ -784,10 +852,33 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     return {wear:["thermal","ruzgarlik","tayt","spor","bere"], take:["eldiven"], head:"{Termal} katman ve rüzgarlık şart."};
   };
   var FEEL_OFF = {cold:-3, normal:0, warm:3}, ACT_OFF = {city:0, field:-1, sport:6};
+  /* ---- people and wardrobe ---- */
+  // Children and older people lose heat faster: dressed as if it were 2° colder.
+  var WHO = {me:{label:"Yetişkin", off:0}, child:{label:"Çocuk", off:-2}, elder:{label:"65 yaş üstü", off:-2}};
+  // When a piece isn't in the person's wardrobe: the closest piece they do have, in this order.
+  var SUBS = {
+    parka:["sisme","kaban","mont"], sisme:["parka","kaban","mont"], kaban:["sisme","mont","parka"], mont:["kaban","sisme","ceket"],
+    ceket:["ruzgarlik","hirka","mont"], ruzgarlik:["ceket","yagmurluk","hirka"], yagmurluk:["ruzgarlik","ceket","mont","kaban","sisme","parka"],
+    kazak:["sweatshirt","hirka"], sweatshirt:["kazak","hirka"], hirka:["sweatshirt","ceket","kazak"],
+    thermal:["longsleeve"], longsleeve:["thermal","tshirt"], tshirt:["longsleeve"],
+    jean:["pantolon"], pantolon:["jean"], sort:["jean"], tayt:["pantolon","jean"],
+    sneaker:["spor","bot"], spor:["sneaker"], bot:["yuruyus","sneaker"], yuruyus:["bot","spor","sneaker"], sandalet:["sneaker","spor"]
+  };
+  // Clothes that are kept on the list (marked "not in your wardrobe") when nothing can replace them; accessories are simply left out.
+  var MUST = OUTER.concat(MID, ["thermal","longsleeve","tshirt"], BOTTOMS, SHOES);
+  // How a headline names each piece (any form), to notice a headline that talks about a piece the person doesn't have.
+  var STEMS = {parka:"parka", sisme:"şişme mont", kaban:"kaban", mont:"mont", ceket:"ceket", hirka:"hırka", sweatshirt:"sweatshirt", tshirt:"tişört",
+    thermal:"termal", kazak:"kaza", yagmurluk:"yağmurlu", ruzgarlik:"rüzgarlı", bere:"bere", atki:"atkı", eldiven:"eldiven", sort:"şort", tayt:"tayt",
+    longsleeve:"uzun kollu", semsiye:"şemsiye", sapka:"şapka"};
+  // Wardrobe editor groups (everyday consumables like water and socks aren't listed).
+  var WARDROBE = [["Üst", ["tshirt","longsleeve","thermal","sweatshirt","hirka","kazak"]], ["Dış katman", ["ceket","ruzgarlik","yagmurluk","mont","kaban","sisme","parka"]],
+    ["Alt", ["jean","pantolon","sort","tayt"]], ["Ayakkabı", ["sneaker","spor","bot","yuruyus","sandalet"]], ["Aksesuar", ["bere","atki","eldiven","sapka","gozluk","semsiye","krem"]]];
   function levelOf(E){ var l = 0; for (var i = 0; i < LV.length; i++) if (E >= LV[i].min) l = i; return l; }
 
   function plan(inp, P){
-    var off = (FEEL_OFF[P.feel] || 0) + (ACT_OFF[P.act] || 0);
+    var off = (FEEL_OFF[P.feel] || 0) + (ACT_OFF[P.act] || 0) + ((WHO[P.who] || WHO.me).off);
+    var lack = Array.isArray(P.missing) ? P.missing : [];
+    function owned(g){ return lack.indexOf(g) < 0; }
     var W = inp.window.filter(function(h){ return fin(h.app); });
     var rawNow = inp.now.app, rawLow = rawNow, rawHigh = rawNow, lowAt = null, highAt = null;
     W.forEach(function(h){ if (h.app < rawLow) { rawLow = h.app; lowAt = h.time; } if (h.app > rawHigh) { rawHigh = h.app; highAt = h.time; } });
@@ -844,7 +935,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var lowPool = [], carryWhy = "", carry = null;
     if (Llow < L) {
       var lo = sport ? SPORT(Llow) : OUT[Llow];
-      var pool = lowPool = lo.wear.concat(lo.take).filter(function(g){ return !has(g); });
+      var pool = lowPool = lo.wear.concat(lo.take).filter(function(g){ return !has(g) && owned(g); });
       var inGroup = function(list){ return pool.filter(function(g){ return list.indexOf(g) >= 0; })[0]; };
       // Already wearing a coat: carry a warmer layer or a scarf/beanie, never a second coat.
       var cand = (hasOuter ? (inGroup(MID) || inGroup(["atki","bere","eldiven"])) : (inGroup(OUTER) || inGroup(MID))) || (sport ? inGroup(["longsleeve","thermal"]) : null);
@@ -941,6 +1032,32 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (P.act === "field" && wet) { addTake("corap"); why("corap", "Arazide ayak ıslanırsa değiştirirsin"); }
     if (L === 7) why("su", "Sıcakta su kaybın artar");
 
+    // Wardrobe: a piece the person doesn't have becomes the closest one they do have (its reasons go with it);
+    // clothes with no stand-in stay, marked; accessories are left out.
+    var lost = [];
+    if (lack.length) [wear, take].forEach(function(list, li){
+      for (var i = list.length - 1; i >= 0; i--) {
+        var g = list[i].g; if (owned(g)) continue;
+        var alt = (SUBS[g] || []).filter(function(x){ return owned(x) && !has(x) && !take.some(function(t){ return t.g === x; }); })[0];
+        lost.push(g);
+        if (alt) {
+          list[i] = {g:alt, label:G[alt], from:g};
+          reasons[alt] = (reasons[alt] || []).concat(reasons[g] || []);
+          why(alt, "Dolabında " + G[g].toLocaleLowerCase("tr") + " yok; yerine bu");
+        } else if (li === 0 && MUST.indexOf(g) >= 0) list[i].need = true;
+        else list.splice(i, 1);
+      }
+    });
+    // A headline that names a piece the person doesn't have is rewritten from what they will actually wear.
+    var hl = head.toLocaleLowerCase("tr");
+    if (lost.some(function(g){ var st = STEMS[g]; return st && hl.indexOf(st) >= 0 && !wear.some(function(w){ return w.g === g; }); }) && wear.length) {
+      var outerIt = wear.filter(function(w){ return OUTER.indexOf(w.g) >= 0; })[0], midIt = wear.filter(function(w){ return MID.indexOf(w.g) >= 0; })[0];
+      var firstIt = outerIt || midIt || wear[0], carryIt = take.filter(function(t){ return t.g !== "semsiye"; })[0];
+      var gh = "{" + firstIt.label + "}" + (outerIt && midIt ? " ve " + midIt.label.toLocaleLowerCase("tr") : "") + " giy" +
+        (carryIt ? ", yanına " + carryIt.label.toLocaleLowerCase("tr") + " al" : "") + ".";
+      head = /^\{Şemsiyeni\} al; /.test(head) && take.some(function(t){ return t.g === "semsiye"; }) ? "{Şemsiyeni} al; " + lcf(strip(gh)) : gh;
+    }
+
     var feltTxt = (off ? "Sana göre " : "Hissedilen ") + deg(E) + ": " + LV[L].name.toLocaleLowerCase("tr");
     var takeWhy = "Hava " + (L >= 5 ? "serinlerse" : "değişirse") + " diye yanında dursun";
     function fallback(g){
@@ -952,11 +1069,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var withWhy = function(list, isTake){
       return list.map(function(it){
         var r = (reasons[it.g] || []).slice();
-        if (!isTake && base.wear.indexOf(it.g) >= 0) r.unshift(feltTxt); // level-driven pieces start with the temperature
+        if (!isTake && (base.wear.indexOf(it.g) >= 0 || (it.from && base.wear.indexOf(it.from) >= 0))) r.unshift(feltTxt); // level-driven pieces start with the temperature
+        if (it.need) r.push("Dolabında yok; benzer bir parça giy");
         if (!r.length) r = [isTake ? fallback(it.g) : feltTxt];
         var info = {}, a = INFO[it.g] || {}, b = infoOv[it.g] || {}, k;
         for (k in a) info[k] = a[k]; for (k in b) info[k] = b[k];
-        return {g:it.g, label:it.label, why:r, info:info};
+        return {g:it.g, label:it.label, why:r, info:info, need:!!it.need, from:it.from || null};
       });
     };
     return {L:L, E:E, rawNow:rawNow, rawLow:rawLow, off:off,
@@ -1152,8 +1270,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   function render(opts){
     var inp = currentInput(), live = inp.kind === "live";
     var day = live ? dayPlan() : null, useDay = !!(day && day.inp && day.lead);
-    var pc = plan(inp, S), p = useDay ? plan(day.inp, S) : pc;
-    var preview = day && day.inp && !day.lead ? plan(day.inp, S) : null;
+    var P = prefs(), pc = plan(inp, P), p = useDay ? plan(day.inp, P) : pc;
+    var preview = day && day.inp && !day.lead ? plan(day.inp, P) : null;
     var root = document.documentElement;
     root.style.setProperty("--lv", LV[p.L].color);
     var night = live && (useDay ? day.inp.now.isDay === 0 : inp.now.isDay === 0);
@@ -1167,6 +1285,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     $("placeLabel").textContent = pname; $("placeBtn").title = pname;
     $("placeBtn").setAttribute("aria-label", "Yer: " + pname + ". Değiştir");
     var soft = [LV[p.L].name]; if (useDay) soft.unshift(day.offset ? "Yarınki günüme göre" : "Günüme göre");
+    if (S.profiles.length > 1) soft.unshift(curProf().name + " için");
     $("pills").innerHTML = soft.map(function(x){ return '<span class="pill soft">' + esc(x) + '</span>'; }).join("") + p.pills.map(function(x){ return '<span class="pill">' + esc(x) + '</span>'; }).join("");
     $("headline").innerHTML = headHTML(p.head);
     $("bigTemp").textContent = deg(inp.now.t);
@@ -1181,7 +1300,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var wearEl = $("wear");
     CUR = {wear:p.wear, take:p.take}; hideTip();
     wearEl.innerHTML = p.wear.map(function(w, i){
-      return '<div class="stk" style="--r:' + ROT[i % ROT.length] + 'deg" data-k="w:' + i + '" tabindex="0" role="button" aria-label="' + esc(w.label + ": " + w.why.join(", ")) + '"><div class="art">' + art(w.g) + '</div><span class="lab">' + esc(w.label) + '</span></div>';
+      return '<div class="stk' + (w.need ? ' need' : '') + '" style="--r:' + ROT[i % ROT.length] + 'deg" data-k="w:' + i + '" tabindex="0" role="button" aria-label="' + esc(w.label + ": " + w.why.join(", ")) + '"><div class="art">' + art(w.g) + '</div><span class="lab">' + esc(w.label) + '</span></div>';
     }).join("");
     if (sig !== lastWearSig) { wearEl.classList.remove("pop"); void wearEl.offsetWidth; wearEl.classList.add("pop"); lastWearSig = sig; }
     var tk = $("take");
@@ -1230,7 +1349,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var key = g.dataset.key, cur = key === "sky" || key === "wind" ? S.manual[key] : String(S[key]);
       g.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.val === String(cur) ? "true" : "false"); });
     });
-    renderChips();
+    renderChips(); renderPeople();
     $("routineBtn").textContent = S.trips.length ? "Rutinimi düzenle" : "Rutinimi kur";
     $("routineHint").hidden = S.trips.length > 0;
     if (!(opts && opts.keepEditor)) renderEditor();
@@ -1358,7 +1477,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   /* ---- this week ---- */
   var WEEK_OPEN = {};
   function renderWeek(live){
-    var card = $("weekCard"), days = live && S.live && S.live.wx ? weekDays(S.live.wx, S) : [];
+    var card = $("weekCard"), days = live && S.live && S.live.wx ? weekDays(S.live.wx, prefs()) : [];
     card.hidden = !days.length;
     if (!days.length) return;
     $("week").innerHTML = days.map(function(d){
@@ -1506,7 +1625,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     return items;
   }
   function packPlan(wx, start, n){
-    var from = addDays(wxToday(wx), start), days = weekDays(wx, S).filter(function(d){ return d.off >= start && d.off < start + n; });
+    var from = addDays(wxToday(wx), start), days = weekDays(wx, prefs()).filter(function(d){ return d.off >= start && d.off < start + n; });
     return {from:from, to:addDays(from, n - 1), days:days, missing:Math.max(0, n - days.length), items:days.length ? packItems(days, n) : []};
   }
   function focusKey(n){
@@ -1563,7 +1682,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           (it.count > 1 ? '<span class="n" aria-hidden="true">×' + it.count + '</span>' : '') + '</label></li>';
       }).join("") + '</ul>';
     });
-    h += '<div class="ed-foot"><button type="button" class="btn" data-pk-share>' + (navigator.share ? "Listeyi paylaş" : "Listeyi kopyala") + '</button>' +
+    var canShare = navigator.share || (window.NeGiysemAndroid && typeof window.NeGiysemAndroid.shareText === "function");
+    h += '<div class="ed-foot"><button type="button" class="btn" data-pk-share>' + (canShare ? "Listeyi paylaş" : "Listeyi kopyala") + '</button>' +
       '<button type="button" class="btn soft" data-pk-clear' + (n ? '' : ' hidden') + '>İşaretleri temizle</button><button type="button" class="btn soft" data-close-sheet>Kapat</button></div>';
     h += '<p class="src" id="pkMsg" role="status">' + esc(PACK.msg) + '</p>' + (PACK.out ? '<textarea class="pk-out" readonly aria-label="Liste metni">' + esc(PACK.out) + '</textarea>' : '');
     done(h);
@@ -1581,6 +1701,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   // The system share sheet where there is one (phones), else the clipboard; as a last resort the text is shown to copy by hand.
   async function shareText(title, text){
+    var A = window.NeGiysemAndroid; // Android app: the phone's own share sheet
+    if (A && typeof A.shareText === "function") { try { A.shareText(text, title); return "shared"; } catch (e) {} }
     if (navigator.share) {
       try { await navigator.share({title:title, text:text}); return "shared"; }
       catch (e) { if (e && e.name === "AbortError") return "cancel"; }
@@ -1601,6 +1723,93 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     PACK.msg = r === "copied" ? "Liste panoya kopyalandı." : r === "fail" ? "Kopyalanamadı; aşağıdaki metni seçip kopyalayabilirsin." : "";
     PACK.out = r === "fail" ? text : "";
     renderPack();
+  }
+
+  /* ---- people and wardrobe ---- */
+  function renderPeople(){
+    var box = $("people"); if (!box) return;
+    box.innerHTML = S.profiles.map(function(pr){
+      return '<button type="button" class="chip" data-person="' + esc(pr.id) + '" aria-pressed="' + (pr.id === S.prof) + '">' + esc(pr.name) +
+        (pr.who !== "me" ? '<span class="who">' + esc(WHO[pr.who].label) + '</span>' : '') + '</button>';
+    }).join("") + '<button type="button" class="chip" data-person-edit>' + (S.profiles.length > 1 || curProf().who !== "me" || curProf().name !== "Ben" ? "Düzenle" : "Adını değiştir") + '</button>' +
+      (S.profiles.length < 8 ? '<button type="button" class="chip" data-person-add>+ Kişi ekle</button>' : '');
+    var miss = curProf().missing.filter(function(g){ return G[g]; });
+    $("wardHint").textContent = miss.length
+      ? (S.profiles.length > 1 ? curProf().name + ": " : "") + "dolabında yok: " + miss.slice(0, 4).map(function(g){ return G[g]; }).join(", ") + (miss.length > 4 ? " ve " + (miss.length - 4) + " parça daha" : "") + ". Yerine elindekiler önerilir."
+      : "Dolabında olmayan parçaları işaretlersen yerine elindekiler önerilir.";
+  }
+  function switchPerson(id){
+    if (id === S.prof || !S.profiles.some(function(p){ return p.id === id; })) return;
+    curProf().feel = S.feel; S.prof = id; S.feel = curProf().feel;
+    save(); render();
+    setStatus("Öneri artık " + curProf().name + " için" + (curProf().who !== "me" ? " (" + WHO[curProf().who].label.toLocaleLowerCase("tr") + ")" : "") + ".");
+  }
+  var PERSON = {edit:null, who:"me"};
+  function openPerson(editId, opener){
+    var pr = editId ? S.profiles.filter(function(p){ return p.id === editId; })[0] : null;
+    PERSON.edit = pr ? pr.id : null; PERSON.who = pr ? pr.who : "child";
+    $("personTitle").textContent = pr ? "Kişiyi düzenle" : "Kişi ekle";
+    renderPerson(pr ? pr.name : "");
+    openSheet("personSheet", opener);
+  }
+  function renderPerson(name){
+    var canDel = PERSON.edit && S.profiles.length > 1;
+    $("personBody").innerHTML = '<div class="pf-form">' +
+      '<label class="rl" for="pfName">Adı</label><input id="pfName" maxlength="24" autocomplete="off" value="' + esc(name) + '" placeholder="Ör. Deniz">' +
+      '<span class="rl" id="lPfWho">Yaş grubu</span><div class="seg" role="group" aria-labelledby="lPfWho">' +
+      Object.keys(WHO).map(function(k){ return '<button type="button" data-pf-who="' + k + '" aria-pressed="' + (PERSON.who === k) + '">' + WHO[k].label + '</button>'; }).join("") + '</div>' +
+      '<p class="src">Çocuklar ve 65 yaş üstü kişiler daha çabuk üşür; onlar için bir kat daha sıcak giyim önerilir. Soğuğa karşı ayarını ve dolabını bu kişiyi seçince ayrıca belirleyebilirsin.</p>' +
+      '</div><div class="ed-foot"><button type="button" class="btn" data-pf-save>Kaydet</button>' +
+      (canDel ? '<button type="button" class="btn soft" data-pf-del>Kişiyi sil</button>' : '') +
+      '<button type="button" class="btn soft" data-close-sheet>Vazgeç</button></div>';
+  }
+  function personClick(e){
+    var t = e.target.closest && e.target.closest("[data-pf-who],[data-pf-save],[data-pf-del]"); if (!t) return;
+    if (t.dataset.pfWho) { PERSON.who = t.dataset.pfWho; $("personBody").querySelectorAll("[data-pf-who]").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.pfWho === PERSON.who ? "true" : "false"); }); return; }
+    if (t.hasAttribute("data-pf-del")) {
+      var id = PERSON.edit, gone = S.profiles.filter(function(p){ return p.id === id; })[0];
+      if (!gone || S.profiles.length < 2) return;
+      if (S.prof === id) { S.prof = S.profiles.filter(function(p){ return p.id !== id; })[0].id; S.feel = curProf().feel; }
+      S.profiles = S.profiles.filter(function(p){ return p.id !== id; });
+      save(); closeSheet(); render(); setStatus(gone.name + " silindi."); return;
+    }
+    var name = $("pfName").value.trim().slice(0, 24);
+    if (!name) { $("pfName").focus(); $("pfName").setAttribute("aria-invalid", "true"); return; }
+    if (PERSON.edit) {
+      var pr = S.profiles.filter(function(p){ return p.id === PERSON.edit; })[0]; if (!pr) return;
+      pr.name = name; pr.who = PERSON.who;
+    } else {
+      curProf().feel = S.feel;
+      var np = {id:"u" + uid(), name:name, who:PERSON.who, feel:"normal", missing:[]};
+      S.profiles.push(np); S.prof = np.id; S.feel = np.feel;
+    }
+    save(); closeSheet(); render();
+    setStatus("Öneri " + curProf().name + " için" + (curProf().who !== "me" ? " (" + WHO[curProf().who].label.toLocaleLowerCase("tr") + ")" : "") + ".");
+  }
+  function renderWardrobe(){
+    var pr = curProf();
+    $("wardTitle").textContent = S.profiles.length > 1 ? pr.name + " · Dolabım" : "Dolabım";
+    $("wardBody").innerHTML = '<p class="src">Dolabında olmayan parçalara dokun; öneride onların yerine elindeki en yakın parça çıkar.</p>' +
+      WARDROBE.map(function(gr){
+        return '<h3>' + gr[0] + '</h3><div class="wd-grid">' + gr[1].map(function(g){
+          var has = pr.missing.indexOf(g) < 0;
+          return '<button type="button" class="wd" data-ward="' + g + '" aria-pressed="' + has + '"><span class="art">' + art(g) + '</span>' + esc(G[g]) +
+            '<span class="st">' + (has ? "var" : "yok") + '</span></button>';
+        }).join("") + '</div>';
+      }).join("") +
+      '<div class="ed-foot"><button type="button" class="btn soft" data-ward-all' + (pr.missing.length ? '' : ' hidden') + '>Hepsi var</button><button type="button" class="btn" data-close-sheet>Tamam</button></div>';
+  }
+  function wardClick(e){
+    var t = e.target.closest && e.target.closest("[data-ward],[data-ward-all]"); if (!t) return;
+    var pr = curProf();
+    if (t.hasAttribute("data-ward-all")) pr.missing = [];
+    else {
+      var g = t.dataset.ward, i = pr.missing.indexOf(g);
+      if (i >= 0) pr.missing.splice(i, 1); else pr.missing.push(g);
+    }
+    save(); render();
+    var keep = t.dataset.ward; renderWardrobe();
+    var again = keep && $("wardBody").querySelector('[data-ward="' + keep + '"]'); if (again) again.focus();
   }
 
   /* ---- sheets ---- */
@@ -1999,10 +2208,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   function togglePanel(open){ var p = $("placePanel"); p.hidden = !open; $("placeBtn").setAttribute("aria-expanded", open ? "true" : "false"); }
 
   /* ================= data sources ================= */
-  // One request for several places: Open-Meteo answers a list in the same order.
+  // One request for several places: the answer is a list in the same order (the app's server answers in Open-Meteo's shape).
   function forecastURL(pts){
-    return "https://api.open-meteo.com/v1/forecast?latitude=" + pts.map(function(p){ return (+p.lat).toFixed(4); }).join(",") +
-      "&longitude=" + pts.map(function(p){ return (+p.lon).toFixed(4); }).join(",") +
+    var q = "latitude=" + pts.map(function(p){ return (+p.lat).toFixed(4); }).join(",") +
+      "&longitude=" + pts.map(function(p){ return (+p.lon).toFixed(4); }).join(",");
+    if (API) return API + "/api/forecast?" + q;
+    return "https://api.open-meteo.com/v1/forecast?" + q +
       "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
       "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
       "&daily=uv_index_max,sunset&timezone=auto&forecast_days=7";
@@ -2015,6 +2226,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     return S.places[0] || {lat:41.01, lon:28.97};
   }
   function photonURL(q, b){
+    if (API) return API + "/api/search?q=" + encodeURIComponent(q) + (b ? "&lat=" + (+b.lat).toFixed(3) + "&lon=" + (+b.lon).toFixed(3) : "");
     return "https://photon.komoot.io/api/?q=" + encodeURIComponent(q) + "&limit=12" +
       (b ? "&lat=" + (+b.lat).toFixed(3) + "&lon=" + (+b.lon).toFixed(3) + "&zoom=10&location_bias_scale=0.1" : "");
   }
@@ -2077,7 +2289,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   async function findPlaces(get, q){
     var b = searchBias(), list = [], failed = null;
     try { list = fromPhoton(await get(photonURL(q, b))); } catch (e) { failed = e; }
-    if (list.length < 3) {
+    if (list.length < 3 && !API) { // Open-Meteo's free geocoding only without the app's server (non-commercial)
       try { list = list.concat(fromOpenMeteo(await get(geocodeURL(q)))); } catch (e) { if (failed) throw failed; }
     }
     if (failed && !list.length) throw failed; // the main search is down: say so instead of "no results"
@@ -2100,11 +2312,16 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     return d.toLocaleDateString("tr-TR", {day:"numeric", month:"long"}) + " " + hm;
   }
   var BDC = "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=tr";
+  // Place name for coordinates, and a rough location from the connection when GPS isn't available.
+  function reverseURL(lat, lon){
+    return API ? API + "/api/reverse?lat=" + (+lat).toFixed(4) + "&lon=" + (+lon).toFixed(4) : BDC + "&latitude=" + lat + "&longitude=" + lon;
+  }
+  function ipURL(){ return API ? API + "/api/ip" : BDC; }
   // The last found location; a name that could not be looked up before is looked up again (no permission needed for that).
   async function fromFix(note){
     var f = S.fix, name = f.name, fix = null;
     if (!name || name === "Konumun") {
-      try { var g = await WEB.fetchJSON(BDC + "&latitude=" + f.lat + "&longitude=" + f.lon, 8000); var n = g.locality || g.city || g.principalSubdivision; if (n) { name = n; fix = {lat:f.lat, lon:f.lon, name:n, at:f.at}; } } catch (e) {}
+      try { var g = await WEB.fetchJSON(reverseURL(f.lat, f.lon), 8000); var n = g.locality || g.city || g.principalSubdivision; if (n) { name = n; fix = {lat:f.lat, lon:f.lon, name:n, at:f.at}; } } catch (e) {}
     }
     return {place:{name:name || "Konumun", sub:"Son bilinen konum", lat:f.lat, lon:f.lon}, note:note, fix:fix,
             action:{label:"Konumumu güncelle", fn:function(){ fetchLive(true, true); }}};
@@ -2144,7 +2361,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       try {
         var c = await WEB.position();
         var place = {name:"Konumun", sub:"Cihaz konumu", lat:c.latitude, lon:c.longitude};
-        try { var g = await WEB.fetchJSON(BDC + "&latitude=" + c.latitude + "&longitude=" + c.longitude, 8000); place.name = g.locality || g.city || g.principalSubdivision || place.name; } catch (e) {}
+        try { var g = await WEB.fetchJSON(reverseURL(c.latitude, c.longitude), 8000); place.name = g.locality || g.city || g.principalSubdivision || place.name; } catch (e) {}
         var fix = {lat:c.latitude, lon:c.longitude, name:place.name, at:Date.now()};
         if ((await geoState()) !== "granted" && !nearSaved(fix))
           return {place:place, fix:fix, note:"Tarayıcın izni hatırlamıyor; bundan sonra bu konum kullanılır, tekrar sorulmaz. Kaydedersen hep hazır olur.", action:{label:"Bu konumu kaydet", fn:saveFix}};
@@ -2156,7 +2373,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           return await fromFix((blocked ? "Bu sitenin konum izni kapalı; izin vermek için tarayıcının site ayarlarını ya da telefon ayarlarını aç. Son bilinen konumun kullanıldı ("
             : (e.code === "geo_denied" ? "Konum izni verilmedi" : "Konum şu an bulunamadı") + "; son bilinen konumun kullanıldı (") + fixWhen(S.fix.at) + ").");
         }
-        var ip = await WEB.fetchJSON(BDC, 8000);
+        var ip = await WEB.fetchJSON(ipURL(), 8000);
         if (!isFinite(ip.latitude) || !isFinite(ip.longitude)) throw {code:"geo_none"};
         return {place:{name: ip.city || ip.locality || ip.principalSubdivision || "Konumun", sub:"Yaklaşık konum", lat:+ip.latitude, lon:+ip.longitude},
                 note: e.code === "geo_denied" ? "Konum izni olmadığı için yaklaşık konum kullanıldı. Daha isabetli sonuç için konum izni ver ya da yer ekle." : "Konum bulunamadı; yaklaşık konum kullanıldı."};
@@ -2396,7 +2613,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     try {
       var c = await WEB.position(), name = "Kayıtlı yer", sub = "";
       try {
-        var g = await WEB.fetchJSON("https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=tr&latitude=" + c.latitude + "&longitude=" + c.longitude, 8000);
+        var g = await WEB.fetchJSON(reverseURL(c.latitude, c.longitude), 8000);
         name = g.locality || g.city || name;
         sub = [g.city, g.principalSubdivision].filter(function(x, i, a){ return x && x !== name && a.indexOf(x) === i; }).join(", ");
       } catch (e) { /* the name is optional */ }
@@ -2493,6 +2710,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   document.addEventListener("click", function(e){
     var b = e.target.closest && e.target.closest(".seg button"); if (!b) return;
     var key = b.parentElement.dataset.key, v = b.dataset.val;
+    if (["hours","feel","act","sky","wind"].indexOf(key) < 0 || v == null) return; // other button groups handle themselves
     if (key === "hours") S.hours = +v; else if (key === "sky" || key === "wind") S.manual[key] = v; else S[key] = v;
     save(); render();
   });
@@ -2529,6 +2747,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     b.dataset.armed = ""; b.setAttribute("aria-pressed", "false"); b.textContent = "Tüm verilerimi sil";
     try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + ":ioshint"); localStorage.removeItem("negiysem:v1"); } catch (e) {}
     S.places = []; S.sel = "auto"; S.hours = 6; S.feel = "normal"; S.act = "city";
+    S.profiles = [{id:"me", name:"Ben", who:"me", feel:"normal", missing:[]}]; S.prof = "me";
     S.manual = {temp:17, sky:"partly", wind:"breezy"}; S.mode = "manual"; S.live = null;
     S.routes = []; S.trips = []; S.dayMode = true; S.dayWx = null; S.choice = {date:"", picks:{}}; S.fix = null;
     S.rainOff = ""; S.pack = {place:"", days:3, start:0, ticks:{}};
@@ -2606,11 +2825,21 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var cl = $("packBody").querySelector("[data-pk-clear]"); if (cl) cl.hidden = !n;
   });
   $("shareBtn").addEventListener("click", shareToday);
+  $("people").addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("button"); if (!b) return;
+    if (b.dataset.person) switchPerson(b.dataset.person);
+    else if (b.hasAttribute("data-person-add")) openPerson(null, b);
+    else if (b.hasAttribute("data-person-edit")) openPerson(S.prof, b);
+  });
+  $("personBody").addEventListener("click", personClick);
+  $("personBody").addEventListener("keydown", function(e){ if (e.key === "Enter" && e.target.id === "pfName") { e.preventDefault(); $("personBody").querySelector("[data-pf-save]").click(); } });
+  $("wardBtn").addEventListener("click", function(){ renderWardrobe(); openSheet("wardSheet", $("wardBtn")); });
+  $("wardBody").addEventListener("click", wardClick);
   $("shareActs").addEventListener("click", function(e){
     if (!(e.target.closest && e.target.closest("[data-share-again]")) || !SHARE.file) return;
     navigator.share({files:[SHARE.file], title:"Ne Giysem?", text:shareCaption()}).catch(function(){});
   });
-  ["packSheet", "shareSheet"].forEach(function(id){
+  ["packSheet", "shareSheet", "personSheet", "wardSheet"].forEach(function(id){
     var sh = $(id);
     sh.addEventListener("click", function(e){ if (e.target.closest && e.target.closest("[data-close-sheet]")) closeSheet(); });
     sh.addEventListener("keydown", function(e){
@@ -2676,6 +2905,15 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     document.addEventListener("touchend", release, {passive:true});
     document.addEventListener("touchcancel", function(){ reset(); draw(0, true); }, {passive:true});
   })();
+
+  /* ================= credits (follow where the data comes from) ================= */
+  if (API) {
+    var policy = (location.origin === API ? "" : API + "/") + "gizlilik.html";
+    $("wxCredit").innerHTML = 'Hava verisi: <a href="https://www.met.no/en" target="_blank" rel="noopener">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>, uyarlanmıştır)';
+    $("foot").innerHTML = 'Hava verisi MET Norway’den (CC BY 4.0, uyarlanmıştır), yer arama ve yer adları Photon üzerinden alınır (harita verisi © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap katkıda bulunanlar</a>). ' +
+      'Konumun yalnızca hava durumunu ve yer adını bulmak için uygulamanın sunucusuna gönderilir; ayarların ve son alınan hava sadece bu cihazda saklanır. ' +
+      '<a href="' + policy + '" target="_blank" rel="noopener">Gizlilik</a>';
+  }
 
   /* ================= install (web only) ================= */
   var deferredPrompt = null;

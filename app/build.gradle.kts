@@ -50,6 +50,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("androidx.webkit:webkit:1.12.1")
+    implementation("androidx.core:core-ktx:1.13.1")
 }
 
 // The app screen is the web app in ../web (the same files the website serves).

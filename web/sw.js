@@ -1,6 +1,6 @@
 // Ne Giysem? service worker: keeps the app shell and fonts available offline.
 // Weather and location requests always go to the network; the page keeps the last result itself.
-const SHELL_CACHE = "negiysem-shell-v10";
+const SHELL_CACHE = "negiysem-shell-v11";
 const FONT_CACHE = "negiysem-fonts-v1";
 const SHELL = [
   "./",
@@ -44,6 +44,9 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
+
+  // The app's own server (weather, place search): always fresh from the network, never cached here.
+  if (url.origin === self.location.origin && url.pathname.startsWith("/api/")) return;
 
   if (url.origin === self.location.origin) {
     if (req.mode === "navigate") {

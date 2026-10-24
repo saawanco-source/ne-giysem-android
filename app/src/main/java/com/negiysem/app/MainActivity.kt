@@ -23,6 +23,14 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
+import com.google.android.ump.ConsentInformation
+import com.google.android.ump.ConsentRequestParameters
+import com.google.android.ump.UserMessagingPlatform
 import androidx.core.content.FileProvider
 import androidx.webkit.WebViewAssetLoader
 import com.negiysem.app.data.Store
@@ -41,7 +49,13 @@ import java.io.File
  */
 class MainActivity : Activity() {
 
-    private lateinit var root: FrameLayout
+    private lateinit var root: LinearLayout
+    private lateinit var webBox: FrameLayout
+    /** Bottom banner (AdMob); only when the app's own server and a real ad unit are set. */
+    private lateinit var adBox: FrameLayout
+    private var adView: AdView? = null
+    private var adsStarted = false
+    private var keyboardUp = false
     private lateinit var web: WebView
     private var pendingGeo: Pair<String, GeolocationPermissions.Callback>? = null
     private var webGone = false
@@ -56,13 +70,17 @@ class MainActivity : Activity() {
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
 
-        root = FrameLayout(this)
+        root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        webBox = FrameLayout(this)
+        adBox = FrameLayout(this).apply { visibility = View.GONE }
         web = WebView(this)
         val nightUi = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val startBg = Color.parseColor(if (nightUi) "#15171F" else "#FFD65E") // no yellow flash in dark mode
         web.setBackgroundColor(startBg)
         root.setBackgroundColor(startBg)
-        root.addView(web, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        webBox.addView(web, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        root.addView(webBox, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        root.addView(adBox, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         setContentView(root)
 
         // Android 15 draws apps edge to edge: keep the page clear of the status and navigation bars,
@@ -72,6 +90,9 @@ class MainActivity : Activity() {
                 val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
                 val ime = insets.getInsets(WindowInsets.Type.ime())
                 v.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, ime.bottom))
+                // The banner steps aside while typing.
+                keyboardUp = ime.bottom > 0
+                adBox.visibility = if (adView != null && !keyboardUp) View.VISIBLE else View.GONE
                 insets
             }
         }
@@ -97,7 +118,7 @@ class MainActivity : Activity() {
             // The system stopped the page's renderer (low memory): start the screen again instead of closing the app.
             override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
                 webGone = true
-                root.removeView(view)
+                webBox.removeView(view)
                 view.destroy()
                 recreate()
                 return true
@@ -121,6 +142,8 @@ class MainActivity : Activity() {
         web.addJavascriptInterface(Bridge(), "NeGiysemAndroid")
 
         if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) web.loadUrl(home)
+
+        startAds()
 
         // The 30-minute background refresh is only for the home-screen widget.
         scope.launch { if (Scheduler.hasWidgets(applicationContext)) Scheduler.schedule(applicationContext) }
@@ -149,7 +172,48 @@ class MainActivity : Activity() {
         if (web.canGoBack()) web.goBack() else super.onBackPressed()
     }
 
+    override fun onPause() {
+        adView?.pause()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adView?.resume()
+    }
+
+    /**
+     * Ads: Google's consent form first where the law asks for one (UMP decides, e.g. in the EU),
+     * then one adaptive banner under the page. Nothing happens until the server and an ad unit are configured.
+     */
+    private fun startAds() {
+        val unit = getString(R.string.admob_banner_id)
+        if (Config.API.isEmpty() || unit.isBlank()) return
+        val consent = UserMessagingPlatform.getConsentInformation(this)
+        consent.requestConsentInfoUpdate(
+            this, ConsentRequestParameters.Builder().build(),
+            { UserMessagingPlatform.loadAndShowConsentFormIfRequired(this) { _ -> if (consent.canRequestAds()) loadBanner(unit) } },
+            { _ -> if (consent.canRequestAds()) loadBanner(unit) }
+        )
+        if (consent.canRequestAds()) loadBanner(unit)
+    }
+
+    private fun loadBanner(unit: String) {
+        if (adsStarted || isFinishing || isDestroyed) return
+        adsStarted = true
+        MobileAds.initialize(this) {}
+        val widthDp = (resources.displayMetrics.widthPixels / resources.displayMetrics.density).toInt()
+        val view = AdView(this)
+        view.adUnitId = unit
+        view.setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, widthDp))
+        adBox.addView(view, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
+        adView = view
+        adBox.visibility = if (keyboardUp) View.GONE else View.VISIBLE
+        view.loadAd(AdRequest.Builder().build())
+    }
+
     override fun onDestroy() {
+        adView?.destroy()
         scope.cancel()
         if (!webGone) web.destroy()
         super.onDestroy()
@@ -201,6 +265,18 @@ class MainActivity : Activity() {
         fun shareText(text: String, title: String) {
             val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text).putExtra(Intent.EXTRA_SUBJECT, title)
             runOnUiThread { runCatching { startActivity(Intent.createChooser(send, title)) } }
+        }
+
+        /** Whether the page should offer "Reklam tercihleri" (required where the consent form applies). */
+        @JavascriptInterface
+        fun adPrivacyRequired(): Boolean = runCatching {
+            UserMessagingPlatform.getConsentInformation(this@MainActivity).privacyOptionsRequirementStatus ==
+                ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+        }.getOrDefault(false)
+
+        @JavascriptInterface
+        fun openAdPrivacy() {
+            runOnUiThread { UserMessagingPlatform.showPrivacyOptionsForm(this@MainActivity) { _ -> } }
         }
 
         /** Lets the page tell whether asking for the position would show Android's permission dialog. */

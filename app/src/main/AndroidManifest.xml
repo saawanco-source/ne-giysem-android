@@ -25,6 +25,11 @@
             </intent-filter>
         </activity>
 
+        <!-- AdMob app ID (Google's sample ID in development builds; see app/build.gradle.kts). -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
         <!-- Pictures from "Paylaş" are handed to other apps through this, never with file paths. -->
         <provider
             android:name="androidx.core.content.FileProvider"

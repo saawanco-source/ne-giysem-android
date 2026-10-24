@@ -230,6 +230,19 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .tip-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:14px;font-weight:650;line-height:1.35}
 .tip-card li{padding-left:16px;position:relative}
 .tip-card li::before{content:"";position:absolute;left:2px;top:.5em;width:7px;height:7px;border-radius:50%;background:var(--lv);box-shadow:0 0 0 1.5px var(--tip-ink)}
+.tip-card.pinned{pointer-events:auto}
+.shop{margin:10px 0 0;font-size:13px;font-weight:700;border-top:1px dashed var(--line);padding-top:8px}
+.shop a{color:inherit;text-decoration:underline;text-underline-offset:3px;display:inline-block;padding:6px 2px}
+.shop small{display:block;font-weight:500;font-size:11.5px;opacity:.75;margin-top:2px}
+.ad-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border:1.5px solid currentColor;border-radius:6px;padding:0 5px;margin-right:4px;opacity:.8}
+.ad-slot{margin:26px 0 0;padding:10px 12px 12px;border-radius:20px;background:var(--card);min-height:120px}
+.ad-slot .ad-lab{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px}
+.consent{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:65;max-width:620px;margin:0 auto;background:var(--tip-bg);color:var(--tip-ink);
+  border-radius:20px;padding:14px 16px;box-shadow:0 18px 40px -12px var(--shadow),0 0 0 1px var(--line);font-size:14px}
+.consent p{margin:0 0 10px}
+.consent a{color:inherit}
+.consent .ed-foot{margin-top:0}
+.foot .lnk{border:0;background:none;padding:6px 0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
 .tip-card .tp{margin:10px 0 0;font-size:13px;color:var(--tip-sub);border-top:1px dashed var(--line);padding-top:8px}
 
 /* the same reasons as a list */
@@ -546,6 +559,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         <div class="chips"><button type="button" class="chip" data-open-pack id="packBtn">Bavul hazırla</button></div>
         <p class="src">Gideceğin yerin hava tahminine göre kaç gün için ne alacağını listeler.</p>
       </div>
+      <div class="row" id="donateRow" hidden>
+        <span class="rl">Destek ol</span>
+        <div class="chips"><a class="chip" id="donateBtn" href="#" target="_blank" rel="noopener">Ne Giysem?’i destekle</a></div>
+        <p class="src">Uygulama ücretsiz; beğendiysen küçük bir bağışla sunucu masrafına katkı olabilirsin.</p>
+      </div>
       <div class="row">
         <span class="rl">Verilerim</span>
         <div class="chips"><button type="button" class="chip" id="resetBtn">Tüm verilerimi sil</button></div>
@@ -589,6 +607,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     </section>
   </div>
 
+  <section class="ad-slot" id="adSlot" hidden aria-label="Reklam"><span class="ad-lab">Reklam</span></section>
+  <div class="consent" id="consent" hidden role="dialog" aria-labelledby="consentTxt">
+    <p id="consentTxt">Ne Giysem? ücretsiz kalabilsin diye sayfada Google reklamı gösteriyoruz. Reklamlar senin ilgine göre seçilebilir mi? Bu, Google’ın çerez kullanmasına izin verir; istemezsen yine reklam görürsün ama kişiselleştirilmez. <a href="gizlilik.html" target="_blank" rel="noopener">Gizlilik</a></p>
+    <div class="ed-foot"><button type="button" class="btn" data-ads="pers">İzin ver</button><button type="button" class="btn soft" data-ads="npa">Kişiselleştirme</button></div>
+  </div>
   <p class="foot" id="foot">Hava verisi Open-Meteo.com, konum adı BigDataCloud, yer arama Photon üzerinden alınır (harita verisi © OpenStreetMap katkıcıları). Konumun yalnızca hava durumunu bulmak için bu servislere gönderilir; ayarların ve son alınan hava sadece bu cihazda saklanır.</p>
 </div>
 
@@ -603,8 +626,16 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   // On that site itself the server is the same origin. With no server the free, non-commercial services are called
   // directly (development, the Claude preview); ads and shop links stay off in that mode.
   var CONFIG = {
-    api: ""
+    api: "",
+    // Shop links on clothing (affiliate programmes). "{q}" becomes the search words; only shops listed here are shown.
+    //   {name:"Amazon", url:"https://www.amazon.com.tr/s?k={q}&tag=ETIKETIN-21"}, {name:"Trendyol", url:"..."}
+    shops: [],
+    // Google AdSense on the website (never inside the Android app, which uses AdMob).
+    adsense: {client:"", slot:""},
+    // Donation page, website only (Google Play doesn't allow outside payments in the app).
+    donate: ""
   };
+  if (window.NG_CONFIG && typeof window.NG_CONFIG === "object") Object.keys(window.NG_CONFIG).forEach(function(k){ CONFIG[k] = window.NG_CONFIG[k]; }); // tests
   var API = (function(){
     if (IS_ART) return "";
     if (typeof window.NG_API === "string") return window.NG_API.replace(/\/$/, ""); // tests
@@ -612,6 +643,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (here) return location.origin;
     return CONFIG.api ? CONFIG.api.replace(/\/$/, "") : "";
   })();
+  // Money features (ads, shop links, donations) only with the app's own server: the free data sources are non-commercial.
+  var PAID = !!API;
+  var IN_APP = !!window.NeGiysemAndroid;
 
   /* ================= state ================= */
   var S = {places:[], sel:"auto", hours:6, feel:"normal", act:"city", manual:{temp:17, sky:"partly", wind:"breezy"}, mode:"manual", live:null,
@@ -1310,7 +1344,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     }).join("");
     $("slotList").innerHTML = p.wear.concat(p.take).map(function(it){
       var inf = it.info || {}, alt = inf.alt && inf.alt !== it.label ? esc(inf.alt) + " · " : "";
-      return '<div class="row-i"><dt>' + esc(inf.slot || "") + '</dt><dd>' + esc(it.label) + '<small>' + alt + esc(joinWhy(it.why, "; ")) + (inf.tip ? ". " + esc(inf.tip) : "") + '</small></dd></div>';
+      return '<div class="row-i"><dt>' + esc(inf.slot || "") + '</dt><dd>' + esc(it.label) + '<small>' + alt + esc(joinWhy(it.why, "; ")) + (inf.tip ? ". " + esc(inf.tip) : "") + '</small>' + shopHTML(it) + '</dd></div>';
     }).join("");
     var tips = (useDay ? dayNotes(day, p) : []).concat(p.notes).slice(0, 3);
     $("tips").innerHTML = tips.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join("");
@@ -2637,12 +2671,30 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var k = node && node.getAttribute("data-k"); if (!k) return null;
     var parts = k.split(":"); return (parts[0] === "w" ? CUR.wear : CUR.take)[+parts[1]] || null;
   }
+  // Search words for each piece in the shops; a child gets children's sizes.
+  var SHOPQ = {tshirt:"tişört", longsleeve:"uzun kollu tişört", thermal:"termal içlik", sweatshirt:"sweatshirt", hirka:"hırka", kazak:"kazak",
+    ceket:"ince ceket", mont:"mont", kaban:"kaban", sisme:"şişme mont", parka:"parka", yagmurluk:"yağmurluk", ruzgarlik:"rüzgarlık",
+    jean:"jean pantolon", pantolon:"kışlık pantolon", sort:"şort", tayt:"spor tayt", sneaker:"sneaker", spor:"koşu ayakkabısı",
+    bot:"su geçirmez bot", yuruyus:"yürüyüş botu", sandalet:"sandalet", bere:"bere", sapka:"şapka", semsiye:"katlanır şemsiye",
+    gozluk:"güneş gözlüğü", atki:"atkı", eldiven:"eldiven", su:"su matarası", krem:"güneş kremi", corap:"yün çorap"};
+  function shopLinks(g){
+    if (!PAID || !Array.isArray(CONFIG.shops) || !CONFIG.shops.length || !SHOPQ[g]) return [];
+    var q = (curProf().who === "child" ? "çocuk " : "") + SHOPQ[g];
+    return CONFIG.shops.filter(function(sh){ return sh && sh.name && /^https:\/\//.test(sh.url || ""); })
+      .map(function(sh){ return {name:sh.name, href:sh.url.replace("{q}", encodeURIComponent(q))}; });
+  }
+  function shopHTML(it){
+    var ls = shopLinks(it.g); if (!ls.length) return "";
+    return '<p class="shop"><span class="ad-tag">Reklam</span> ' + (it.need ? "Dolabında yok, bak: " : "Benzerine bak: ") +
+      ls.map(function(l){ return '<a href="' + esc(l.href) + '" target="_blank" rel="sponsored noopener">' + esc(l.name) + '</a>'; }).join(" · ") +
+      '<small>Ortaklık linki: alışveriş yaparsan Ne Giysem? komisyon alabilir; fiyat değişmez.</small></p>';
+  }
   function tipHTML(it){
     var inf = it.info || {};
     return '<div class="ts">' + esc(inf.slot || "") + '</div><div class="tt">' + esc(it.label) + '</div>' +
       (inf.alt && inf.alt !== it.label ? '<p class="ta">' + esc(inf.alt) + '</p>' : '') +
       '<ul>' + it.why.map(function(w){ return '<li>' + esc(w) + '</li>'; }).join("") + '</ul>' +
-      (inf.tip ? '<p class="tp">' + esc(inf.tip) + '</p>' : '');
+      (inf.tip ? '<p class="tp">' + esc(inf.tip) + '</p>' : '') + shopHTML(it);
   }
   function placeTip(x, y){
     var el = $("tipCard"), node = TIP.node; if (el.hidden || !node) return;
@@ -2663,7 +2715,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var it = tipItem(node); if (!it) return;
     if (TIP.node && TIP.node !== node) TIP.node.classList.remove("on");
     TIP.node = node; TIP.pinned = !!pinned; node.classList.add("on");
-    var el = $("tipCard"); el.innerHTML = tipHTML(it); el.hidden = false;
+    var el = $("tipCard"); el.innerHTML = tipHTML(it); el.hidden = false; el.classList.toggle("pinned", !!pinned);
     placeTip(x, y);
   }
   function hideTip(){
@@ -2696,7 +2748,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       if (n && kb && !TIP.pinned) showTip(n, null, null, false);
     });
     board.addEventListener("focusout", function(){ if (!TIP.pinned) hideTip(); });
-    document.addEventListener("click", function(e){ if (TIP.pinned && !(e.target.closest && e.target.closest(".board [data-k]"))) hideTip(); });
+    document.addEventListener("click", function(e){ if (TIP.pinned && !(e.target.closest && e.target.closest(".board [data-k], #tipCard"))) hideTip(); });
     document.addEventListener("keydown", function(e){ if (e.key === "Escape" && TIP.node) hideTip(); });
     window.addEventListener("scroll", function(){
       if (!TIP.node) return;
@@ -2745,7 +2797,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     clearTimeout(resetTimer);
     cancelLive(); SEARCH.seq++;
     b.dataset.armed = ""; b.setAttribute("aria-pressed", "false"); b.textContent = "Tüm verilerimi sil";
-    try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + ":ioshint"); localStorage.removeItem("negiysem:v1"); } catch (e) {}
+    try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + ":ioshint"); localStorage.removeItem("negiysem:v1"); localStorage.removeItem(KEY + ":ads"); } catch (e) {}
     S.places = []; S.sel = "auto"; S.hours = 6; S.feel = "normal"; S.act = "city";
     S.profiles = [{id:"me", name:"Ben", who:"me", feel:"normal", missing:[]}]; S.prof = "me";
     S.manual = {temp:17, sky:"partly", wind:"breezy"}; S.mode = "manual"; S.live = null;
@@ -2906,13 +2958,48 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     document.addEventListener("touchcancel", function(){ reset(); draw(0, true); }, {passive:true});
   })();
 
+  /* ================= ads and donations (website only, and only with the app's own server) ================= */
+  var ADS_KEY = KEY + ":ads";
+  function adsOn(){ return PAID && !IN_APP && !IS_ART && CONFIG.adsense && /^ca-pub-\d+$/.test(CONFIG.adsense.client || "") && !!CONFIG.adsense.slot; }
+  function adChoice(){ try { return localStorage.getItem(ADS_KEY) || ""; } catch (e) { return ""; } }
+  var adsLoaded = false;
+  function loadAds(choice){
+    if (adsLoaded || !adsOn()) return; adsLoaded = true;
+    var slot = $("adSlot"), ins = document.createElement("ins");
+    ins.className = "adsbygoogle"; ins.style.display = "block";
+    ins.setAttribute("data-ad-client", CONFIG.adsense.client); ins.setAttribute("data-ad-slot", CONFIG.adsense.slot);
+    ins.setAttribute("data-ad-format", "auto"); ins.setAttribute("data-full-width-responsive", "true");
+    slot.appendChild(ins); slot.hidden = false;
+    window.adsbygoogle = window.adsbygoogle || [];
+    if (choice !== "pers") window.adsbygoogle.requestNonPersonalizedAds = 1;
+    var sc = document.createElement("script"); sc.async = true; sc.crossOrigin = "anonymous";
+    sc.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + encodeURIComponent(CONFIG.adsense.client);
+    document.head.appendChild(sc);
+    try { window.adsbygoogle.push({}); } catch (e) {}
+  }
+  // Android app: Google's consent form may require a way back to the ad choices.
+  function adPrivacyInApp(){ var A = window.NeGiysemAndroid; try { return !!(A && typeof A.adPrivacyRequired === "function" && A.adPrivacyRequired()); } catch (e) { return false; } }
+  function askAds(){ $("consent").hidden = false; var b = $("consent").querySelector("button"); if (b) b.focus({preventScroll:true}); }
+  $("consent").addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-ads]"); if (!b) return;
+    var c = b.dataset.ads, changed = adsLoaded && adChoice() && adChoice() !== c;
+    try { localStorage.setItem(ADS_KEY, c); } catch (err) {}
+    $("consent").hidden = true;
+    if (changed) setStatus("Reklam tercihin kaydedildi; sayfa yeniden açılınca geçerli olur.");
+    loadAds(c);
+  });
+  if (adsOn()) { var ch = adChoice(); if (ch === "pers" || ch === "npa") loadAds(ch); else askAds(); }
+  if (PAID && !IN_APP && !IS_ART && /^https:\/\//.test(CONFIG.donate || "")) { $("donateBtn").href = CONFIG.donate; $("donateRow").hidden = false; }
+
   /* ================= credits (follow where the data comes from) ================= */
   if (API) {
     var policy = (location.origin === API ? "" : API + "/") + "gizlilik.html";
     $("wxCredit").innerHTML = 'Hava verisi: <a href="https://www.met.no/en" target="_blank" rel="noopener">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>, uyarlanmıştır)';
     $("foot").innerHTML = 'Hava verisi MET Norway’den (CC BY 4.0, uyarlanmıştır), yer arama ve yer adları Photon üzerinden alınır (harita verisi © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap katkıda bulunanlar</a>). ' +
       'Konumun yalnızca hava durumunu ve yer adını bulmak için uygulamanın sunucusuna gönderilir; ayarların ve son alınan hava sadece bu cihazda saklanır. ' +
-      '<a href="' + policy + '" target="_blank" rel="noopener">Gizlilik</a>';
+      '<a href="' + policy + '" target="_blank" rel="noopener">Gizlilik</a>' +
+      (adsOn() || adPrivacyInApp() ? ' · <button type="button" class="lnk" id="adPrefs">Reklam tercihleri</button>' : '');
+    if ($("adPrefs")) $("adPrefs").addEventListener("click", function(){ if (adPrivacyInApp()) window.NeGiysemAndroid.openAdPrivacy(); else askAds(); });
   }
 
   /* ================= install (web only) ================= */

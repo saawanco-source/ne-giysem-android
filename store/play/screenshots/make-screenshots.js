@@ -6,7 +6,7 @@
 //
 //   node store/play/screenshots/make-screenshots.js            # all scenes
 //   node store/play/screenshots/make-screenshots.js 03-gunum   # only some scenes
-//   SHOT_LANG=en node store/play/screenshots/make-screenshots.js   # TODO: English UI (skips until it exists)
+//   SHOT_LANG=en node store/play/screenshots/make-screenshots.js   # English UI → ./out/en/
 //
 // Size: 412×733 CSS px at device scale 2.625 → 1082×1924 px PNG (RGB, no alpha).
 // Google Play phone screenshots: JPEG or 24-bit PNG, each side 320–3840 px, long side at most twice the short side;
@@ -35,7 +35,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
    (state => { state.lang = "en"; }) or a click on the language toggle. Until then SHOT_LANG=en skips every scene. */
 const LANGS = {
   tr: { locale: "tr-TR", seed: null },
-  en: null, // TODO: { locale: "en-US", seed: (state) => { state.lang = "en"; } }
+  en: { locale: "en-US", seed: (state) => { state.lang = "en"; } },
 };
 
 /* ---------------- time: everything happens on Tuesday 27 Oct 2026, Europe/Istanbul (UTC+3) ---------------- */
@@ -327,6 +327,8 @@ async function shoot(browser, srv, scene, lang) {
   await context.clock.setFixedTime(now);
   const log = [];
   await context.route("**/*", (r) => route(scene, now, srv.url, log, r));
+  // As published: the app talks to its own server (web/functions/api), so credits read "MET Norway".
+  await context.addInitScript((origin) => { window.NG_API = origin; }, new URL(srv.url).origin);
   await context.addInitScript(([k, v]) => {
     try { if (!sessionStorage.getItem("__seeded")) { sessionStorage.setItem("__seeded", "1"); localStorage.clear(); localStorage.setItem(k, v); } } catch (e) {}
   }, [KEY, JSON.stringify(state)]);

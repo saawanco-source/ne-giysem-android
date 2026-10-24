@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      deneme_imza:
+        description: "Yalnız deneme (main dışında): yayın sürümünü o an üretilen geçici bir anahtarla imzala, dosyaları test-play-N ön sürümüne koy"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -51,7 +56,7 @@ jobs:
           java-version: "17"
       - name: Kotlin derleyicisini indir
         run: |
-          curl -sSL -o kotlinc.zip https://github.com/JetBrains/kotlin/releases/download/v2.1.0/kotlin-compiler-2.1.0.zip
+          curl -sSL -o kotlinc.zip https://github.com/JetBrains/kotlin/releases/download/v2.3.21/kotlin-compiler-2.3.21.zip
           unzip -q kotlinc.zip -d "$RUNNER_TEMP"
       - name: Eşlik testi
         env:
@@ -90,6 +95,11 @@ jobs:
   build:
     needs: [web-tests, parity, api-tests]
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # Optional repository secrets. Empty: Google's sample AdMob app ID and no banner.
+      ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+      ADMOB_BANNER_ID: ${{ secrets.ADMOB_BANNER_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -100,13 +110,56 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.11.1"
+          gradle-version: "8.14.6"
 
-      - name: APK'yi derle
+      # With the NG_* secrets (RELEASE.md): the Play upload file (AAB) and an APK, both signed with the upload key.
+      # Without them: the debug APK, as before.
+      - name: İmza anahtarını hazırla
+        id: key
+        env:
+          NG_KEYSTORE_BASE64: ${{ secrets.NG_KEYSTORE_BASE64 }}
+          NG_KEYSTORE_PASSWORD: ${{ secrets.NG_KEYSTORE_PASSWORD }}
+          NG_KEY_ALIAS: ${{ secrets.NG_KEY_ALIAS }}
+          NG_KEY_PASSWORD: ${{ secrets.NG_KEY_PASSWORD }}
+          THROWAWAY: ${{ github.event_name == 'workflow_dispatch' && inputs.deneme_imza && github.ref != 'refs/heads/main' }}
+        run: |
+          ks="$RUNNER_TEMP/upload-key.p12"
+          if [ "$THROWAWAY" = "true" ]; then
+            # Test only: a key made now and gone with the runner. Proves the release path; never for Play.
+            pw=$(openssl rand -hex 24)
+            echo "::add-mask::$pw"
+            keytool -genkeypair -storetype PKCS12 -keystore "$ks" -alias deneme -keyalg RSA -keysize 2048 -validity 2 \
+              -dname "CN=Ne Giysem deneme (gecici)" -storepass "$pw" -keypass "$pw" -noprompt
+            alias=deneme; keypw="$pw"; mode=throwaway
+          elif [ -n "$NG_KEYSTORE_BASE64" ]; then
+            printf '%s' "$NG_KEYSTORE_BASE64" | base64 -d -i > "$ks" || { echo "::error title=İmza::NG_KEYSTORE_BASE64 çözülemedi: .b64 dosyasının tamamı yapıştırıldı mı?"; exit 1; }
+            pw="$NG_KEYSTORE_PASSWORD"
+            [ -n "$pw" ] || { echo "::error title=İmza::NG_KEYSTORE_PASSWORD secret'ı eksik."; exit 1; }
+            alias="${NG_KEY_ALIAS:-negiysem-upload}"; keypw="${NG_KEY_PASSWORD:-$pw}"; mode=release
+            keytool -list -keystore "$ks" -storepass "$pw" -alias "$alias" > /dev/null 2>&1 \
+              || { echo "::error title=İmza::Anahtar açılamadı: NG_KEYSTORE_PASSWORD ya da NG_KEY_ALIAS yanlış."; exit 1; }
+          else
+            echo "::notice title=İmza::Yükleme anahtarı secret'ları yok: her zamanki gibi debug APK üretiliyor (RELEASE.md)."
+            echo "mode=debug" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          {
+            echo "NG_KEYSTORE_FILE=$ks"
+            echo "NG_KEYSTORE_PASSWORD=$pw"
+            echo "NG_KEY_ALIAS=$alias"
+            echo "NG_KEY_PASSWORD=$keypw"
+          } >> "$GITHUB_ENV"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+
+      - name: Uygulamayı derle
+        env:
+          MODE: ${{ steps.key.outputs.mode }}
         run: |
           set -o pipefail
-          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+          if [ "$MODE" = debug ]; then tasks="assembleDebug"; else tasks="bundleRelease assembleRelease"; fi
+          gradle $tasks --no-daemon --stacktrace 2>&1 | tee build.log
 
+      # Job logs cannot always be opened: the key lines also go into the run's annotations.
       - name: Derleme hatasını özetle
         if: failure()
         run: |
@@ -121,24 +174,143 @@ jobs:
           note "Gradle" what.txt
           note "Kotlin" kotlin.txt
           note "AAR" aar.txt
-          gradle :app:dependencies --configuration debugRuntimeClasspath --no-daemon > deps.txt 2>&1 || true
-          grep -E "(androidx|kotlin|gms)[^ ]*:[^ ]* -> " deps.txt | sed 's/^[ |+\\-]*//' | sort -u | head -60 > up.txt || true
-          note "Upgraded" up.txt
 
-      - name: Dosyayı adlandır
-        run: cp app/build/outputs/apk/debug/app-debug.apk NeGiysem.apk
+      - name: Dosyaları adlandır
+        env:
+          MODE: ${{ steps.key.outputs.mode }}
+        run: |
+          mkdir -p out
+          if [ "$MODE" = debug ]; then
+            cp app/build/outputs/apk/debug/app-debug.apk out/NeGiysem.apk
+          else
+            cp app/build/outputs/bundle/release/app-release.aab out/NeGiysem.aab
+            cp app/build/outputs/apk/release/app-release.apk out/NeGiysem.apk
+          fi
+
+      # What Play checks, checked here first: target API, version number, signature, permissions, AdMob ID, 16 KB pages.
+      - name: Dosyaları denetle
+        env:
+          MODE: ${{ steps.key.outputs.mode }}
+        run: |
+          BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          apk=out/NeGiysem.apk; aab=out/NeGiysem.aab; problems=""
+          problem() { problems="$problems$1%0A"; echo "!! $1"; }
+          expected="android.permission.INTERNET android.permission.ACCESS_COARSE_LOCATION android.permission.ACCESS_FINE_LOCATION
+            android.permission.ACCESS_NETWORK_STATE android.permission.WAKE_LOCK android.permission.RECEIVE_BOOT_COMPLETED
+            android.permission.FOREGROUND_SERVICE com.google.android.gms.permission.AD_ID android.permission.ACCESS_ADSERVICES_AD_ID
+            android.permission.ACCESS_ADSERVICES_ATTRIBUTION android.permission.ACCESS_ADSERVICES_TOPICS
+            com.negiysem.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+          check_perms() { # $1: label, stdin: one permission per line
+            while read -r p; do
+              [ -n "$p" ] || continue
+              case " $(echo $expected) " in *" $p "*) echo "   $p";; *) echo "   $p   <-- BEKLENMEYEN"; problem "$1: beklenmeyen izin $p";; esac
+            done
+          }
+          {
+            echo "Ne Giysem? derleme denetimi · ${GITHUB_SHA::7} · çalıştırma ${GITHUB_RUN_NUMBER} · mod: $MODE · build-tools $(basename "$BT")"
+            echo
+            echo "== APK: $(stat -c %s "$apk") bayt"
+            badging=$("$BT/aapt2" dump badging "$apk")
+            echo "$badging" | grep -E "^(package:|sdkVersion|minSdkVersion|targetSdkVersion|application-debuggable)"
+            echo "$badging" | grep -q "^targetSdkVersion:'36'" || problem "APK targetSdk 36 değil"
+            echo "-- izinler (birleştirilmiş manifest)"
+            echo "$badging" | sed -n "s/^uses-permission: name='\([^']*\)'.*/\1/p" | check_perms APK
+            echo "$badging" | grep -q "name='com.google.android.gms.permission.AD_ID'" || problem "AD_ID izni yok"
+            echo "-- manifest ayrıntıları"
+            tree=$("$BT/aapt2" dump xmltree --file AndroidManifest.xml "$apk")
+            echo "$tree" | grep -A1 '"com.google.android.gms.ads.APPLICATION_ID"' | sed -n 's/.*android:value([^)]*)="\([^"]*\)".*/   AdMob APPLICATION_ID = \1/p' | head -1
+            echo "$tree" | grep -q '"com.google.android.gms.ads.APPLICATION_ID"' || problem "AdMob APPLICATION_ID meta-data yok"
+            echo "$tree" | grep -q '"androidx.core.content.FileProvider"' && echo "   FileProvider: var" || problem "FileProvider yok"
+            echo "$tree" | grep -E 'enableOnBackInvokedCallback' | sed 's/^ */   /' | head -1
+            echo "-- imza (apksigner)"
+            if "$BT/apksigner" verify --verbose --print-certs "$apk" > sig.txt 2>&1; then
+              grep -E "^Verified using v[123] |^Number of signers|certificate DN|certificate SHA-256" sig.txt | sed 's/^/   /'
+            else
+              sed 's/^/   /' sig.txt | head -20; problem "APK imzası doğrulanamadı"
+            fi
+            echo "-- yerel kütüphaneler ve 16 KB sayfa"
+            sos=$(unzip -Z1 "$apk" | grep -E '^lib/.+\.so$' || true)
+            if [ -z "$sos" ]; then echo "   APK'da .so yok: 16 KB sayfa hizası gerekmez"; else
+              echo "$sos" | sed 's/^/   /'
+              rm -rf so && mkdir so && unzip -q "$apk" 'lib/*' -d so
+              for f in $(find so -name '*.so'); do
+                al=$(readelf -lW "$f" | awk '$1=="LOAD"{print $NF}' | sort -u | tr '\n' ' ')
+                echo "   ${f#so/}: LOAD hizası $al"
+                for a in $al; do [ $((a)) -ge 16384 ] || problem "${f#so/} 16 KB hizalı değil ($a)"; done
+              done
+            fi
+            echo "   zipalign -P 16: $("$BT/zipalign" -c -P 16 -v 4 "$apk" 2>&1 | tail -1)"
+            if [ -f "$aab" ]; then
+              echo
+              echo "== AAB: $(stat -c %s "$aab") bayt"
+              curl -sSfLo "$RUNNER_TEMP/bundletool.jar" https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
+              bt() { java -jar "$RUNNER_TEMP/bundletool.jar" "$@"; }
+              bt validate --bundle="$aab" > /dev/null 2>&1 && echo "   bundletool validate: geçerli" || problem "bundletool validate hatası"
+              for x in @package @android:versionCode @android:versionName uses-sdk/@android:minSdkVersion uses-sdk/@android:targetSdkVersion \
+                       "application/@android:enableOnBackInvokedCallback" \
+                       "application/meta-data[@android:name='com.google.android.gms.ads.APPLICATION_ID']/@android:value" \
+                       "application/provider[@android:name='androidx.core.content.FileProvider']/@android:authorities"; do
+                echo "   $x = $(bt dump manifest --bundle="$aab" --xpath="/manifest/$x" | tr '\n' ' ')"
+              done
+              [ "$(bt dump manifest --bundle="$aab" --xpath=/manifest/uses-sdk/@android:targetSdkVersion)" = 36 ] || problem "AAB targetSdk 36 değil"
+              [ "$(bt dump manifest --bundle="$aab" --xpath=/manifest/uses-sdk/@android:minSdkVersion)" = 26 ] || problem "AAB minSdk 26 değil"
+              [ "$(bt dump manifest --bundle="$aab" --xpath=/manifest/@android:versionCode)" = "$GITHUB_RUN_NUMBER" ] || problem "AAB versionCode çalıştırma numarası değil"
+              echo "-- izinler (AAB)"
+              bt dump manifest --bundle="$aab" --xpath=/manifest/uses-permission/@android:name | check_perms AAB
+              echo "-- imza (jarsigner)"
+              jarsigner -verify "$aab" 2>&1 | grep -q "jar verified" && echo "   jar verified" || problem "AAB imzası doğrulanamadı"
+              keytool -printcert -jarfile "$aab" 2>/dev/null | grep -E "Owner:|SHA256:" | sed 's/^[[:space:]]*/   /'
+              aabso=$(unzip -Z1 "$aab" | grep -E '/lib/.+\.so$' || true)
+              [ -z "$aabso" ] && echo "   AAB'da .so yok" || echo "$aabso" | sed 's/^/   /'
+            fi
+          } > verify.txt 2>&1
+          cat verify.txt
+          { echo '```'; cat verify.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=Denetim::$(sed -e 's/%/%25/g' -e 's/\r//g' verify.txt | awk '{printf "%s%%0A", $0}')"
+          problems=$(grep '^!! ' verify.txt | sed 's/^!! //' | awk '{printf "%s%%0A", $0}')
+          if [ -n "$problems" ]; then echo "::error title=Denetim::$problems"; exit 1; fi
 
       - name: İndirilebilir dosya olarak sakla
         uses: actions/upload-artifact@v4
         with:
-          name: NeGiysem-apk
-          path: NeGiysem.apk
+          name: NeGiysem
+          path: |
+            out/
+            verify.txt
+
+      - name: Sürüm notunu yaz
+        env:
+          MODE: ${{ steps.key.outputs.mode }}
+        run: |
+          if [ "$MODE" = debug ]; then
+            echo "Telefonuna kurmak için aşağıdaki NeGiysem.apk dosyasını indir." > notes.md
+          else
+            {
+              echo "**NeGiysem.aab**: Google Play Console'a yüklenecek dosya (RELEASE.md)."
+              echo
+              echo "**NeGiysem.apk**: telefona doğrudan kurmak için, yükleme anahtarıyla imzalı. Telefonda eski (debug) sürüm varsa bu bir kez kaldırılıp kurulur."
+            } > notes.md
+          fi
 
       - name: Sürümler sayfasında yayınla
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: surum-${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
           name: Ne Giysem? ${{ github.run_number }}
-          body: Telefonuna kurmak için aşağıdaki NeGiysem.apk dosyasını indir.
-          files: NeGiysem.apk
+          body_path: notes.md
+          files: out/*
+
+      - name: Deneme ön sürümü (geçici anahtar, silinecek)
+        if: steps.key.outputs.mode == 'throwaway'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-play-${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          name: Deneme ${{ github.run_number }} (geçici anahtar, Play'e yüklenmez)
+          prerelease: true
+          body: Geçici anahtarla imzalanmış deneme dosyaları ve denetim raporu. Silinecek.
+          files: |
+            out/*
+            verify.txt

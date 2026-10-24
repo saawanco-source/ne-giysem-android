@@ -24,6 +24,9 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
+import androidx.annotation.RequiresApi
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
@@ -55,6 +58,11 @@ class MainActivity : Activity() {
     private lateinit var adBox: FrameLayout
     private var adView: AdView? = null
     private var adsStarted = false
+    private var adsInitialized = false
+    /** Width (dp) the current banner was made for; a resized window (rotation, split screen, foldable) gets a new one. */
+    private var bannerWidthDp = 0
+    /** Android 13+: Back goes through the system's back dispatcher (onBackPressed is never called when targeting Android 16). */
+    private var back: WebBack? = null
     private var keyboardUp = false
     private lateinit var web: WebView
     private var pendingGeo: Pair<String, GeolocationPermissions.Callback>? = null
@@ -82,6 +90,8 @@ class MainActivity : Activity() {
         root.addView(webBox, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         root.addView(adBox, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         setContentView(root)
+        // The adaptive banner is made for one width: make it again when the window gets narrower or wider.
+        webBox.addOnLayoutChangeListener { _, l, _, r, _, oldL, _, oldR, _ -> if (r - l != oldR - oldL) webBox.post { resizeBanner() } }
 
         // Android 15 draws apps edge to edge: keep the page clear of the status and navigation bars,
         // and of the keyboard (the window is no longer resized for it), so text fields stay visible while typing.
@@ -107,6 +117,11 @@ class MainActivity : Activity() {
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
                 loader.shouldInterceptRequest(request.url)
+
+            // Back first steps back through the page's history; with no history left the system closes the app.
+            override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) = updateBack()
+
+            override fun onPageFinished(view: WebView, url: String?) = updateBack()
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url = request.url
@@ -141,7 +156,11 @@ class MainActivity : Activity() {
         }
         web.addJavascriptInterface(Bridge(), "NeGiysemAndroid")
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            back = WebBack(this) { if (!webGone && web.canGoBack()) web.goBack() }
+        }
         if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) web.loadUrl(home)
+        updateBack()
 
         startAds()
 
@@ -167,9 +186,15 @@ class MainActivity : Activity() {
         if (!webGone) web.saveState(outState)
     }
 
-    @Deprecated("Kept for older Android versions")
+    /** Android 13+: Back is handled by [WebBack] only while the page has somewhere to go back to. */
+    private fun updateBack() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) back?.enable(!webGone && web.canGoBack())
+    }
+
+    /** Android 8–12 only: with android:enableOnBackInvokedCallback="true", Android 13+ never calls this. */
+    @Deprecated("Android 12 and older; Android 13+ uses WebBack")
     override fun onBackPressed() {
-        if (web.canGoBack()) web.goBack() else super.onBackPressed()
+        if (!webGone && web.canGoBack()) web.goBack() else super.onBackPressed()
     }
 
     override fun onPause() {
@@ -201,8 +226,9 @@ class MainActivity : Activity() {
     private fun loadBanner(unit: String) {
         if (adsStarted || isFinishing || isDestroyed) return
         adsStarted = true
-        MobileAds.initialize(this) {}
-        val widthDp = (resources.displayMetrics.widthPixels / resources.displayMetrics.density).toInt()
+        if (!adsInitialized) { adsInitialized = true; MobileAds.initialize(this) {} }
+        val widthDp = availableWidthDp()
+        bannerWidthDp = widthDp
         val view = AdView(this)
         view.adUnitId = unit
         view.setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, widthDp))
@@ -212,7 +238,26 @@ class MainActivity : Activity() {
         view.loadAd(AdRequest.Builder().build())
     }
 
+    /** The width the page gets (inside the system bar padding); before the first layout, the window width. */
+    private fun availableWidthDp(): Int {
+        val px = webBox.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels
+        return (px / resources.displayMetrics.density).toInt()
+    }
+
+    /** A banner wider than the window would be cut off (not allowed by AdMob), a narrower one looks lost: make a new one. */
+    private fun resizeBanner() {
+        val view = adView ?: return
+        if (isFinishing || isDestroyed || availableWidthDp() == bannerWidthDp) return
+        val unit = view.adUnitId
+        adBox.removeView(view)
+        view.destroy()
+        adView = null
+        adsStarted = false
+        loadBanner(unit)
+    }
+
     override fun onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) back?.enable(false)
         adView?.destroy()
         scope.cancel()
         if (!webGone) web.destroy()
@@ -316,5 +361,23 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQ_LOCATION = 7
+    }
+}
+
+/**
+ * Back on Android 13 and newer. The callback is registered only while [goBack] has somewhere to go,
+ * so on the first page the system's own Back closes the app, with Android's back-to-home animation.
+ */
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+private class WebBack(private val activity: Activity, private val goBack: () -> Unit) {
+    private val callback = OnBackInvokedCallback { goBack() }
+    private var registered = false
+
+    fun enable(on: Boolean) {
+        if (on == registered) return
+        val dispatcher = activity.onBackInvokedDispatcher
+        if (on) dispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, callback)
+        else dispatcher.unregisterOnBackInvokedCallback(callback)
+        registered = on
     }
 }

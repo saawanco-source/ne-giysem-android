@@ -416,7 +416,7 @@ button{font:inherit;color:inherit}
 
   /* ================= state ================= */
   var S = {places:[], sel:"auto", hours:6, feel:"normal", act:"city", manual:{temp:17, sky:"partly", wind:"breezy"}, mode:"manual", live:null,
-           routes:[], trips:[], dayMode:true, dayWx:null, choice:{date:"", picks:{}}};
+           routes:[], trips:[], dayMode:true, dayWx:null, choice:{date:"", picks:{}}, fix:null};
   (function(){
     var d = null;
     try { var raw = localStorage.getItem(KEY); d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
@@ -438,11 +438,12 @@ button{font:inherit;color:inherit}
     if (typeof d.dayMode === "boolean") S.dayMode = d.dayMode;
     if (d.dayWx && d.dayWx.byPlace) S.dayWx = d.dayWx;
     if (d.choice && d.choice.picks) S.choice = d.choice;
+    if (d.fix && isFinite(d.fix.lat) && isFinite(d.fix.lon) && d.fix.at) S.fix = d.fix;
   })();
   var busy = false, lastWearSig = "", CUR = {wear:[], take:[]};
   function save(){
     try { localStorage.setItem(KEY, JSON.stringify({places:S.places, sel:S.sel, hours:S.hours, feel:S.feel, act:S.act, manual:S.manual, mode:S.mode, live:S.live,
-      routes:S.routes, trips:S.trips, dayMode:S.dayMode, dayWx:S.dayWx, choice:S.choice})); } catch (e) {}
+      routes:S.routes, trips:S.trips, dayMode:S.dayMode, dayWx:S.dayWx, choice:S.choice, fix:S.fix})); } catch (e) {}
     // Android app: share the chosen place, preferences and routine with the home-screen widget
     if (window.NeGiysemAndroid) {
       var pl = S.live && S.live.place ? {name:S.live.place.name, lat:S.live.place.lat, lon:S.live.place.lon} : null;
@@ -1234,6 +1235,34 @@ button{font:inherit;color:inherit}
   }
 
   // --- web (installed app / website): device GPS and direct requests
+  // "granted" means asking for the position shows no question; anything else would (or cannot answer).
+  async function geoState(){
+    var A = window.NeGiysemAndroid;
+    if (A && typeof A.hasLocation === "function") { try { return A.hasLocation() ? "granted" : "prompt"; } catch (e) {} }
+    try { if (navigator.permissions && navigator.permissions.query) return (await navigator.permissions.query({name:"geolocation"})).state; } catch (e) {}
+    return "unknown";
+  }
+  function fixWhen(at){
+    var d = new Date(at), now = new Date(), y = new Date(now.getTime() - 864e5);
+    var hm = (d.getHours() < 10 ? "0" : "") + d.getHours() + ":" + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes();
+    if (d.toDateString() === now.toDateString()) return "bugün " + hm;
+    if (d.toDateString() === y.toDateString()) return "dün " + hm;
+    return d.toLocaleDateString("tr-TR", {day:"numeric", month:"long"}) + " " + hm;
+  }
+  function fromFix(note){
+    return {place:{name:S.fix.name || "Konumun", sub:"Son bilinen konum", lat:S.fix.lat, lon:S.fix.lon}, note:note,
+            action:{label:"Konumumu güncelle", fn:function(){ fetchLive(true); }}};
+  }
+  function nearSaved(f){ return S.places.some(function(p){ return km(p, f) < 0.5; }); }
+  function saveFix(){
+    if (!S.fix) return;
+    var id = "p" + uid(), name = S.fix.name && S.fix.name !== "Konumun" ? S.fix.name : "Kayıtlı yer";
+    S.places.push({id:id, name:name, sub:"Kaydettiğin konum", lat:S.fix.lat, lon:S.fix.lon});
+    S.sel = id;
+    if (S.live && S.live.placeKey === "auto") S.live.placeKey = id;
+    save(); render();
+    setStatus(name + " kaydedildi; bu yer için konum izni hiç sorulmaz. “Ev” gibi bir ad verebilirsin.", {label:"Adını değiştir", fn:openRoutine});
+  }
   var WEB = {
     fetchJSON: function(url, ms){
       var ctl = ("AbortController" in window) ? new AbortController() : null;
@@ -1247,15 +1276,22 @@ button{font:inherit;color:inherit}
         navigator.geolocation.getCurrentPosition(function(p){ res(p.coords); }, function(e){ rej({code: e.code === 1 ? "geo_denied" : e.code === 3 ? "geo_timeout" : "geo_unavailable"}); }, {enableHighAccuracy:false, timeout:12000, maximumAge:600000});
       });
     },
-    autoPlace: async function(){
+    // Uses the last found location instead of asking again when the browser would show its permission question.
+    autoPlace: async function(force){
       var BDC = "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=tr";
+      var st = await geoState();
+      if (!force && S.fix && st !== "granted") return fromFix("Son bilinen konumun kullanılıyor (" + fixWhen(S.fix.at) + ").");
       try {
         var c = await WEB.position();
         var place = {name:"Konumun", sub:"Cihaz konumu", lat:c.latitude, lon:c.longitude};
         try { var g = await WEB.fetchJSON(BDC + "&latitude=" + c.latitude + "&longitude=" + c.longitude, 8000); place.name = g.locality || g.city || g.principalSubdivision || place.name; } catch (e) {}
+        S.fix = {lat:c.latitude, lon:c.longitude, name:place.name, at:Date.now()};
+        if ((await geoState()) !== "granted" && !nearSaved(S.fix))
+          return {place:place, note:"Tarayıcın izni hatırlamıyor; bundan sonra bu konum kullanılır, tekrar sorulmaz. Kaydedersen hep hazır olur.", action:{label:"Bu konumu kaydet", fn:saveFix}};
         return {place:place, note:null};
       } catch (e) {
         if (!/^geo_/.test(e.code || "")) throw e;
+        if (S.fix) return fromFix((e.code === "geo_denied" ? "Konum izni verilmedi" : "Konum şu an bulunamadı") + "; son bilinen konumun kullanıldı (" + fixWhen(S.fix.at) + ").");
         var ip = await WEB.fetchJSON(BDC, 8000);
         if (!isFinite(ip.latitude) || !isFinite(ip.longitude)) throw {code:"geo_none"};
         return {place:{name: ip.city || ip.locality || ip.principalSubdivision || "Konumun", sub:"Yaklaşık konum", lat:+ip.latitude, lon:+ip.longitude},
@@ -1334,15 +1370,16 @@ button{font:inherit;color:inherit}
     }
   }
 
-  async function fetchLive(){
+  // force: ask the device for a fresh position even if the browser would show its permission question.
+  async function fetchLive(force){
     if (busy) return;
     if (IS_ART && !mcp) { setStatus(mcpState === "pending" ? "Claude bağlantısı hazırlanıyor, birazdan tekrar dene." : NO_LIVE); return; }
     var p = null;
     if (S.sel !== "auto") { p = S.places.filter(function(x){ return x.id === S.sel; })[0]; if (!p) S.sel = "auto"; }
     setBusy(true);
     try {
-      var place, note = null;
-      if (S.sel === "auto") { setStatus("Konumun bulunuyor…"); var r = await DATA.autoPlace(); place = r.place; note = r.note; }
+      var place, note = null, action = null;
+      if (S.sel === "auto") { setStatus("Konumun bulunuyor…"); var r = await DATA.autoPlace(force === true); place = r.place; note = r.note; action = r.action || null; }
       else place = {name:p.name, sub:p.sub || "", lat:p.lat, lon:p.lon};
       var ids = tripPlaceIds();
       setStatus(place.name + (ids.length ? " ve yolculuk yerlerin" : "") + " için hava alınıyor…");
@@ -1353,10 +1390,10 @@ button{font:inherit;color:inherit}
       ids.forEach(function(id, i){ if (all[i + 1] && all[i + 1].hourly) byPlace[id] = all[i + 1]; });
       S.live = {placeKey:S.sel, place:place, wx:wx, fetchedAt:Date.now()};
       S.dayWx = ids.length ? {fetchedAt:Date.now(), byPlace:byPlace} : null;
-      S.mode = "live"; save(); render(); setStatus(note || "");
+      S.mode = "live"; save(); render(); setStatus(note || "", action);
       return true;
     } catch (e) {
-      setStatus(errMsg(e) + (S.mode === "live" ? " Son alınan hava gösteriliyor." : ""), mcpState === "no" ? null : {label:"Tekrar dene", fn:fetchLive});
+      setStatus(errMsg(e) + (S.mode === "live" ? " Son alınan hava gösteriliyor." : ""), mcpState === "no" ? null : {label:"Tekrar dene", fn:function(){ fetchLive(force === true); }});
       render();
     } finally { setBusy(false); }
   }
@@ -1452,6 +1489,7 @@ button{font:inherit;color:inherit}
       } catch (e) { /* the name is optional */ }
       var id = "p" + uid();
       S.places.push({id:id, name:name, sub:sub, lat:c.latitude, lon:c.longitude});
+      S.fix = {lat:c.latitude, lon:c.longitude, name:name, at:Date.now()};
       S.sel = id; save(); closeSearch(); togglePanel(false); saved = name;
     } catch (e) {
       setStatus(e && e.code === "geo_denied" ? "Konum izni gerekiyor; tarayıcı ya da telefon ayarlarından izin ver." : "Konum bulunamadı, birazdan tekrar dene.");
@@ -1572,7 +1610,7 @@ button{font:inherit;color:inherit}
     try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + ":ioshint"); localStorage.removeItem("negiysem:v1"); } catch (e) {}
     S.places = []; S.sel = "auto"; S.hours = 6; S.feel = "normal"; S.act = "city";
     S.manual = {temp:17, sky:"partly", wind:"breezy"}; S.mode = "manual"; S.live = null;
-    S.routes = []; S.trips = []; S.dayMode = true; S.dayWx = null; S.choice = {date:"", picks:{}};
+    S.routes = []; S.trips = []; S.dayMode = true; S.dayWx = null; S.choice = {date:"", picks:{}}; S.fix = null;
     SEARCH.cache = {}; lastWearSig = "";
     closeSearch(); togglePanel(false); $("routine").hidden = true; hideTip();
     if (window.NeGiysemAndroid && window.NeGiysemAndroid.reset) { try { window.NeGiysemAndroid.reset(); } catch (e) {} }
@@ -1626,9 +1664,8 @@ button{font:inherit;color:inherit}
       return;
     }
     if (S.sel !== "auto") { fetchLive(); return; }
-    var gs = "prompt";
-    try { if (navigator.permissions && navigator.permissions.query) gs = (await navigator.permissions.query({name:"geolocation"})).state; } catch (e) {}
-    if (gs === "granted") fetchLive(); else if (!S.live) setStatus("Başlamak için yenile düğmesine bas ya da sağ üstten konum seç.");
+    // The last found location needs no permission question, so it refreshes on its own too.
+    if (S.fix || (await geoState()) === "granted") fetchLive(); else if (!S.live) setStatus("Başlamak için yenile düğmesine bas ya da sağ üstten konum seç.");
   }
   render();
   if (IS_ART) {

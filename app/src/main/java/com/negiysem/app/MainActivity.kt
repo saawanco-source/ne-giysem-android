@@ -81,8 +81,9 @@ class MainActivity : Activity() {
         }
         web.webChromeClient = object : WebChromeClient() {
             override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
+                // retain = true: the page keeps the answer, so the app never asks twice for the same thing.
                 if (hasLocation()) {
-                    callback.invoke(origin, true, false)
+                    callback.invoke(origin, true, true)
                 } else {
                     pendingGeo = origin to callback
                     requestPermissions(
@@ -107,7 +108,7 @@ class MainActivity : Activity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQ_LOCATION) {
             val granted = grantResults.any { it == PackageManager.PERMISSION_GRANTED }
-            pendingGeo?.let { (origin, cb) -> cb.invoke(origin, granted, false) }
+            pendingGeo?.let { (origin, cb) -> cb.invoke(origin, granted, granted) }
             pendingGeo = null
         }
     }
@@ -144,6 +145,10 @@ class MainActivity : Activity() {
                 runCatching { NeGiysemWidget.pushAll(ctx, "") }
             }
         }
+
+        /** Lets the page tell whether asking for the position would show Android's permission dialog. */
+        @JavascriptInterface
+        fun hasLocation(): Boolean = this@MainActivity.hasLocation()
 
         @JavascriptInterface
         fun setTheme(color: String, dark: Boolean) {

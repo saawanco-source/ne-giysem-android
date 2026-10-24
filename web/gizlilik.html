@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gizlilik Politikası ve KVKK Aydınlatma Metni · Ne Giysem?</title>
+<meta name="description" content="Ne Giysem? hangi verileri neden işler, kimlerle paylaşır ve verilerini nasıl silebilirsin: gizlilik politikası, KVKK aydınlatma metni, reklam ve ortaklık linki bilgilendirmesi.">
+<meta name="theme-color" content="#FFD65E" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#37332a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://{{ALAN_ADI}}/gizlilik.html">
+<link rel="alternate" hreflang="tr" href="https://{{ALAN_ADI}}/gizlilik.html">
+<link rel="alternate" hreflang="en" href="https://{{ALAN_ADI}}/privacy.html">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Same look as the app (web/index.html): level-yellow field, ink text, translucent rounded cards, Bricolage Grotesque headings, Figtree body. */
+:root{
+  --lv:#FFD65E; --field:var(--lv);
+  --ink:#14161f; --ink2:rgba(20,22,31,.78); --card:rgba(255,255,255,.6); --card2:rgba(255,255,255,.78); --line:rgba(20,22,31,.14);
+  --pill-bg:#14161f; --pill-ink:#ffffff; --hl-bg:#ffffff; --hl-ink:#14161f; --focus:#14161f; --dot:var(--lv);
+  --font-display:"Bricolage Grotesque","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --field:#37332a; --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
+    --pill-bg:var(--lv); --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
+    color-scheme:dark;
+  }
+  @supports (color:color-mix(in oklab,red,blue)){ :root:not([data-theme="light"]){ --field:color-mix(in oklab,var(--lv) 22%,#0b0d16); } }
+}
+:root[data-theme="dark"]{
+  --field:#37332a; --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
+  --pill-bg:var(--lv); --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--field);-webkit-text-size-adjust:100%;scroll-padding-top:16px}
+body{margin:0;background:var(--field);color:var(--ink);font:500 16.5px/1.6 var(--font-body);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration-thickness:1.5px;text-underline-offset:3px}
+a:hover{text-decoration-thickness:2.5px}
+:focus-visible{outline:2.5px solid var(--focus);outline-offset:3px;border-radius:6px}
+.skip{position:absolute;left:16px;top:-60px;background:var(--pill-bg);color:var(--pill-ink);padding:10px 16px;border-radius:999px;font-weight:700;z-index:10;text-decoration:none}
+.skip:focus{top:12px}
+.wrap{max-width:46rem;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:env(safe-area-inset-top,0px)}
+.logo{display:inline-flex;align-items:center;gap:8px;font:800 1.15rem/1 var(--font-display);letter-spacing:-.02em;text-decoration:none;min-height:44px}
+.logo svg{width:28px;height:28px;flex:none}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:9px 16px;border-radius:999px;background:var(--card2);font-weight:700;font-size:15px;text-decoration:none}
+.hero{margin:26px 0 18px}
+.pill{display:inline-block;background:var(--pill-bg);color:var(--pill-ink);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13.5px;line-height:1.3}
+h1{margin:14px 0 12px;font:800 clamp(2rem,8.4vw,3.1rem)/1.04 var(--font-display);letter-spacing:-.035em;text-wrap:balance}
+.hl{display:inline-block;background:var(--hl-bg);color:var(--hl-ink);padding:.02em .2em .06em;border-radius:.22em;transform:rotate(-2deg)}
+.lead{margin:0;font-size:17.5px;color:var(--ink2);max-width:40em}
+.card{background:var(--card);border-radius:24px;padding:18px 18px 8px;margin-top:14px}
+.card > :first-child{margin-top:0}
+h2{margin:0 0 10px;font:800 1.32rem/1.15 var(--font-display);letter-spacing:-.015em;scroll-margin-top:16px}
+h2 .n{display:inline-grid;place-items:center;min-width:1.7em;height:1.7em;margin-right:.35em;border-radius:999px;background:var(--pill-bg);color:var(--pill-ink);font:800 .7em/1 var(--font-body);vertical-align:.18em}
+h3{margin:18px 0 6px;font:800 1.06rem/1.25 var(--font-display);letter-spacing:-.01em}
+p,ul,ol,dl{margin:0 0 12px}
+ul,ol{padding-left:1.25em}
+li{margin:4px 0}
+li::marker{color:var(--ink2)}
+.dots{list-style:none;padding:0}
+.dots li{position:relative;padding-left:22px}
+.dots li::before{content:"";position:absolute;left:3px;top:.62em;width:9px;height:9px;border-radius:50%;background:var(--dot);box-shadow:0 0 0 1.5px var(--ink)}
+.toc ol{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.toc li{margin:0}
+.toc a{display:inline-flex;align-items:center;min-height:40px;padding:7px 13px;border-radius:999px;background:var(--card2);font-weight:650;font-size:14.5px;text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.box{background:var(--card2);border-radius:18px;padding:12px 14px;margin:0 0 12px}
+.box > :last-child{margin-bottom:0}
+.box h3{margin-top:0}
+dl.kv{display:grid;grid-template-columns:minmax(0,1fr);gap:2px 14px}
+dl.kv dt{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-top:8px}
+dl.kv dd{margin:0}
+@media (min-width:600px){dl.kv{grid-template-columns:9.5rem minmax(0,1fr)}dl.kv dt{margin-top:2px}}
+.note{font-size:14.5px;color:var(--ink2)}
+.tag{display:inline-block;border-radius:999px;padding:1px 9px;font-size:13px;font-weight:800;box-shadow:inset 0 0 0 1.5px var(--ink)}
+.contact{font-size:17px}
+.contact a{font-weight:700}
+footer{margin-top:28px;font-size:14px;color:var(--ink2);display:flex;flex-direction:column;gap:12px}
+footer nav{display:flex;flex-wrap:wrap;gap:8px}
+footer .chip{color:var(--ink)}
+@media print{
+  html,body{background:#fff;color:#000}
+  .card,.box{background:none;border:1px solid #bbb}
+  .skip,.bar .chip,footer nav{display:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#icerik">İçeriğe geç</a>
+<div class="wrap">
+  <header class="bar">
+    <a class="logo" href="./" aria-label="Ne Giysem? uygulamasına dön">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#14161f"/><g transform="rotate(-12 32 34)"><path d="M18.5 22.5 25.5 15.5h13l7 7V52h-27z" fill="#ffffff"/><circle cx="32" cy="24" r="3" fill="#14161f"/><rect x="24" y="36" width="16" height="3" rx="1.5" fill="#14161f"/><rect x="24" y="42" width="10" height="3" rx="1.5" fill="#14161f"/></g></svg>
+      <span>Ne Giysem?</span>
+    </a>
+    <a class="chip" href="privacy.html" hreflang="en" lang="en">English</a>
+  </header>
+
+  <main id="icerik">
+    <div class="hero">
+      <p class="pill">Son güncelleme: <time datetime="2026-10-24">24 Ekim 2026</time></p>
+      <h1>Gizlilik Politikası ve <span class="hl">KVKK</span> Aydınlatma Metni</h1>
+      <p class="lead">Ne Giysem? hesap istemez. Ayarların, kayıtlı yerlerin, rutinin ve dolabın yalnızca senin cihazında durur. Bu sayfa hangi verinin nereye, neden gittiğini ve nasıl silebileceğini anlatır. Aynı zamanda 6698 sayılı Kişisel Verilerin Korunması Kanunu’nun (KVKK) 10. maddesi uyarınca hazırlanmış aydınlatma metnidir.</p>
+    </div>
+
+    <section class="card" aria-labelledby="kisaca">
+      <h2 id="kisaca">Kısaca</h2>
+      <ul class="dots">
+        <li><strong>Hesap yok.</strong> Adını, e-postanı ya da telefon numaranı istemeyiz.</li>
+        <li><strong>Verilerin cihazında.</strong> Ayarların, yerlerin, Günüm rutinin, profillerin ve Dolabım listen bize gelmez.</li>
+        <li><strong>Konum yalnızca hava için.</strong> Konumun ya da seçtiğin yerin koordinatları, hava durumunu ve yer adını bulmak için kendi sunucumuza gider. Sunucu bunları yuvarlayarak hava ve harita servislerine iletir; konum geçmişi tutmaz.</li>
+        <li><strong>Reklam ve ortaklık linkleri var.</strong> Android uygulamasında Google AdMob, web sitesinde Google AdSense reklamları gösterilir. Bazı kıyafetlerin yanında “Satın al / ortaklık linki” bağlantıları bulunur. Hepsi açıkça etiketlenir.</li>
+        <li><strong>Tek dokunuşla sil.</strong> “Tüm verilerimi sil” düğmesi cihazındaki her şeyi siler.</li>
+      </ul>
+    </section>
+
+    <nav class="card toc" aria-labelledby="icindekiler">
+      <h2 id="icindekiler">İçindekiler</h2>
+      <ol>
+        <li><a href="#sorumlu">1. Veri sorumlusu</a></li>
+        <li><a href="#veriler">2. Hangi veriler</a></li>
+        <li><a href="#konum">3. Konum</a></li>
+        <li><a href="#amaclar">4. Amaçlar ve hukuki sebepler</a></li>
+        <li><a href="#alicilar">5. Kimlere aktarılır</a></li>
+        <li><a href="#reklam">6. Reklamlar ve çerezler</a></li>
+        <li><a href="#ortaklik">7. Ortaklık linkleri</a></li>
+        <li><a href="#bagis">8. Bağış</a></li>
+        <li><a href="#saklama">9. Saklama süreleri</a></li>
+        <li><a href="#silme">10. Verilerini silme</a></li>
+        <li><a href="#haklar">11. Hakların</a></li>
+        <li><a href="#cocuklar">12. Çocuklar</a></li>
+        <li><a href="#guvenlik">13. Güvenlik</a></li>
+        <li><a href="#degisiklik">14. Değişiklikler</a></li>
+        <li><a href="#iletisim">15. İletişim</a></li>
+      </ol>
+    </nav>
+
+    <section class="card" aria-labelledby="sorumlu">
+      <h2 id="sorumlu"><span class="n" aria-hidden="true">1</span>Veri sorumlusu</h2>
+      <p>Ne Giysem? web sitesi (<a href="https://{{ALAN_ADI}}/">https://{{ALAN_ADI}}</a>) ve Android uygulaması (Google Play paket adı <code>com.negiysem.app</code>) Türkiye’de yaşayan bireysel bir geliştirici tarafından yayımlanır. KVKK bakımından veri sorumlusu (AB Genel Veri Koruma Tüzüğü, GDPR bakımından “controller”):</p>
+      <dl class="kv box">
+        <dt>Veri sorumlusu</dt><dd>{{GELİŞTİRİCİ_ADI}}</dd>
+        <dt>E-posta</dt><dd><a href="mailto:{{İLETİŞİM_E_POSTASI}}">{{İLETİŞİM_E_POSTASI}}</a></dd>
+        <dt>Web</dt><dd><a href="https://{{ALAN_ADI}}/">https://{{ALAN_ADI}}</a></dd>
+      </dl>
+    </section>
+
+    <section class="card" aria-labelledby="veriler">
+      <h2 id="veriler"><span class="n" aria-hidden="true">2</span>Hangi verileri işliyoruz?</h2>
+
+      <h3>Yalnızca cihazında kalanlar</h3>
+      <ul>
+        <li>Kişisel ayarların: soğuğa karşı hassasiyetin (“Çabuk üşürüm”, “Sıcak tutarım”), ne yapacağın (şehir, arazi, spor), dışarıda kalma süren, dil ve görünüm.</li>
+        <li>Kayıtlı yerlerin: verdiğin ad (ör. “Ev”, “Okul”) ve koordinatları.</li>
+        <li>Günüm rutinin: yolculukların, saatleri, günleri, yürüyüş, durakta bekleme ve toplu taşıma adımları.</li>
+        <li>Profillerin (ör. bir çocuk profili) ve Dolabım’da sahip olduğunu işaretlediğin kıyafetler.</li>
+        <li>Bavul listesi seçimlerin, kapattığın yağmur uyarısı, son alınan hava durumu (çevrimdışı çalışmak için) ve son bulunan konumun.</li>
+      </ul>
+      <p>Bunlar web sitesinde tarayıcının yerel depolamasında (localStorage) tutulur; uygulama dosyaları çevrimdışı çalışmak için tarayıcı önbelleğine alınır. Android uygulamasında uygulamanın kendi depolamasında durur; ana ekran widget’ı seçili yeri, ayarlarını ve rutinini uygulamanın içinde ayrı bir dosyada tutar. Android uygulamasının verileri Google yedeklemesine dahil edilmez. <strong>Bu verileri biz göremeyiz;</strong> sunucumuza yalnızca hava durumu için gereken koordinatlar gider (aşağıda).</p>
+
+      <h3>Hava durumu ve yer adları için sunucumuza gidenler</h3>
+      <p>Uygulama hava durumunu, yer adlarını ve arama sonuçlarını kendi sunucumuzdan (Cloudflare Pages üzerinde çalışan küçük bir arka uç) alır. Bunun için şunlar gönderilir:</p>
+      <ul>
+        <li><strong>Konum koordinatları:</strong> cihaz konumun (izin verirsen) ya da seçtiğin veya kaydettiğin yerin koordinatları; rutinin varsa yolculuk yerlerinin, bavul listesi hazırlıyorsan gideceğin yerin koordinatları.</li>
+        <li><strong>Yer arama metni:</strong> arama kutusuna yazdıkların ve sonuçları yakınlığa göre sıralamak için yaklaşık konum.</li>
+        <li><strong>Bağlantı bilgileri:</strong> her internet isteğinde olduğu gibi IP adresin, isteğin zamanı ve tarayıcı veya cihaz bilgisi (User-Agent).</li>
+      </ul>
+      <p>Konum izni vermezsen ve kayıtlı bir yerin yoksa yaklaşık konumun (şehir düzeyinde) IP adresinden, barındırma sağlayıcımız Cloudflare tarafından tahmin edilir ve yalnızca hava durumunu bulmak için kullanılır.</p>
+
+      <h3>Diğerleri</h3>
+      <ul>
+        <li><strong>Reklamlar:</strong> reklam kimliği veya çerezler, IP adresi, cihaz ve tarayıcı bilgisi, reklamlarla etkileşimin (Google tarafından; <a href="#reklam">6. bölüm</a>).</li>
+        <li><strong>Ortaklık linkleri:</strong> bir linke dokunduğunda mağazaya giden bağlantıdaki ortaklık kodu (<a href="#ortaklik">7. bölüm</a>).</li>
+        <li><strong>Yazışmalar:</strong> bize e-posta gönderirsen e-posta adresin ve mesajın.</li>
+        <li><strong>Yazı tipleri:</strong> sayfalar açılırken yazı tipleri Google Fonts’tan indirilir; bu sırada IP adresin ve tarayıcı bilgin Google’a ulaşır.</li>
+        <li><strong>Google Play:</strong> uygulamayı Google Play’den indirdiğinde Google kendi verilerini kendi gizlilik politikasına göre işler. Play Console bize yükleme sayısı ve çökme raporları gibi, seni tanımamıza yaramayan toplu istatistikler gösterir.</li>
+      </ul>
+      <p>Uygulamada kendi analiz ya da izleme aracımız yoktur. Sağlık, inanç gibi özel nitelikli kişisel verileri işlemeyiz.</p>
+    </section>
+
+    <section class="card" aria-labelledby="konum">
+      <h2 id="konum"><span class="n" aria-hidden="true">3</span>Konum nasıl kullanılır?</h2>
+      <ul class="dots">
+        <li><strong>Yalnızca sen istediğinde.</strong> Konum, uygulamayı açtığında, havayı yenilediğinde ya da “Şu an bulunduğum yeri kaydet” dediğinde istenir. Android’de “Yaklaşık” konum izni yeterlidir. Konum izni vermeden de bir yer arayıp seçebilir ya da havayı elle ayarlayabilirsin.</li>
+        <li><strong>Arka planda konum yok.</strong> Uygulama arka planda konumuna bakmaz. Ana ekrana bir widget eklediysen widget, uygulamada en son kullandığın yerin kayıtlı koordinatlarıyla havayı yaklaşık 30 dakikada bir yeniler (henüz bir yer yoksa IP adresinden tahmin edilen yaklaşık konumla). Son widget’ı kaldırınca bu yenileme durur.</li>
+        <li><strong>Sunucuda yuvarlama.</strong> Sunucumuz koordinatları hava durumu için yaklaşık 1 km’lik hücrelere (virgülden sonra 2 hane), yer adı ve arama sıralaması için yaklaşık 100 m’ye (3 hane) yuvarlar. MET Norway ve Photon’a yalnızca bu yuvarlanmış değerler ve arama metni, sunucumuzun kendi adıyla gider; IP adresin ve cihaz bilgin iletilmez.</li>
+        <li><strong>Ortak önbellek.</strong> Aynı bölgedeki herkes için tekrar kullanılmak üzere hava tahminleri ve yer adları, yuvarlanmış koordinatlara (aramalarda arama metnine) göre Cloudflare önbelleğinde tutulur: hava tahminleri birkaç saat, aramalar birkaç gün, yer adları en fazla iki ay. Bu kayıtlar seninle ya da cihazınla ilişkilendirilmez.</li>
+        <li><strong>Konum geçmişi yok.</strong> Gelen koordinatları bir veritabanına yazmayız ve konum geçmişini tutmayız. Barındırma sağlayıcımız Cloudflare hizmeti işletmek ve korumak için kendi standart istek kayıtlarını tutar (<a href="#saklama">9. bölüm</a>).</li>
+      </ul>
+    </section>
+
+    <section class="card" aria-labelledby="amaclar">
+      <h2 id="amaclar"><span class="n" aria-hidden="true">4</span>Amaçlar ve hukuki sebepler</h2>
+      <p>Kişisel verilerin otomatik yollarla, uygulamayı ve web sitesini kullandığın sırada toplanır. Her amaç için hukuki sebep:</p>
+      <div class="box">
+        <h3>Hava durumunu, yer adlarını ve arama sonuçlarını getirmek</h3>
+        <dl class="kv">
+          <dt>Veriler</dt><dd>Konum koordinatları, yer arama metni, IP adresinden yaklaşık konum, bağlantı bilgileri</dd>
+          <dt>Hukuki sebep</dt><dd>KVKK m.5/2-c (istediğin hizmetin sunulması için gerekli olması) ve m.5/2-f (meşru menfaat); GDPR m.6/1-b ve m.6/1-f</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Hizmetin çalışması ve güvenliği</h3>
+        <dl class="kv">
+          <dt>Veriler</dt><dd>IP adresi, istek zamanı ve adresi, tarayıcı veya cihaz bilgisi (Cloudflare’in standart kayıtları), teknik hata mesajları</dd>
+          <dt>Hukuki sebep</dt><dd>KVKK m.5/2-f (meşru menfaat: kötüye kullanımı önlemek, hataları gidermek); GDPR m.6/1-f</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Reklam göstermek ve ölçmek, reklam sahtekârlığını önlemek</h3>
+        <dl class="kv">
+          <dt>Veriler</dt><dd>Reklam kimliği ve uygulama grubu kimliği (Android) ya da çerezler (web), IP adresi, cihaz ve tarayıcı bilgisi, reklam etkileşimleri, teknik tanılama verileri</dd>
+          <dt>Hukuki sebep</dt><dd>Web sitesinde kişiselleştirilmiş reklam ve reklam çerezleri için açık rızan (KVKK m.5/1; GDPR m.6/1-a). Android uygulamasında reklamların gösterilmesi ve ölçülmesi için meşru menfaat (KVKK m.5/2-f; GDPR m.6/1-f); reklamların kişiselleştirilmesini Android ayarlarından kapatabilirsin (<a href="#reklam">6. bölüm</a>).</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Ortaklık linklerinden gelen komisyonların hesaplanması</h3>
+        <dl class="kv">
+          <dt>Veriler</dt><dd>Linkteki ortaklık kodu; mağazanın kendi tuttuğu sipariş bilgileri bize yalnızca toplu rapor olarak gelir</dd>
+          <dt>Hukuki sebep</dt><dd>KVKK m.5/2-f; GDPR m.6/1-f</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Seninle yazışmak ve yasal yükümlülükler</h3>
+        <dl class="kv">
+          <dt>Veriler</dt><dd>E-posta adresin, mesajın; gerekirse yetkili kurumların istediği bilgiler</dd>
+          <dt>Hukuki sebep</dt><dd>KVKK m.5/2-c, m.5/2-ç (hukuki yükümlülük), m.5/2-e (bir hakkın tesisi, kullanılması veya korunması) ve m.5/2-f; GDPR m.6/1-b, c ve f</dd>
+        </dl>
+      </div>
+      <p class="note">Verilerini bu amaçların dışında kullanmayız ve satmayız. Hakkında yalnızca otomatik işlemeye dayanan, seni hukuken etkileyen bir karar verilmez; kıyafet önerileri yalnızca cihazındaki kurallarla hesaplanır.</p>
+    </section>
+
+    <section class="card" aria-labelledby="alicilar">
+      <h2 id="alicilar"><span class="n" aria-hidden="true">5</span>Kimlere aktarılır?</h2>
+      <div class="box">
+        <h3>Cloudflare, Inc. (ABD)</h3>
+        <p>Web sitesini ve sunucu işlevlerini barındırır. IP adresin, bağlantı bilgilerin, gönderilen koordinatlar ve arama metni bu altyapıdan geçer; Cloudflare IP adresinden yaklaşık konum çıkarabilir. Bizim adımıza ve talimatlarımızla çalışır (veri işleyen).</p>
+      </div>
+      <div class="box">
+        <h3>MET Norway — Norveç Meteoroloji Enstitüsü (Norveç)</h3>
+        <p>Hava tahminini sağlar. Yalnızca yaklaşık 1 km’ye yuvarlanmış koordinatları, sunucumuz üzerinden alır; IP adresin iletilmez. Hava verisi © MET Norway, <a href="https://creativecommons.org/licenses/by/4.0/deed.tr">CC BY 4.0</a>.</p>
+      </div>
+      <div class="box">
+        <h3>komoot GmbH — Photon (Almanya)</h3>
+        <p>Yer arama ve konum adlarını sağlar. Arama metnini ve yaklaşık 100 m’ye yuvarlanmış koordinatları, sunucumuz üzerinden alır; IP adresin iletilmez. Harita verisi © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap katkıcıları</a> (ODbL).</p>
+      </div>
+      <div class="box">
+        <h3>Google (Google LLC, ABD; Avrupa’daki kullanıcılar için Google Ireland Limited)</h3>
+        <p>Android uygulamasında AdMob, web sitesinde AdSense reklamları; Google Fonts yazı tipleri; uygulamanın dağıtımı için Google Play. Google, reklam ve Play verilerini kendi <a href="https://policies.google.com/privacy?hl=tr">gizlilik politikasına</a> göre, kendi sorumluluğunda da işler.</p>
+      </div>
+      <div class="box">
+        <h3>Trendyol ve Amazon.com.tr</h3>
+        <p>Yalnızca bir ortaklık linkine dokunduğunda: mağaza sitesi tarayıcında açılır ve oradaki işlemlerin o sitenin gizlilik politikasına tabidir.</p>
+      </div>
+      <div class="box">
+        <h3>Yetkili kamu kurum ve kuruluşları</h3>
+        <p>Yalnızca kanunen zorunlu olduğunda ve istenen ölçüde.</p>
+      </div>
+      <h3>Yurt dışına aktarım</h3>
+      <p>Cloudflare, Google, MET Norway ve komoot’un sunucuları Türkiye dışındadır (ABD, Avrupa ve diğer ülkeler); bu yüzden uygulamayı kullandığında yukarıdaki veriler yurt dışına aktarılmış olur. Aktarım, KVKK’nın 9. maddesinde sayılan güvencelere (ör. sağlayıcıların sunduğu standart sözleşmeler) ya da bunların bulunmadığı hâllerde aynı maddede öngörülen istisnalara dayanılarak yapılır. MET Norway ve Photon’a giden yuvarlanmış koordinatlar seni tanımlayacak başka bir bilgiyle birlikte gönderilmez.</p>
+    </section>
+
+    <section class="card" aria-labelledby="reklam">
+      <h2 id="reklam"><span class="n" aria-hidden="true">6</span>Reklamlar ve çerezler</h2>
+      <p>Ne Giysem? ücretsizdir ve giderlerini reklamlarla karşılar. Reklam alanları “Reklam” olarak etiketlenir.</p>
+      <h3>Web sitesi (Google AdSense)</h3>
+      <p>Google ve iş ortakları, reklamları göstermek, aynı reklamın ne sıklıkla gösterildiğini sınırlamak, gösterim ve tıklamaları ölçmek, sahtekârlığı önlemek ve izin verirsen ilgi alanlarına göre kişiselleştirmek için çerezler ve benzeri teknolojiler kullanır. Siteye ilk girdiğinde kişiselleştirilmiş reklamlara izin verip vermeyeceğin sorulur. Kararını istediğin zaman, uygulamanın web sürümünde sayfanın en altındaki <strong>“Reklam tercihleri”</strong> bağlantısıyla yeniden açıp değiştirebilirsin. İzin vermezsen Google kişiselleştirilmemiş ya da sınırlı reklamlar gösterebilir.</p>
+      <ul>
+        <li>Google’ın bu verileri nasıl kullandığı: <a href="https://policies.google.com/technologies/partner-sites?hl=tr">Google, hizmetlerini kullanan sitelerden ve uygulamalardan gelen bilgileri nasıl kullanır?</a></li>
+        <li>Reklam çerezleri: <a href="https://policies.google.com/technologies/ads?hl=tr">Google reklamcılıkta çerezleri nasıl kullanır?</a></li>
+        <li>Google hesabınla reklam kişiselleştirmesini yönetmek: <a href="https://myadcenter.google.com/">Reklam Merkezim</a></li>
+        <li>Tarayıcı ayarlarından çerezleri silebilir ya da engelleyebilirsin; reklamlar yine görünür ama kişiselleştirilmez.</li>
+      </ul>
+      <h3>Android uygulaması (Google AdMob)</h3>
+      <p>Uygulamada banner reklamlar Google AdMob ile gösterilir. Google Mobile Ads SDK reklam kimliğini, uygulama grubu kimliğini, IP adresini, cihaz bilgisini, reklamlarla etkileşimleri ve teknik tanılama verilerini; reklam göstermek, ölçmek ve sahtekârlığı önlemek için işler ve bunları Google’a gönderir. Reklam kimliğini <strong>Ayarlar → Google → Reklamlar</strong> bölümünden sıfırlayabilir ya da silebilirsin (menü adları cihaza göre değişebilir); silersen kişiselleştirilmiş reklam için kullanılamaz.</p>
+      <h3>Yerel depolama</h3>
+      <p>Uygulamanın kendisi çerez kullanmaz. Ayarlarını cihazında tutmak için yerel depolamayı, çevrimdışı çalışmak için tarayıcı önbelleğini kullanır; bunlar hizmetin çalışması için gereklidir ve cihazından çıkmaz.</p>
+    </section>
+
+    <section class="card" aria-labelledby="ortaklik">
+      <h2 id="ortaklik"><span class="n" aria-hidden="true">7</span>Ortaklık linkleri</h2>
+      <p>Bazı kıyafet önerilerinin yanında <span class="tag">Satın al / ortaklık linki</span> etiketli bağlantılar bulunur. Bunlar Trendyol ya da Amazon.com.tr’deki ürünlere gider. Bu bağlantılardan alışveriş yaparsan geliştirici komisyon kazanabilir; ödediğin fiyat değişmez.</p>
+      <ul>
+        <li>Hangi kıyafetin önerileceğini hava durumu ve senin ayarların belirler; linkler öneriye sonradan eklenir.</li>
+        <li>Linke dokununca mağaza tarayıcında açılır. Mağaza, satışın bizden geldiğini anlamak için çerez kullanabilir; orada yaptıkların o mağazanın gizlilik politikasına tabidir.</li>
+        <li>Kim olduğunu ya da ne aldığını göremeyiz; mağazalardan yalnızca toplu komisyon raporları alırız.</li>
+        <li>Amazon Associate olarak, uygun satın alımlardan kazanç sağlıyorum.</li>
+      </ul>
+      <p class="note">Reklamlar ve ortaklık linkleri, Ticari Reklam ve Haksız Ticari Uygulamalar Yönetmeliği’ne uygun olarak içerikten ayırt edilebilecek şekilde etiketlenir.</p>
+    </section>
+
+    <section class="card" aria-labelledby="bagis">
+      <h2 id="bagis"><span class="n" aria-hidden="true">8</span>Bağış (yalnızca web sitesi)</h2>
+      <p>Web sitesinde geliştiriciyi desteklemek için isteğe bağlı bir bağış bağlantısı vardır; Android uygulamasında yoktur. Bağış sayfası üçüncü taraf bir ödeme hizmetinde açılır ve ödeme bilgilerin orada işlenir; kart bilgini göremeyiz. Bağış hizmeti bize adını ya da e-postanı iletirse bunları yalnızca bağışla ilgili yazışma ve yasal yükümlülükler için kullanırız.</p>
+    </section>
+
+    <section class="card" aria-labelledby="saklama">
+      <h2 id="saklama"><span class="n" aria-hidden="true">9</span>Saklama süreleri</h2>
+      <ul>
+        <li><strong>Cihazındaki veriler:</strong> sen silene kadar (“Tüm verilerimi sil”, uygulamayı kaldırmak ya da site verilerini temizlemek).</li>
+        <li><strong>Sunucuya giden koordinatlar ve arama metni:</strong> isteğe cevap verildikten sonra saklanmaz; yalnızca kimseyle ilişkilendirilmeyen ortak önbellek kayıtları <a href="#konum">3. bölümde</a> yazan süreler kadar kalır.</li>
+        <li><strong>Cloudflare’in istek kayıtları:</strong> Cloudflare’in kendi saklama süreleri boyunca; ayrıca kendi kayıt sistemimiz yoktur.</li>
+        <li><strong>Reklam verileri:</strong> Google’ın politikalarında belirtilen süreler boyunca.</li>
+        <li><strong>E-postalar:</strong> yazışma bittikten sonra en geç 12 ay; yasal bir yükümlülük varsa o süre kadar.</li>
+      </ul>
+      <p>Süresi dolan veriler silinir, yok edilir ya da anonim hâle getirilir.</p>
+    </section>
+
+    <section class="card" aria-labelledby="silme">
+      <h2 id="silme"><span class="n" aria-hidden="true">10</span>Verilerini silme</h2>
+      <ul class="dots">
+        <li><strong>Uygulamada:</strong> “Sana göre” kartında, Verilerim altındaki <strong>“Tüm verilerimi sil”</strong> düğmesine iki kez dokun. Ayarların, yerlerin, rutinin, profillerin, Dolabım, bavul listesi ve son alınan hava silinir; Android’de widget’ın verileri de temizlenir.</li>
+        <li><strong>Android’de:</strong> uygulamayı kaldırmak ya da Ayarlar → Uygulamalar → Ne Giysem? → Depolama → Verileri temizle de her şeyi siler.</li>
+        <li><strong>Web’de:</strong> tarayıcının ayarlarından bu sitenin verilerini (çerezler ve site verileri) sil.</li>
+        <li><strong>Reklam kimliği:</strong> Android ayarlarından sıfırla ya da sil (<a href="#reklam">6. bölüm</a>).</li>
+        <li><strong>Sunucuda:</strong> seninle ilişkilendirilebilen bir kayıt ya da hesap tutmadığımız için silinecek bir şey yoktur. Yine de bir talebin varsa <a href="mailto:{{İLETİŞİM_E_POSTASI}}">{{İLETİŞİM_E_POSTASI}}</a> adresine yaz.</li>
+      </ul>
+    </section>
+
+    <section class="card" aria-labelledby="haklar">
+      <h2 id="haklar"><span class="n" aria-hidden="true">11</span>Hakların</h2>
+      <p>KVKK’nın 11. maddesi uyarınca veri sorumlusuna başvurarak şunları isteyebilirsin:</p>
+      <ol>
+        <li>Kişisel verilerinin işlenip işlenmediğini öğrenmek,</li>
+        <li>işlenmişse buna ilişkin bilgi istemek,</li>
+        <li>işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenmek,</li>
+        <li>yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilmek,</li>
+        <li>eksik veya yanlış işlenmişse düzeltilmesini istemek,</li>
+        <li>KVKK’nın 7. maddesindeki şartlar çerçevesinde silinmesini veya yok edilmesini istemek,</li>
+        <li>düzeltme, silme veya yok etme işlemlerinin verilerin aktarıldığı üçüncü kişilere bildirilmesini istemek,</li>
+        <li>münhasıran otomatik sistemlerle analiz edilmesi sonucunda aleyhine bir sonucun ortaya çıkmasına itiraz etmek,</li>
+        <li>kanuna aykırı işlenmesi sebebiyle zarara uğraman hâlinde zararın giderilmesini talep etmek.</li>
+      </ol>
+      <p>Avrupa Ekonomik Alanı’ndaysan GDPR kapsamında ayrıca erişim, düzeltme, silme, işlemeyi kısıtlama, veri taşınabilirliği ve itiraz haklarına sahipsin; rızaya dayanan işlemelerde rızanı istediğin zaman geri alabilirsin (öncesindeki işlemler bundan etkilenmez).</p>
+      <p><strong>Nasıl başvurulur?</strong> Başvurunu <a href="mailto:{{İLETİŞİM_E_POSTASI}}">{{İLETİŞİM_E_POSTASI}}</a> adresine e-postayla ya da Veri Sorumlusuna Başvuru Usul ve Esasları Hakkında Tebliğ’de sayılan diğer yollarla iletebilirsin. Başvurunu en geç 30 gün içinde ve kural olarak ücretsiz sonuçlandırırız. Verilerinin çoğu yalnızca cihazında durduğu için bunları biz göremeyiz; onları <a href="#silme">10. bölümdeki</a> yollarla kendin silebilirsin.</p>
+      <p>Cevabımızdan memnun kalmazsan <a href="https://www.kvkk.gov.tr/">Kişisel Verileri Koruma Kurulu</a>’na şikâyette bulunabilirsin. AB’de yaşıyorsan bulunduğun ülkenin veri koruma otoritesine de başvurabilirsin.</p>
+    </section>
+
+    <section class="card" aria-labelledby="cocuklar">
+      <h2 id="cocuklar"><span class="n" aria-hidden="true">12</span>Çocuklar</h2>
+      <p>Ne Giysem? genel kitleye yöneliktir; 13 yaşından küçük çocuklar için tasarlanmamıştır. Uygulamadaki çocuk profili, ebeveynlerin çocuklarını havaya göre giydirmesine yardımcı olmak içindir ve profil bilgileri yalnızca cihazda durur. 13 yaşından küçük bir çocuğun bize kişisel veri ilettiğini düşünüyorsan bize yaz; bilgiyi sileriz.</p>
+    </section>
+
+    <section class="card" aria-labelledby="guvenlik">
+      <h2 id="guvenlik"><span class="n" aria-hidden="true">13</span>Güvenlik</h2>
+      <p>Uygulama ile sunucu arasındaki bütün bağlantılar HTTPS ile şifrelenir. Hesap ve parola yoktur; mümkün olan en az veriyi işleriz. Cihazındaki veriler, cihazının kendi korumasına (ör. ekran kilidi) tabidir; cihazını paylaşıyorsan bunu göz önünde bulundur.</p>
+    </section>
+
+    <section class="card" aria-labelledby="degisiklik">
+      <h2 id="degisiklik"><span class="n" aria-hidden="true">14</span>Değişiklikler</h2>
+      <p>Bu metni, uygulama ya da yasal düzenlemeler değiştikçe güncelleyebiliriz. Güncel sürüm her zaman bu adreste yayımlanır ve en üstteki tarih değişir. Önemli değişiklikleri ayrıca uygulamada ya da web sitesinde duyururuz.</p>
+    </section>
+
+    <section class="card" aria-labelledby="iletisim">
+      <h2 id="iletisim"><span class="n" aria-hidden="true">15</span>İletişim</h2>
+      <p class="contact">{{GELİŞTİRİCİ_ADI}}<br><a href="mailto:{{İLETİŞİM_E_POSTASI}}">{{İLETİŞİM_E_POSTASI}}</a><br><a href="https://{{ALAN_ADI}}/">https://{{ALAN_ADI}}</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <nav aria-label="Sayfa bağlantıları">
+      <a class="chip" href="./">← Uygulamaya dön</a>
+      <a class="chip" href="privacy.html" hreflang="en" lang="en">Privacy policy in English</a>
+    </nav>
+    <p>Hava verisi © MET Norway (CC BY 4.0) · Harita verisi © OpenStreetMap katkıcıları (ODbL)</p>
+  </footer>
+</div>
+</body>
+</html>

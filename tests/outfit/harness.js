@@ -2,7 +2,7 @@
 // Usage: const H = require('./harness'); const app = await H.open({hour:9}); await app.weather(fix); await app.prefs({feel,act,hours}); const r = await app.read();
 const http = require('http'), fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
-const ROOT = process.env.APP_DIR || path.join(__dirname, '..', '..', 'app', 'src', 'main', 'assets', 'www');
+const ROOT = process.env.APP_DIR || path.join(__dirname, '..', '..', 'web');
 const pad = n => String(n).padStart(2, '0');
 const DATE = '2026-10-24'; // local Istanbul date used for the fixed clock and the fixtures
 

@@ -1,0 +1,61 @@
+# Ne Giysem? sitesini Cloudflare Pages'e koymak
+
+`web/` klasörü hem siteyi (`index.html`) hem de küçük sunucu kısmını (`web/functions/`) içerir. Sunucu kısmı hava durumunu
+MET Norway'den, yer aramayı Photon'dan alır, sonuçları saklar ve uygulamaya `/api/...` adresleriyle verir:
+
+| Adres | Ne yapar |
+|---|---|
+| `/api/forecast?latitude=41.01&longitude=28.98` | 7 günlük hava durumu (MET Norway) |
+| `/api/search?q=kadıköy` | Yer arama (Photon / OpenStreetMap) |
+| `/api/reverse?lat=41.18&lon=28.99` | Konumun adı |
+| `/api/ip` | İnternet bağlantısından yaklaşık konum |
+
+## 1. Projeyi oluştur (bir kez)
+
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → soldan **Workers & Pages** → **Create** → **Pages** sekmesi → **Connect to Git**.
+2. GitHub'a izin ver ve `ne-giysem-android` deposunu seç → **Begin setup**.
+3. Ayarlar:
+   - **Project name:** ör. `ne-giysem` (site adresi `https://ne-giysem.pages.dev` olur)
+   - **Production branch:** `main`
+   - **Framework preset:** `None`
+   - **Build command:** boş bırak
+   - **Build output directory:** boş bırak (kutu boş kabul etmezse `/` yaz; `web` yazma)
+   - **Root directory (advanced)** → aç → **Path:** `web`
+4. **Save and Deploy**. Bir iki dakika sonra site `https://<proje-adı>.pages.dev` adresinde açılır.
+
+> Neden `web` "Root directory"ye yazılıyor: Cloudflare `functions` klasörünü kök klasörde arar. Kök `web` olunca
+> `web/functions` kendiliğinden bulunur ve `/api/...` adresleri çalışır (ayrıca bir şey kurmak gerekmez). Kök boş
+> bırakılırsa site açılır ama `/api/...` çalışmaz.
+
+Kontrol: tarayıcıda `https://<proje-adı>.pages.dev/api/forecast?latitude=41.01&longitude=28.98` aç; içinde
+`"timezone":"Europe/Istanbul"` geçen uzun bir yazı görmelisin.
+
+## 2. Alan adını bağla
+
+1. Proje sayfası → **Custom domains** → **Set up a custom domain**.
+2. Cloudflare'dan aldığın alan adını yaz (ör. `negiysem.com`) → **Continue** → **Activate domain**. Alan adı zaten
+   Cloudflare'da olduğu için kayıt kendiliğinden eklenir; birkaç dakika içinde açılır.
+
+## 3. MET Norway için kimlik yazısı
+
+MET Norway, isteklerin kimden geldiğini bilmek ister (yoksa engelleyebilir). Alan adın hazır olunca:
+
+1. Proje → **Settings** → **Variables and Secrets** (eski adı: Environment variables) → **Add**.
+2. **Type:** Text, **Variable name:** `MET_USER_AGENT`, **Value:** `NeGiysem/1.0 (+https://ALAN-ADIN)`
+   (`ALAN-ADIN` yerine kendi alan adın; istersen sonuna `; e-posta@adresin` ekle) → **Save**.
+3. Yeni değer sonraki yayında geçerli olur: **Deployments** → en üstteki → **⋯** → **Retry deployment**.
+
+Bu ayar yokken `NeGiysem/1.0 (+https://ne-giysem.pages.dev)` kullanılır.
+
+## Güncelleme
+
+GitHub'da `main` dalına her yüklemede site kendiliğinden yeniden yayınlanır. Başka dallar ayrı bir deneme adresi alır.
+
+## Bilmen gerekenler
+
+- **Ücretsiz plan:** `/api/...` adreslerine günde **100.000** istek (sayfa, simge gibi dosyalar sınırsız ve ücretsiz).
+  Sınır aşılırsa o gün `/api/...` hata verir; sayaç her gece 03:00'te (Türkiye saati) sıfırlanır.
+  Hava durumu aynı ~1 km'lik bölge için MET'in izin verdiği süre boyunca saklandığından MET'e giden istek çok daha azdır.
+- **Kaynak gösterme (zorunlu):** hava verisi için sayfada "Hava verisi: MET Norway" (CC BY 4.0, değiştirilerek
+  kullanılıyor), yer arama için "© OpenStreetMap katkıda bulunanlar" yazmalı.
+- Sorun olursa: proje → **Deployments** → yayına tıkla → **Functions** / **View logs**; hata satırlarını Claude'a gönder.

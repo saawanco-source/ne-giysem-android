@@ -58,8 +58,37 @@ jobs:
           N: "3000"
         run: KOTLINC="$RUNNER_TEMP/kotlinc/bin/kotlinc" sh tests/parity/run.sh
 
+  # The website's /api/* functions (MET Norway weather, Photon place search) with test data, no internet needed.
+  api-tests:
+    name: API testleri
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: API testleri (MET ve Photon olmadan)
+        run: node --test tests/api
+
+  # The same code against the real MET Norway and Photon services. For information only: never stops the APK.
+  api-live:
+    name: API canlı deneme (MET Norway, Photon)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Gerçek servisleri dene
+        env:
+          MET_USER_AGENT: ${{ vars.MET_USER_AGENT }}
+        run: node tests/api/live-smoke.mjs
+
   build:
-    needs: [web-tests, parity]
+    needs: [web-tests, parity, api-tests]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

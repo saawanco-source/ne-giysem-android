@@ -51,3 +51,13 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("androidx.webkit:webkit:1.12.1")
 }
+
+// The app screen is the web app in ../web (the same files the website serves).
+// They are copied into the APK's assets on every build, so there is only one copy to edit.
+val syncWeb by tasks.registering(Sync::class) {
+    from(rootProject.file("web")) {
+        include("index.html", "manifest.webmanifest", "icons/**")
+    }
+    into(layout.projectDirectory.dir("src/main/assets/www"))
+}
+tasks.named("preBuild") { dependsOn(syncWeb) }

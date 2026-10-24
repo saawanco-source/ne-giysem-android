@@ -1,6 +1,6 @@
 // Mirrors render(): live input, day plan when it leads, then plan(); writes the widget-relevant fields per case.
 const fs = require("fs");
-const E = require("./js-engine.js").load(process.argv[4] || require("path").join(__dirname, "..", "..", "app", "src", "main", "assets", "www", "index.html"));
+const E = require("./js-engine.js").load(process.argv[4] || require("path").join(__dirname, "..", "..", "web", "index.html"));
 const cases = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
 const now = Date.now(), res = [];
 for (const c of cases) {

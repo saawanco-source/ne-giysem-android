@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Privacy Policy · Ne Giysem?</title>
+<meta name="description" content="What data Ne Giysem? processes and why, who receives it and how to delete it: privacy policy, KVKK information notice, ads and affiliate link disclosure.">
+<meta name="theme-color" content="#FFD65E" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#37332a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://{{ALAN_ADI}}/privacy.html">
+<link rel="alternate" hreflang="tr" href="https://{{ALAN_ADI}}/gizlilik.html">
+<link rel="alternate" hreflang="en" href="https://{{ALAN_ADI}}/privacy.html">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Same look as the app (web/index.html): level-yellow field, ink text, translucent rounded cards, Bricolage Grotesque headings, Figtree body. */
+:root{
+  --lv:#FFD65E; --field:var(--lv);
+  --ink:#14161f; --ink2:rgba(20,22,31,.78); --card:rgba(255,255,255,.6); --card2:rgba(255,255,255,.78); --line:rgba(20,22,31,.14);
+  --pill-bg:#14161f; --pill-ink:#ffffff; --hl-bg:#ffffff; --hl-ink:#14161f; --focus:#14161f; --dot:var(--lv);
+  --font-display:"Bricolage Grotesque","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --field:#37332a; --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
+    --pill-bg:var(--lv); --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
+    color-scheme:dark;
+  }
+  @supports (color:color-mix(in oklab,red,blue)){ :root:not([data-theme="light"]){ --field:color-mix(in oklab,var(--lv) 22%,#0b0d16); } }
+}
+:root[data-theme="dark"]{
+  --field:#37332a; --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
+  --pill-bg:var(--lv); --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--field);-webkit-text-size-adjust:100%;scroll-padding-top:16px}
+body{margin:0;background:var(--field);color:var(--ink);font:500 16.5px/1.6 var(--font-body);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration-thickness:1.5px;text-underline-offset:3px}
+a:hover{text-decoration-thickness:2.5px}
+:focus-visible{outline:2.5px solid var(--focus);outline-offset:3px;border-radius:6px}
+.skip{position:absolute;left:16px;top:-60px;background:var(--pill-bg);color:var(--pill-ink);padding:10px 16px;border-radius:999px;font-weight:700;z-index:10;text-decoration:none}
+.skip:focus{top:12px}
+.wrap{max-width:46rem;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:env(safe-area-inset-top,0px)}
+.logo{display:inline-flex;align-items:center;gap:8px;font:800 1.15rem/1 var(--font-display);letter-spacing:-.02em;text-decoration:none;min-height:44px}
+.logo svg{width:28px;height:28px;flex:none}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:9px 16px;border-radius:999px;background:var(--card2);font-weight:700;font-size:15px;text-decoration:none}
+.hero{margin:26px 0 18px}
+.pill{display:inline-block;background:var(--pill-bg);color:var(--pill-ink);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13.5px;line-height:1.3}
+h1{margin:14px 0 12px;font:800 clamp(2rem,8.4vw,3.1rem)/1.04 var(--font-display);letter-spacing:-.035em;text-wrap:balance}
+.hl{display:inline-block;background:var(--hl-bg);color:var(--hl-ink);padding:.02em .2em .06em;border-radius:.22em;transform:rotate(-2deg)}
+.lead{margin:0;font-size:17.5px;color:var(--ink2);max-width:40em}
+.card{background:var(--card);border-radius:24px;padding:18px 18px 8px;margin-top:14px}
+.card > :first-child{margin-top:0}
+h2{margin:0 0 10px;font:800 1.32rem/1.15 var(--font-display);letter-spacing:-.015em;scroll-margin-top:16px}
+h2 .n{display:inline-grid;place-items:center;min-width:1.7em;height:1.7em;margin-right:.35em;border-radius:999px;background:var(--pill-bg);color:var(--pill-ink);font:800 .7em/1 var(--font-body);vertical-align:.18em}
+h3{margin:18px 0 6px;font:800 1.06rem/1.25 var(--font-display);letter-spacing:-.01em}
+p,ul,ol,dl{margin:0 0 12px}
+ul,ol{padding-left:1.25em}
+li{margin:4px 0}
+li::marker{color:var(--ink2)}
+.dots{list-style:none;padding:0}
+.dots li{position:relative;padding-left:22px}
+.dots li::before{content:"";position:absolute;left:3px;top:.62em;width:9px;height:9px;border-radius:50%;background:var(--dot);box-shadow:0 0 0 1.5px var(--ink)}
+.toc ol{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.toc li{margin:0}
+.toc a{display:inline-flex;align-items:center;min-height:40px;padding:7px 13px;border-radius:999px;background:var(--card2);font-weight:650;font-size:14.5px;text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.box{background:var(--card2);border-radius:18px;padding:12px 14px;margin:0 0 12px}
+.box > :last-child{margin-bottom:0}
+.box h3{margin-top:0}
+dl.kv{display:grid;grid-template-columns:minmax(0,1fr);gap:2px 14px}
+dl.kv dt{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-top:8px}
+dl.kv dd{margin:0}
+@media (min-width:600px){dl.kv{grid-template-columns:9.5rem minmax(0,1fr)}dl.kv dt{margin-top:2px}}
+.note{font-size:14.5px;color:var(--ink2)}
+.tag{display:inline-block;border-radius:999px;padding:1px 9px;font-size:13px;font-weight:800;box-shadow:inset 0 0 0 1.5px var(--ink)}
+.contact{font-size:17px}
+.contact a{font-weight:700}
+footer{margin-top:28px;font-size:14px;color:var(--ink2);display:flex;flex-direction:column;gap:12px}
+footer nav{display:flex;flex-wrap:wrap;gap:8px}
+footer .chip{color:var(--ink)}
+@media print{
+  html,body{background:#fff;color:#000}
+  .card,.box{background:none;border:1px solid #bbb}
+  .skip,.bar .chip,footer nav{display:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="wrap">
+  <header class="bar">
+    <a class="logo" href="./" aria-label="Back to the Ne Giysem? app">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#14161f"/><g transform="rotate(-12 32 34)"><path d="M18.5 22.5 25.5 15.5h13l7 7V52h-27z" fill="#ffffff"/><circle cx="32" cy="24" r="3" fill="#14161f"/><rect x="24" y="36" width="16" height="3" rx="1.5" fill="#14161f"/><rect x="24" y="42" width="10" height="3" rx="1.5" fill="#14161f"/></g></svg>
+      <span>Ne Giysem?</span>
+    </a>
+    <a class="chip" href="gizlilik.html" hreflang="tr" lang="tr">Türkçe</a>
+  </header>
+
+  <main id="content">
+    <div class="hero">
+      <p class="pill">Last updated: <time datetime="2026-10-24">24 October 2026</time></p>
+      <h1>Privacy <span class="hl">Policy</span></h1>
+      <p class="lead">Ne Giysem? (“What should I wear?”) needs no account. Your settings, saved places, routine and wardrobe stay on your device. This page explains which data goes where, why, and how to delete it. It is also the information notice required by Article 10 of Türkiye’s Personal Data Protection Law No. 6698 (KVKK) and is written to meet the EU General Data Protection Regulation (GDPR). If the Turkish and English versions differ, the <a href="gizlilik.html" hreflang="tr">Turkish version</a> prevails.</p>
+    </div>
+
+    <section class="card" aria-labelledby="summary">
+      <h2 id="summary">In short</h2>
+      <ul class="dots">
+        <li><strong>No account.</strong> We never ask for your name, email or phone number.</li>
+        <li><strong>Your data stays on your device.</strong> Your settings, places, “Günüm” (My day) routine, profiles and “Dolabım” (My wardrobe) list never reach us.</li>
+        <li><strong>Location only for the weather.</strong> Your location, or the coordinates of a place you pick, go to our own server to look up the weather and the place name. The server rounds them before passing them to the weather and map services, and keeps no location history.</li>
+        <li><strong>Ads and affiliate links.</strong> The Android app shows Google AdMob ads and the website shows Google AdSense ads. Some clothing items have “Buy / affiliate link” links. All of them are clearly labelled.</li>
+        <li><strong>Delete with one button.</strong> “Delete all my data” wipes everything on your device.</li>
+      </ul>
+    </section>
+
+    <nav class="card toc" aria-labelledby="toc">
+      <h2 id="toc">Contents</h2>
+      <ol>
+        <li><a href="#controller">1. Who is responsible</a></li>
+        <li><a href="#data">2. What data</a></li>
+        <li><a href="#location">3. Location</a></li>
+        <li><a href="#purposes">4. Purposes and legal bases</a></li>
+        <li><a href="#recipients">5. Recipients</a></li>
+        <li><a href="#ads">6. Ads and cookies</a></li>
+        <li><a href="#affiliate">7. Affiliate links</a></li>
+        <li><a href="#donations">8. Donations</a></li>
+        <li><a href="#retention">9. Retention</a></li>
+        <li><a href="#deletion">10. Deleting your data</a></li>
+        <li><a href="#rights">11. Your rights</a></li>
+        <li><a href="#children">12. Children</a></li>
+        <li><a href="#security">13. Security</a></li>
+        <li><a href="#changes">14. Changes</a></li>
+        <li><a href="#contact">15. Contact</a></li>
+      </ol>
+    </nav>
+
+    <section class="card" aria-labelledby="controller">
+      <h2 id="controller"><span class="n" aria-hidden="true">1</span>Who is responsible</h2>
+      <p>The Ne Giysem? website (<a href="https://{{ALAN_ADI}}/">https://{{ALAN_ADI}}</a>) and Android app (Google Play package <code>com.negiysem.app</code>) are published by an individual developer living in Türkiye, who is the data controller (“veri sorumlusu” under KVKK, “controller” under GDPR):</p>
+      <dl class="kv box">
+        <dt>Controller</dt><dd>{{GELİŞTİRİCİ_ADI}}</dd>
+        <dt>Email</dt><dd><a href="mailto:{{İLETİŞİM_E_POSTASI}}">{{İLETİŞİM_E_POSTASI}}</a></dd>
+        <dt>Web</dt><dd><a href="https://{{ALAN_ADI}}/">https://{{ALAN_ADI}}</a></dd>
+      </dl>
+    </section>
+
+    <section class="card" aria-labelledby="data">
+      <h2 id="data"><span class="n" aria-hidden="true">2</span>What data we process</h2>
+
+      <h3>Data that stays on your device</h3>
+      <ul>
+        <li>Your settings: how you feel the cold (“I get cold easily”, “I run warm”), your activity (city, outdoors, sport), how long you are out, language and appearance.</li>
+        <li>Your saved places: the name you give them (e.g. “Home”, “School”) and their coordinates.</li>
+        <li>Your “Günüm” (My day) routine: your trips, times, days, and walking, waiting and public transport steps.</li>
+        <li>Your profiles (e.g. a child profile) and the clothes you mark as owned in “Dolabım” (My wardrobe).</li>
+        <li>Your packing list choices, a dismissed rain alert, the last weather received (so the app works offline) and your last found location.</li>
+      </ul>
+      <p>On the website this is kept in your browser’s local storage (localStorage), and the app files are cached by the browser for offline use. In the Android app it is kept in the app’s own storage; the home-screen widget keeps the selected place, your settings and routine in a separate file inside the app. The Android app’s data is excluded from Google backup. <strong>We cannot see any of it;</strong> only the coordinates needed for the weather reach our server (see below).</p>
+
+      <h3>Data sent to our server for the weather and place names</h3>
+      <p>The app gets the weather, place names and search results from our own server (a small backend running on Cloudflare Pages). To do so it sends:</p>
+      <ul>
+        <li><strong>Coordinates:</strong> your device location (if you allow it) or the coordinates of a place you picked or saved; if you have a routine, the coordinates of your trip places; if you prepare a packing list, the coordinates of your destination.</li>
+        <li><strong>Place search text:</strong> what you type into the search box, plus an approximate location to sort results by distance.</li>
+        <li><strong>Connection data:</strong> as with any internet request, your IP address, the time of the request and your browser or device information (User-Agent).</li>
+      </ul>
+      <p>If you do not allow location and have no saved place, your approximate location (city level) is estimated from your IP address by our hosting provider Cloudflare and is used only to find the weather.</p>
+
+      <h3>Other data</h3>
+      <ul>
+        <li><strong>Ads:</strong> advertising ID or cookies, IP address, device and browser information, and your interactions with ads (by Google; see <a href="#ads">section 6</a>).</li>
+        <li><strong>Affiliate links:</strong> the affiliate code in the link when you tap one (<a href="#affiliate">section 7</a>).</li>
+        <li><strong>Messages:</strong> your email address and message if you email us.</li>
+        <li><strong>Fonts:</strong> the pages download their fonts from Google Fonts, which means your IP address and browser information reach Google.</li>
+        <li><strong>Google Play:</strong> when you install the app from Google Play, Google processes its own data under its own privacy policy. The Play Console shows us aggregate statistics, such as install counts and crash reports, that do not identify you.</li>
+      </ul>
+      <p>The app has no analytics or tracking tools of our own. We do not process special categories of personal data such as health or beliefs.</p>
+    </section>
+
+    <section class="card" aria-labelledby="location">
+      <h2 id="location"><span class="n" aria-hidden="true">3</span>How location is used</h2>
+      <ul class="dots">
+        <li><strong>Only when you ask.</strong> Location is requested when you open the app, refresh the weather, or tap “Save where I am now”. On Android, “Approximate” location permission is enough. Without location permission you can still search for and pick a place, or set the weather by hand.</li>
+        <li><strong>No background location.</strong> The app never checks your location in the background. If you add a home-screen widget, it refreshes the weather about every 30 minutes using the saved coordinates of the place you last used in the app (or, if there is none yet, an approximate location estimated from your IP address). The refresh stops when you remove the last widget.</li>
+        <li><strong>Rounded on our server.</strong> Our server rounds coordinates to cells of about 1 km (2 decimal places) for the weather and to about 100 m (3 decimal places) for place names and search sorting. Only these rounded values and the search text are sent to MET Norway and Photon, under our server’s own name; your IP address and device information are not passed on.</li>
+        <li><strong>Shared cache.</strong> To reuse results for everyone in the same area, forecasts and place names are cached at Cloudflare by rounded coordinates (and searches by search text): forecasts for a few hours, searches for a few days, place names for up to two months. These entries are not linked to you or your device.</li>
+        <li><strong>No location history.</strong> We do not write incoming coordinates to a database and keep no location history. Our hosting provider Cloudflare keeps its own standard request logs to run and protect the service (<a href="#retention">section 9</a>).</li>
+      </ul>
+    </section>
+
+    <section class="card" aria-labelledby="purposes">
+      <h2 id="purposes"><span class="n" aria-hidden="true">4</span>Purposes and legal bases</h2>
+      <p>Your personal data is collected automatically while you use the app and the website. For each purpose:</p>
+      <div class="box">
+        <h3>Getting the weather, place names and search results</h3>
+        <dl class="kv">
+          <dt>Data</dt><dd>Coordinates, place search text, approximate location from IP address, connection data</dd>
+          <dt>Legal basis</dt><dd>Necessary to provide the service you ask for, and our legitimate interest (GDPR Art. 6(1)(b) and (f); KVKK Art. 5(2)(c) and (f))</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Running and securing the service</h3>
+        <dl class="kv">
+          <dt>Data</dt><dd>IP address, request time and address, browser or device information (Cloudflare’s standard logs), technical error messages</dd>
+          <dt>Legal basis</dt><dd>Legitimate interest in preventing abuse and fixing errors (GDPR Art. 6(1)(f); KVKK Art. 5(2)(f))</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Showing and measuring ads, preventing ad fraud</h3>
+        <dl class="kv">
+          <dt>Data</dt><dd>Advertising ID and app set ID (Android) or cookies (web), IP address, device and browser information, ad interactions, technical diagnostics</dd>
+          <dt>Legal basis</dt><dd>On the website, your consent for personalised ads and ad cookies (GDPR Art. 6(1)(a); KVKK Art. 5(1)). In the Android app, legitimate interest in showing and measuring ads (GDPR Art. 6(1)(f); KVKK Art. 5(2)(f)); you can turn off ad personalisation in your Android settings (<a href="#ads">section 6</a>).</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Working out commissions from affiliate links</h3>
+        <dl class="kv">
+          <dt>Data</dt><dd>The affiliate code in the link; the shop’s own order data reaches us only as aggregate reports</dd>
+          <dt>Legal basis</dt><dd>Legitimate interest (GDPR Art. 6(1)(f); KVKK Art. 5(2)(f))</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Answering you and legal obligations</h3>
+        <dl class="kv">
+          <dt>Data</dt><dd>Your email address and message; information requested by competent authorities where required</dd>
+          <dt>Legal basis</dt><dd>GDPR Art. 6(1)(b), (c) and (f); KVKK Art. 5(2)(c), (ç), (e) and (f)</dd>
+        </dl>
+      </div>
+      <p class="note">We do not use your data for anything else and we do not sell it. No decision that legally affects you is made solely by automated processing; outfit suggestions are calculated by rules on your own device.</p>
+    </section>
+
+    <section class="card" aria-labelledby="recipients">
+      <h2 id="recipients"><span class="n" aria-hidden="true">5</span>Recipients</h2>
+      <div class="box">
+        <h3>Cloudflare, Inc. (USA)</h3>
+        <p>Hosts the website and the server functions. Your IP address, connection data, the coordinates sent and search text pass through this infrastructure; Cloudflare can derive an approximate location from the IP address. It works on our behalf and on our instructions (processor).</p>
+      </div>
+      <div class="box">
+        <h3>MET Norway — Norwegian Meteorological Institute (Norway)</h3>
+        <p>Provides the forecast. It receives only coordinates rounded to about 1 km, via our server; your IP address is not passed on. Weather data © MET Norway, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+      </div>
+      <div class="box">
+        <h3>komoot GmbH — Photon (Germany)</h3>
+        <p>Provides place search and place names. It receives the search text and coordinates rounded to about 100 m, via our server; your IP address is not passed on. Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> (ODbL).</p>
+      </div>
+      <div class="box">
+        <h3>Google (Google LLC, USA; Google Ireland Limited for users in Europe)</h3>
+        <p>AdMob ads in the Android app, AdSense ads on the website, Google Fonts, and Google Play for distributing the app. Google also processes ad and Play data under its own <a href="https://policies.google.com/privacy?hl=en">privacy policy</a> and responsibility.</p>
+      </div>
+      <div class="box">
+        <h3>Trendyol and Amazon.com.tr</h3>
+        <p>Only when you tap an affiliate link: the shop opens in your browser, and what you do there is covered by that shop’s privacy policy.</p>
+      </div>
+      <div class="box">
+        <h3>Competent public authorities</h3>
+        <p>Only where the law requires it, and only as much as required.</p>
+      </div>
+      <h3>International transfers</h3>
+      <p>Cloudflare, Google, MET Norway and komoot run servers outside Türkiye (in the USA, Europe and other countries), so using the app transfers the data above abroad. These transfers rely on the safeguards listed in Article 9 of KVKK and Chapter V of the GDPR (such as the standard contractual clauses offered by the providers) or, where none is available, on the exceptions those rules allow. The rounded coordinates sent to MET Norway and Photon are not sent together with anything that identifies you.</p>
+    </section>
+
+    <section class="card" aria-labelledby="ads">
+      <h2 id="ads"><span class="n" aria-hidden="true">6</span>Ads and cookies</h2>
+      <p>Ne Giysem? is free and covers its costs with ads. Ad spaces are labelled “Reklam” (Ad).</p>
+      <h3>Website (Google AdSense)</h3>
+      <p>Google and its partners use cookies and similar technologies to show ads, limit how often you see the same ad, measure views and clicks, prevent fraud and, if you allow it, personalise ads to your interests. On your first visit you are asked whether you allow personalised ads. You can reopen and change that choice at any time with the <strong>“Reklam tercihleri”</strong> (Ad preferences) link at the bottom of the web app. If you do not consent, Google may show non-personalised or limited ads.</p>
+      <ul>
+        <li>How Google uses this data: <a href="https://policies.google.com/technologies/partner-sites?hl=en">How Google uses information from sites or apps that use its services</a></li>
+        <li>Ad cookies: <a href="https://policies.google.com/technologies/ads?hl=en">How Google uses cookies in advertising</a></li>
+        <li>Manage ad personalisation for your Google Account: <a href="https://myadcenter.google.com/">My Ad Center</a></li>
+        <li>You can delete or block cookies in your browser settings; ads still appear but are not personalised.</li>
+      </ul>
+      <h3>Android app (Google AdMob)</h3>
+      <p>The app shows banner ads through Google AdMob. The Google Mobile Ads SDK processes the advertising ID, the app set ID, IP address, device information, ad interactions and technical diagnostics to show and measure ads and prevent fraud, and sends them to Google. You can reset or delete your advertising ID under <strong>Settings → Google → Ads</strong> (menu names vary by device); once deleted it cannot be used for personalised ads.</p>
+      <h3>Local storage</h3>
+      <p>The app itself sets no cookies. It uses local storage to keep your settings on your device and the browser cache to work offline; both are needed for the service and never leave your device.</p>
+    </section>
+
+    <section class="card" aria-labelledby="affiliate">
+      <h2 id="affiliate"><span class="n" aria-hidden="true">7</span>Affiliate links</h2>
+      <p>Some outfit suggestions have links labelled <span class="tag">Buy / affiliate link</span> (“Satın al / ortaklık linki” in Turkish). They lead to products on Trendyol or Amazon.com.tr. If you buy through these links the developer may earn a commission; your price does not change.</p>
+      <ul>
+        <li>What is suggested is decided by the weather and your settings; links are added to the suggestion afterwards.</li>
+        <li>Tapping a link opens the shop in your browser. The shop may use cookies to recognise that the sale came from us; what you do there is covered by the shop’s privacy policy.</li>
+        <li>We cannot see who you are or what you buy; we only receive aggregate commission reports from the shops.</li>
+        <li>As an Amazon Associate I earn from qualifying purchases.</li>
+      </ul>
+      <p class="note">Ads and affiliate links are labelled so that they can be told apart from the content, as required by Türkiye’s Regulation on Commercial Advertising and Unfair Commercial Practices.</p>
+    </section>
+
+    <section class="card" aria-labelledby="donations">
+      <h2 id="donations"><span class="n" aria-hidden="true">8</span>Donations (website only)</h2>
+      <p>The website has an optional donation link to support the developer; the Android app does not. The donation page opens at a third-party payment service, which processes your payment details; we never see your card details. If the service passes us your name or email, we use them only for correspondence about the donation and for legal obligations.</p>
+    </section>
+
+    <section class="card" aria-labelledby="retention">
+      <h2 id="retention"><span class="n" aria-hidden="true">9</span>How long we keep data</h2>
+      <ul>
+        <li><strong>Data on your device:</strong> until you delete it (“Delete all my data”, uninstalling the app or clearing site data).</li>
+        <li><strong>Coordinates and search text sent to the server:</strong> not kept after the request is answered; only the shared cache entries, which are not linked to anyone, remain for the periods in <a href="#location">section 3</a>.</li>
+        <li><strong>Cloudflare’s request logs:</strong> for Cloudflare’s own retention periods; we have no logging system of our own.</li>
+        <li><strong>Ad data:</strong> for the periods set out in Google’s policies.</li>
+        <li><strong>Emails:</strong> up to 12 months after the conversation ends, or longer where the law requires it.</li>
+      </ul>
+      <p>Data whose period has ended is deleted, destroyed or anonymised.</p>
+    </section>
+
+    <section class="card" aria-labelledby="deletion">
+      <h2 id="deletion"><span class="n" aria-hidden="true">10</span>Deleting your data</h2>
+      <ul class="dots">
+        <li><strong>In the app:</strong> in the “Sana göre” (For you) card, under “Verilerim” (My data), tap <strong>“Tüm verilerimi sil”</strong> (Delete all my data) twice. Your settings, places, routine, profiles, wardrobe, packing list and last weather are deleted; on Android the widget’s data is cleared too.</li>
+        <li><strong>On Android:</strong> uninstalling the app, or Settings → Apps → Ne Giysem? → Storage → Clear data, also deletes everything.</li>
+        <li><strong>On the web:</strong> clear this site’s data (cookies and site data) in your browser settings.</li>
+        <li><strong>Advertising ID:</strong> reset or delete it in your Android settings (<a href="#ads">section 6</a>).</li>
+        <li><strong>On our server:</strong> we keep no account or record that can be linked to you, so there is nothing to delete. If you still have a request, write to <a href="mailto:{{İLETİŞİM_E_POSTASI}}">{{İLETİŞİM_E_POSTASI}}</a>.</li>
+      </ul>
+    </section>
+
+    <section class="card" aria-labelledby="rights">
+      <h2 id="rights"><span class="n" aria-hidden="true">11</span>Your rights</h2>
+      <p>Under the GDPR you have the right to access your data, to have it corrected or erased, to restrict or object to its processing, and to data portability. Where processing is based on consent, you can withdraw it at any time without affecting earlier processing.</p>
+      <p>Under Article 11 of KVKK you can ask the controller to tell you whether your data is processed and, if so, to give you information about it; to learn the purpose and whether the data is used accordingly; to know the third parties in Türkiye or abroad it was transferred to; to correct incomplete or inaccurate data; to delete or destroy it under Article 7; to notify those third parties of such corrections or deletions; to object to a result against you arising solely from automated analysis; and to claim compensation for damage caused by unlawful processing.</p>
+      <p><strong>How to apply:</strong> email <a href="mailto:{{İLETİŞİM_E_POSTASI}}">{{İLETİŞİM_E_POSTASI}}</a>, or use the other methods set out in Türkiye’s Communiqué on the Procedures and Principles of Application to the Data Controller. We answer within 30 days, free of charge as a rule. Most of your data exists only on your device, so we cannot see it; you can delete it yourself as described in <a href="#deletion">section 10</a>.</p>
+      <p>If you are not satisfied with our answer, you can complain to the Turkish <a href="https://www.kvkk.gov.tr/">Personal Data Protection Board (KVKK)</a>. If you live in the EU or EEA, you can also complain to your local data protection authority.</p>
+    </section>
+
+    <section class="card" aria-labelledby="children">
+      <h2 id="children"><span class="n" aria-hidden="true">12</span>Children</h2>
+      <p>Ne Giysem? is meant for a general audience and is not designed for children under 13. The child profile in the app helps parents dress their children for the weather, and its details stay on the device. If you believe a child under 13 has sent us personal data, write to us and we will delete it.</p>
+    </section>
+
+    <section class="card" aria-labelledby="security">
+      <h2 id="security"><span class="n" aria-hidden="true">13</span>Security</h2>
+      <p>All connections between the app and the server are encrypted with HTTPS. There are no accounts or passwords, and we process as little data as possible. Data on your device is protected by your device’s own security (such as the screen lock); keep this in mind if you share your device.</p>
+    </section>
+
+    <section class="card" aria-labelledby="changes">
+      <h2 id="changes"><span class="n" aria-hidden="true">14</span>Changes</h2>
+      <p>We may update this policy when the app or the law changes. The current version is always published at this address with the date at the top. We will also announce important changes in the app or on the website.</p>
+    </section>
+
+    <section class="card" aria-labelledby="contact">
+      <h2 id="contact"><span class="n" aria-hidden="true">15</span>Contact</h2>
+      <p class="contact">{{GELİŞTİRİCİ_ADI}}<br><a href="mailto:{{İLETİŞİM_E_POSTASI}}">{{İLETİŞİM_E_POSTASI}}</a><br><a href="https://{{ALAN_ADI}}/">https://{{ALAN_ADI}}</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <nav aria-label="Page links">
+      <a class="chip" href="./">← Back to the app</a>
+      <a class="chip" href="gizlilik.html" hreflang="tr" lang="tr">Gizlilik politikası (Türkçe)</a>
+    </nav>
+    <p>Weather data © MET Norway (CC BY 4.0) · Map data © OpenStreetMap contributors (ODbL)</p>
+  </footer>
+</div>
+</body>
+</html>

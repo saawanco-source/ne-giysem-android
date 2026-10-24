@@ -7,7 +7,7 @@
 const http = require("http"), fs = require("fs"), path = require("path");
 const { chromium } = require("playwright");
 
-const APP_DIR = process.env.APP_DIR || path.join(__dirname, "..", "..", "app", "src", "main", "assets", "www");
+const APP_DIR = process.env.APP_DIR || path.join(__dirname, "..", "..", "web");
 const SHOTS = process.env.SHOTS_DIR || path.join(__dirname, "..", "out", "shots");
 const KEY = "negiysem:v2";
 fs.mkdirSync(SHOTS, { recursive: true });

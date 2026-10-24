@@ -90,7 +90,8 @@ H.run({
 
   // A stale fix from yesterday in another city: status must say it is old; place must be the old one, not silently mixed.
   async staleFixOtherCity(t) {
-    const yesterday = Date.now() - 26 * 3600e3;
+    // Noon yesterday (Istanbul), so it reads as "dün" whatever time the suite runs.
+    const ist = new Date(Date.now() + 3 * 3600e3), yesterday = Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate()) - 3 * 3600e3 - 12 * 3600e3;
     const seed = { [KEY]: JSON.stringify({ places: [], sel: "auto", mode: "manual", fix: { lat: GPS.trabzon.lat, lon: GPS.trabzon.lon, name: "Trabzon", at: yesterday } }) };
     const s = await t.open({ seed, geo: { state: "prompt", coords: GPS.moda } });
     await s.goto(); await sleep(800);

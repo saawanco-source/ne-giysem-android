@@ -20,9 +20,9 @@ function rain(wx, i, hours, code = 63, p = 85) {
   return wx;
 }
 // a saved place with fresh weather: nothing is fetched when the page opens
-function seed(wx, extra = {}) {
+function seed(wx, extra = {}, fetchedAt = Date.now()) {
   return { [KEY]: JSON.stringify(Object.assign({ places: [BES, KAD], sel: "pbes", mode: "live",
-    live: { placeKey: "pbes", place: { name: BES.name, lat: BES.lat, lon: BES.lon }, wx, fetchedAt: Date.now() } }, extra)) };
+    live: { placeKey: "pbes", place: { name: BES.name, lat: BES.lat, lon: BES.lon }, wx, fetchedAt } }, extra)) };
 }
 const DARK = { colorScheme: "dark" };
 const pageOk = (s, label) => {
@@ -35,9 +35,10 @@ H.run({
   async weekly(t) {
     const wx = rain(fc(14), 24 + 8, 13, 63, 90); // tomorrow wet all day
     for (const theme of ["light", "dark"]) {
-      const s = await t.open({ seed: seed(wx), ctx: theme === "dark" ? DARK : {} });
-      // Daytime in Istanbul, so today's row still has hours ahead whatever time the suite runs.
+      // Daytime in Istanbul, so today's row still has hours ahead whatever time the suite runs;
+      // the saved weather is stamped with that same moment so the page doesn't fetch new weather over the fixture.
       const ist = new Date(Date.now() + 3 * 3600e3), at10 = Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate(), 7, 0);
+      const s = await t.open({ seed: seed(wx, {}, at10), ctx: theme === "dark" ? DARK : {} });
       await s.page.clock.setFixedTime(new Date(at10));
       await s.goto(); await sleep(400);
       const rows = await s.page.$$eval("#week .wk-row", (b) => b.map((x) => ({ text: x.innerText.replace(/\s+/g, " ").trim(), arts: x.querySelectorAll(".wk-arts .art svg").length, expanded: x.getAttribute("aria-expanded") })));

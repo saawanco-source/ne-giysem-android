@@ -1,0 +1,12 @@
+{
+  "name": "ne-giysem-tests",
+  "private": true,
+  "description": "Ne Giysem? otomatik testleri: web uygulaması (Playwright) ve web/widget kıyafet motoru eşliği.",
+  "scripts": {
+    "web": "node run-web.js",
+    "parity": "sh parity/run.sh"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

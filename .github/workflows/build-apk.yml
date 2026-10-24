@@ -9,7 +9,57 @@ permissions:
   contents: write
 
 jobs:
+  # Testers that run on every change: the app in a real browser (phone size), and web vs widget engine parity.
+  web-tests:
+    name: Web testleri
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test araçlarını kur
+        working-directory: tests
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Uygulamayı telefonda dene
+        working-directory: tests
+        env:
+          TZ: Europe/Istanbul
+        run: node run-web.js
+      - name: Ekran görüntülerini sakla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-ekranlari
+          path: tests/out/shots
+
+  parity:
+    name: Widget ve uygulama aynı öneriyi veriyor mu
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Kotlin derleyicisini indir
+        run: |
+          curl -sSL -o kotlinc.zip https://github.com/JetBrains/kotlin/releases/download/v2.1.0/kotlin-compiler-2.1.0.zip
+          unzip -q kotlinc.zip -d "$RUNNER_TEMP"
+      - name: Eşlik testi
+        env:
+          N: "3000"
+        run: KOTLINC="$RUNNER_TEMP/kotlinc/bin/kotlinc" sh tests/parity/run.sh
+
   build:
+    needs: [web-tests, parity]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

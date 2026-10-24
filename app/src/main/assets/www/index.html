@@ -29,6 +29,7 @@
   --ink:#14161f; --ink2:rgba(20,22,31,.68); --card:rgba(255,255,255,.55); --line:rgba(20,22,31,.13);
   --chip:rgba(255,255,255,.78); --halo:#ffffff; --shadow:rgba(20,22,31,.28);
   --hl-bg:#ffffff; --hl-ink:#14161f; --pill-bg:#14161f; --pill-ink:#ffffff; --focus:#14161f;
+  --tip-bg:#ffffff; --tip-ink:#14161f; --tip-sub:rgba(20,22,31,.66);
   --font-display:"Bricolage Grotesque","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
   --font-body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
 }
@@ -38,6 +39,7 @@
     --ink:#f6f4ee; --ink2:rgba(246,244,238,.7); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
     --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55);
     --hl-bg:var(--lv); --hl-ink:#14161f; --pill-bg:var(--lv); --pill-ink:#14161f; --focus:var(--lv);
+    --tip-bg:#1d2030; --tip-ink:#f6f4ee; --tip-sub:rgba(246,244,238,.7);
     color-scheme:dark;
   }
 }
@@ -46,6 +48,7 @@
   --ink:#f6f4ee; --ink2:rgba(246,244,238,.7); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
   --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55);
   --hl-bg:var(--lv); --hl-ink:#14161f; --pill-bg:var(--lv); --pill-ink:#14161f; --focus:var(--lv);
+    --tip-bg:#1d2030; --tip-ink:#f6f4ee; --tip-sub:rgba(246,244,238,.7);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -182,7 +185,33 @@ button{font:inherit;color:inherit}
 .pop .stk{animation:drop .5s cubic-bezier(.2,.9,.3,1.25) both}
 .pop .stk:nth-child(2){animation-delay:.05s}.pop .stk:nth-child(3){animation-delay:.1s}.pop .stk:nth-child(4){animation-delay:.15s}.pop .stk:nth-child(5){animation-delay:.2s}.pop .stk:nth-child(6){animation-delay:.25s}
 @keyframes drop{from{transform:translateY(-14px) rotate(calc(var(--r,0deg) - 10deg)) scale(.9)}to{transform:rotate(var(--r,0deg))}}
-.stk:hover{animation:wig .5s ease}
+.stk,.mini{cursor:pointer}
+.stk:focus-visible{outline:2.5px solid var(--focus);outline-offset:4px;border-radius:14px}
+.mini:focus-visible{outline:2.5px solid var(--focus);outline-offset:2px}
+.stk:hover,.stk.on{animation:wig .5s ease}
+.stk.on .lab,.mini.on{background:var(--pill-bg);color:var(--pill-ink)}
+
+/* sticker info card: follows the mouse, opens on tap on phones */
+.tip-card{position:fixed;z-index:50;left:0;top:0;width:min(300px,calc(100vw - 24px));background:var(--tip-bg);color:var(--tip-ink);border-radius:18px;padding:18px 16px 14px;
+  box-shadow:inset 0 6px 0 var(--lv),0 18px 40px -12px var(--shadow),0 0 0 1px var(--line);pointer-events:none;animation:tipIn .14s ease-out}
+@keyframes tipIn{from{opacity:0;translate:0 4px}to{opacity:1;translate:0 0}}
+.tip-card .ts{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--tip-sub)}
+.tip-card .tt{font:800 1.3rem/1.1 var(--font-display);letter-spacing:-.02em;margin:4px 0 2px}
+.tip-card .ta{font-size:13.5px;color:var(--tip-sub);margin:0 0 9px}
+.tip-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:14px;font-weight:650;line-height:1.35}
+.tip-card li{padding-left:16px;position:relative}
+.tip-card li::before{content:"";position:absolute;left:2px;top:.5em;width:7px;height:7px;border-radius:50%;background:var(--lv);box-shadow:0 0 0 1.5px var(--tip-ink)}
+.tip-card .tp{margin:10px 0 0;font-size:13px;color:var(--tip-sub);border-top:1px dashed var(--line);padding-top:8px}
+
+/* the same reasons as a list */
+.more{margin-top:12px;background:var(--card);border-radius:20px;padding:2px 14px}
+.more summary{cursor:pointer;font-weight:800;padding:11px 0;font-size:14px}
+.more dl{margin:0 0 8px}
+.more .row-i{display:grid;grid-template-columns:7.4rem minmax(0,1fr);gap:10px;padding:9px 0;border-top:1px dotted var(--line)}
+.more dt{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);padding-top:2px}
+.more dd{margin:0;font-weight:750;font-size:15px}
+.more dd small{display:block;font-weight:500;color:var(--ink2);font-size:13px;line-height:1.4}
+@media (max-width:420px){.more .row-i{grid-template-columns:minmax(0,1fr);gap:2px}}
 @keyframes wig{0%,100%{transform:rotate(var(--r,0deg))}35%{transform:rotate(calc(var(--r,0deg) + 6deg)) scale(1.04)}70%{transform:rotate(calc(var(--r,0deg) - 4deg))}}
 .take{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 10px;margin-top:10px;padding:12px;border-radius:22px;background:var(--card)}
 .take .tl{font:800 1rem/1 var(--font-display);letter-spacing:-.01em;margin-right:2px}
@@ -281,6 +310,10 @@ button{font:inherit;color:inherit}
       <div class="stickers" id="wear"></div>
       <div class="take" id="take" hidden></div>
       <ul class="tips" id="tips"></ul>
+      <details class="more" id="more">
+        <summary>Ayrıntılı liste: neden bunlar?</summary>
+        <dl id="slotList"></dl>
+      </details>
     </section>
 
     <section class="trip-card card" id="tripCard" hidden aria-label="Günüm">
@@ -365,6 +398,8 @@ button{font:inherit;color:inherit}
     <section class="edit card" id="routine" hidden aria-label="Rutinim"></section>
   </main>
 
+  <div class="tip-card" id="tipCard" role="tooltip" hidden></div>
+
   <p class="foot" id="foot">Hava verisi Open-Meteo.com, konum adı BigDataCloud, yer arama Photon üzerinden alınır (harita verisi © OpenStreetMap katkıcıları). Konumun yalnızca hava durumunu bulmak için bu servislere gönderilir; ayarların ve son alınan hava sadece bu cihazda saklanır.</p>
 </div>
 
@@ -399,7 +434,7 @@ button{font:inherit;color:inherit}
     if (d.dayWx && d.dayWx.byPlace) S.dayWx = d.dayWx;
     if (d.choice && d.choice.picks) S.choice = d.choice;
   })();
-  var busy = false, lastWearSig = "";
+  var busy = false, lastWearSig = "", CUR = {wear:[], take:[]};
   function save(){
     try { localStorage.setItem(KEY, JSON.stringify({places:S.places, sel:S.sel, hours:S.hours, feel:S.feel, act:S.act, manual:S.manual, mode:S.mode, live:S.live,
       routes:S.routes, trips:S.trips, dayMode:S.dayMode, dayWx:S.dayWx, choice:S.choice})); } catch (e) {}
@@ -497,6 +532,40 @@ button{font:inherit;color:inherit}
   };
   function art(g){ return '<svg viewBox="0 0 64 64" aria-hidden="true" stroke="' + INK + '" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">' + (ART[g] || ART.tshirt) + '</svg>'; }
   var G = {tshirt:"Tişört", longsleeve:"Uzun kollu", thermal:"Termal içlik", sweatshirt:"Sweatshirt", hirka:"Hırka", kazak:"Kazak", ceket:"İnce ceket", mont:"Mont", kaban:"Kaban", sisme:"Şişme mont", parka:"Parka", yagmurluk:"Yağmurluk", ruzgarlik:"Rüzgarlık", jean:"Jean", pantolon:"Kalın pantolon", sort:"Şort", tayt:"Tayt", sneaker:"Sneaker", spor:"Spor ayakkabı", bot:"Bot", yuruyus:"Yürüyüş botu", sandalet:"Sandalet", bere:"Bere", sapka:"Şapka", semsiye:"Şemsiye", gozluk:"Güneş gözlüğü", atki:"Atkı", eldiven:"Eldiven", su:"Su", krem:"Güneş kremi", corap:"Yedek çorap"};
+  // What each sticker stands for: where it goes, what else works, and one practical tip.
+  var INFO = {
+    tshirt:{slot:"Üst · iç katman", alt:"Pamuklu tişört ya da ince polo", tip:"Açık renk ve pamuk serin tutar."},
+    longsleeve:{slot:"Üst · iç katman", alt:"Uzun kollu tişört ya da ince gömlek", tip:"İnce olsun; üstüne kazak rahat oturur."},
+    thermal:{slot:"Üst · iç katman", alt:"Termal içlik ya da yün karışımlı uzun kollu", tip:"Tene yakın olsun; pamuk terleyince soğutur."},
+    sweatshirt:{slot:"Üst · orta katman", alt:"Sweatshirt, hırka ya da ince kazak", tip:"Fermuarlı olursa ısınınca açarsın."},
+    hirka:{slot:"Üst · orta katman", alt:"Hırka ya da önü açılan ince bir ceket", tip:"Katlanınca çantaya sığar."},
+    kazak:{slot:"Üst · orta katman", alt:"Kazak, polar ya da kalın sweatshirt", tip:"Yün ve polar nemde de ısıtır."},
+    ceket:{slot:"Dış katman", alt:"Denim ceket, rüzgarlık ya da ince bomber", tip:"Akşam serinliğine ve rüzgara yeter."},
+    mont:{slot:"Dış katman", alt:"Mont, trençkot ya da kaşe ceket", tip:"Yakası kapanabilen bir model seç."},
+    kaban:{slot:"Dış katman", alt:"Kaban ya da kalın, uzun mont", tip:"Uzun boy bacakları da rüzgardan korur."},
+    sisme:{slot:"Dış katman", alt:"Şişme mont ya da kapüşonlu kışlık mont", tip:"Kapüşonu varsa bereye gerek kalmayabilir."},
+    parka:{slot:"Dış katman", alt:"Kalın parka ya da kürk yakalı kışlık mont", tip:"Uzun boy ve kapüşon şart."},
+    yagmurluk:{slot:"Dış katman", alt:"Yağmurluk ya da su geçirmez rüzgarlık", tip:"Kapüşonlu olanı rüzgarda şemsiyeden iyidir."},
+    ruzgarlik:{slot:"Dış katman", alt:"İnce rüzgarlık ya da yelek", tip:"Katlanınca cebe sığar."},
+    jean:{slot:"Alt", alt:"Jean, chino ya da kanvas pantolon", tip:"Çok terlersen keten karışımlı bir pantolon daha rahat eder."},
+    pantolon:{slot:"Alt", alt:"Kalın kumaş pantolon ya da astarlı jean", tip:"Çok soğukta altına ince tayt giy."},
+    sort:{slot:"Alt", alt:"Şort, keten pantolon ya da hafif etek", tip:"Açık renk ve keten serin tutar."},
+    tayt:{slot:"Alt", alt:"Spor tayt ya da eşofman altı", tip:"Nefes alan kumaş seç."},
+    sneaker:{slot:"Ayak", alt:"Sneaker ya da kapalı, rahat bir ayakkabı", tip:"Çok yürüyeceksen yumuşak tabanlı olanı seç."},
+    spor:{slot:"Ayak", alt:"Koşu ya da spor ayakkabısı", tip:"Islak zeminde tabanı kaymayan bir model seç."},
+    bot:{slot:"Ayak", alt:"Bot ya da su geçirmez kapalı ayakkabı", tip:"Kalın çorapla giy."},
+    yuruyus:{slot:"Ayak", alt:"Bilekli yürüyüş botu", tip:"Arazide bileği korur."},
+    sandalet:{slot:"Ayak", alt:"Sandalet ya da file sneaker", tip:"Uzun yürüyüşte bantlı olanı ayağı tutar."},
+    bere:{slot:"Baş", alt:"Bere", tip:"Isının önemli bir kısmı baştan kaçar."},
+    sapka:{slot:"Baş", alt:"Şapka ya da kep", tip:"Siperlik yüzü güneşten korur."},
+    semsiye:{slot:"Yanına al", alt:"Katlanır şemsiye", tip:"Rüzgar sertse kapüşon daha iyi iş görür."},
+    gozluk:{slot:"Yanına al", alt:"UV korumalı güneş gözlüğü", tip:"Kış güneşi de göz yorar."},
+    atki:{slot:"Yanına al", alt:"Atkı ya da boyunluk", tip:"Rüzgarda boynu kapatmak çok fark eder."},
+    eldiven:{slot:"Yanına al", alt:"Eldiven", tip:"Dokunmatik uçlu olanla telefonu da kullanırsın."},
+    su:{slot:"Yanına al", alt:"Su şişesi", tip:"Gün içinde azar azar iç."},
+    krem:{slot:"Yanına al", alt:"Güneş kremi (SPF 30+)", tip:"Yüze ve enseye sür."},
+    corap:{slot:"Yanına al", alt:"Yedek çorap", tip:"Islak çorap ayağı çabuk üşütür."}
+  };
   var ACC = {hirka:"Hırkanı", ceket:"İnce ceketini", mont:"Montunu", kaban:"Kabanını", sisme:"Şişme montunu", parka:"Parkanı", kazak:"Kazağını", sweatshirt:"Sweatshirtünü", bere:"Bereni", atki:"Atkını", ruzgarlik:"Rüzgarlığını", yagmurluk:"Yağmurluğunu", eldiven:"Eldivenlerini"};
   var OUTER = ["ceket","mont","kaban","sisme","parka","yagmurluk","ruzgarlik"], MID = ["hirka","sweatshirt","kazak"];
   var SHOES = ["sneaker","spor","bot","yuruyus","sandalet"], BOTTOMS = ["jean","pantolon","sort","tayt"];
@@ -546,6 +615,9 @@ button{font:inherit;color:inherit}
     function swap(list, g, label){ var it = {g:g, label:label || G[g]}; for (var i = 0; i < wear.length; i++) if (list.indexOf(wear[i].g) >= 0) { wear[i] = it; return; } wear.push(it); }
     function addTake(g, label, first){ if (has(g) || take.some(function(t){ return t.g === g; })) return; var it = {g:g, label:label || G[g]}; if (first) take.unshift(it); else take.push(it); }
     function strip(s){ return s.replace(/[{}]/g, ""); }
+    var reasons = {}; // why each piece is on the list, shown in the sticker's info card
+    function why(g, t){ (reasons[g] = reasons[g] || []).push(t); }
+    function outerNow(){ for (var i = 0; i < wear.length; i++) if (OUTER.indexOf(wear[i].g) >= 0) return wear[i].g; return null; }
 
     var codes = [inp.now.code].concat(W.map(function(h){ return h.code; }));
     var pMax = Math.round(Math.max.apply(null, [0].concat(W.map(function(h){ return h.p || 0; }))));
@@ -563,10 +635,15 @@ button{font:inherit;color:inherit}
     if (P.act === "field") {
       swap(BOTTOMS, "pantolon", "Uzun pantolon");
       swap(SHOES, "yuruyus");
-      if (L >= 5 && !has("sapka")) wear.push({g:"sapka", label:G.sapka});
+      if (L >= 5 && !has("sapka")) { wear.push({g:"sapka", label:G.sapka}); why("sapka", "Arazide güneşe ve dallara karşı"); }
+      why("pantolon", "Arazide çalıya ve keneye karşı uzun ve dayanıklı olsun");
+      why("yuruyus", "Engebeli yolda bileği korur, kaymaz");
       if (rawNow >= 7) notes.push("Açık renk giy, paçaları çorabın içine al: keneyi fark etmek kolaylaşır.");
     }
-    if (P.act === "sport") notes.push("Isınınca terleyeceğin için bir kat eksik önerildi; bitince kuru bir üst giy.");
+    if (P.act === "sport") {
+      notes.push("Isınınca terleyeceğin için bir kat eksik önerildi; bitince kuru bir üst giy.");
+      wear.forEach(function(w){ if (w.g !== "spor") why(w.g, "Hareket edince ısınırsın; bir kat hafif tutuldu"); });
+    }
 
     if (Llow < L) {
       var lo = P.act === "sport" ? SPORT(Llow) : OUT[Llow];
@@ -575,7 +652,10 @@ button{font:inherit;color:inherit}
       // Already wearing a coat: carry a warmer layer or a scarf/beanie, never a second coat.
       var cand = hasOuter ? (inGroup(MID) || inGroup(["atki","bere","eldiven"])) : (inGroup(OUTER) || inGroup(MID));
       var dp = lowAt ? daypart(lowAt) : "akşam";
-      if (cand) { take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0 && MID.indexOf(t.g) < 0; }); addTake(cand, null, true); }
+      if (cand) {
+        take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0 && MID.indexOf(t.g) < 0; }); addTake(cand, null, true);
+        why(cand, cap(dp) + (lowAt ? " (" + hm(lowAt) + ")" : "") + " hissedilen sıcaklık " + deg(rawLow) + " olacak");
+      }
       if (cand && ACC[cand] && P.act !== "sport") head = "{" + ACC[cand] + "} yanına al, " + dp + " serinliyor.";
       pills.push(cap(dp) + " " + deg(rawLow));
     } else if (Lhigh > L && highAt) {
@@ -588,40 +668,63 @@ button{font:inherit;color:inherit}
       pills.unshift(rainNow ? "Yağmur yağıyor" : "Yağmur %" + pMax);
       var addedCoat = false;
       var takeOuter = take.some(function(t){ return OUTER.indexOf(t.g) >= 0; });
+      var rainWhy = rainNow ? "Şu an yağmur yağıyor" : "Dışarıdayken yağmur ihtimali %" + pMax;
       if (!hasOuter && !takeOuter && P.act !== "sport") {
-        wear.push({g:"yagmurluk", label:G.yagmurluk}); addedCoat = true;
+        wear.push({g:"yagmurluk", label:G.yagmurluk}); addedCoat = true; why("yagmurluk", rainWhy);
         take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0; });
-      } else if (hasOuter || takeOuter) notes.push("Dış katmanın su geçirmez olsun.");
-      if (P.act === "city" && wear.some(function(w){ return w.g === "sneaker" || w.g === "sandalet"; })) swap(SHOES, "bot", "Su geçirmez ayakkabı");
+      } else if (hasOuter || takeOuter) {
+        notes.push("Dış katmanın su geçirmez olsun.");
+        var og = outerNow() || (take.filter(function(t){ return OUTER.indexOf(t.g) >= 0; })[0] || {}).g;
+        if (og) why(og, rainWhy + ": su geçirmez ya da su itici olsun");
+      }
+      if (P.act === "city" && wear.some(function(w){ return w.g === "sneaker" || w.g === "sandalet"; })) { swap(SHOES, "bot", "Su geçirmez ayakkabı"); why("bot", "Islak zeminde su geçirmez olsun; kanvas ve süetten kaçın"); }
       if (windy) head = "{Kapüşonlu} bir şey giy, rüzgarda şemsiye uçar.";
       else {
-        addTake("semsiye", null, true);
+        addTake("semsiye", null, true); why("semsiye", rainWhy);
         head = addedCoat ? "{Yağmurluğunu} giy, şemsiyeni al." : "{Şemsiyeni} al; " + lcf(strip(head));
       }
     } else if (maybe) {
-      addTake("semsiye", "Şemsiye (%" + pMax + ")");
+      addTake("semsiye", "Şemsiye (%" + pMax + ")"); why("semsiye", "Yağmur ihtimali %" + pMax + "; çantada dursun");
       pills.push("Yağmur ihtimali %" + pMax);
     }
     if (snowy) {
       pills.unshift("Kar");
-      if (P.act !== "sport") swap(SHOES, "bot", "Kaymaz bot");
-      addTake("eldiven");
+      if (P.act !== "sport") { swap(SHOES, "bot", "Kaymaz bot"); why("bot", "Kar ve buzda kaymaz taban"); }
+      addTake("eldiven"); why("eldiven", "Kar var; eller ilk üşüyen yer");
     }
     if (windy) {
-      pills.push((wi >= 0 ? WN[wi] + " " : "Rüzgar ") + windMax + " km/sa");
-      if (!hasOuter && L >= 4 && P.act !== "sport" && !take.some(function(t){ return OUTER.indexOf(t.g) >= 0; })) addTake("ruzgarlik");
+      var windTxt = (wi >= 0 ? WN[wi] + " " : "Rüzgar ") + windMax + " km/sa";
+      pills.push(windTxt);
+      var ow = outerNow(); if (ow) why(ow, windTxt + ": rüzgar geçirmez olsun, yakası kapansın");
+      if (!hasOuter && L >= 4 && P.act !== "sport" && !take.some(function(t){ return OUTER.indexOf(t.g) >= 0; })) { addTake("ruzgarlik"); why("ruzgarlik", windTxt + "; ince bir rüzgarlık yeter"); }
       if (!wet) notes.unshift((wi >= 0 ? WN[wi] : "Rüzgar") + " sert esiyor, yakanı kapat.");
       if (stormy) notes.push("Rüzgar çok sert; şemsiye yerine kapüşon kullan.");
     }
     if (inp.uvDay && inp.uvMax != null) {
-      if (inp.uvMax >= 6) { addTake("gozluk"); addTake("krem"); addTake("sapka"); pills.push("UV yüksek"); }
-      else if (inp.uvMax >= 3 && rawNow >= 15) addTake("gozluk");
+      var uvTxt = "UV " + num(inp.uvMax, 1);
+      if (inp.uvMax >= 6) {
+        addTake("gozluk"); addTake("krem"); addTake("sapka"); pills.push("UV yüksek");
+        why("gozluk", uvTxt + ": güneş yüksek"); why("krem", uvTxt + ": açıkta kalan cilde"); why("sapka", uvTxt + ": yüzü ve enseyi korur");
+      } else if (inp.uvMax >= 3 && rawNow >= 15) { addTake("gozluk"); why("gozluk", uvTxt + ": güneş gözü yorar"); }
     }
     if (rawNow >= 24 && (inp.now.rh || 0) >= 70) notes.push("Nem yüksek; pamuk ya da keten seç.");
     if (codes.some(function(c){ return c === 45 || c === 48; })) pills.push("Sis");
-    if (P.act === "field" && wet) addTake("corap");
+    if (P.act === "field" && wet) { addTake("corap"); why("corap", "Arazide ayak ıslanırsa değiştirirsin"); }
+    if (L === 7) why("su", "Sıcakta su kaybın artar");
 
-    return {L:L, E:E, rawNow:rawNow, rawLow:rawLow, off:off, wear:wear.slice(0, 6), take:take.slice(0, 5), head:head, pills:pills.slice(0, 3), notes:notes.slice(0, 2), pMax:pMax, windMax:windMax, gust:gust, wi:wi};
+    var feltTxt = "Hissedilen " + deg(E) + ": " + LV[L].name.toLocaleLowerCase("tr");
+    var baseTake = base.take;
+    var withWhy = function(list, fallback){
+      return list.map(function(it){
+        var r = (reasons[it.g] || []).slice();
+        if (!fallback && base.wear.indexOf(it.g) >= 0) r.unshift(feltTxt); // level-driven pieces start with the temperature
+        if (!r.length) r = [baseTake.indexOf(it.g) >= 0 && fallback ? fallback : feltTxt];
+        return {g:it.g, label:it.label, why:r, info:INFO[it.g] || {}};
+      });
+    };
+    return {L:L, E:E, rawNow:rawNow, rawLow:rawLow, off:off,
+            wear:withWhy(wear.slice(0, 6), null), take:withWhy(take.slice(0, 5), "Hava " + (L >= 5 ? "serinlerse" : "değişirse") + " diye yanında dursun"),
+            head:head, pills:pills.slice(0, 3), notes:notes.slice(0, 2), pMax:pMax, windMax:windMax, gust:gust, wi:wi, wet:wet};
   }
 
   /* ================= my day: routine, outdoor exposure, route advice ================= */
@@ -824,11 +927,20 @@ button{font:inherit;color:inherit}
 
     var sig = p.wear.map(function(w){ return w.g; }).join(",");
     var wearEl = $("wear");
-    wearEl.innerHTML = p.wear.map(function(w, i){ return '<div class="stk" style="--r:' + ROT[i % ROT.length] + 'deg"><div class="art">' + art(w.g) + '</div><span class="lab">' + esc(w.label) + '</span></div>'; }).join("");
+    CUR = {wear:p.wear, take:p.take}; hideTip();
+    wearEl.innerHTML = p.wear.map(function(w, i){
+      return '<div class="stk" style="--r:' + ROT[i % ROT.length] + 'deg" data-k="w:' + i + '" tabindex="0" role="button" aria-label="' + esc(w.label + ": " + w.why.join(", ")) + '"><div class="art">' + art(w.g) + '</div><span class="lab">' + esc(w.label) + '</span></div>';
+    }).join("");
     if (sig !== lastWearSig) { wearEl.classList.remove("pop"); void wearEl.offsetWidth; wearEl.classList.add("pop"); lastWearSig = sig; }
     var tk = $("take");
     tk.hidden = !p.take.length;
-    tk.innerHTML = '<span class="tl">Yanına al</span>' + p.take.map(function(t){ return '<span class="mini"><span class="art">' + art(t.g) + '</span>' + esc(t.label) + '</span>'; }).join("");
+    tk.innerHTML = '<span class="tl">Yanına al</span>' + p.take.map(function(t, i){
+      return '<span class="mini" data-k="t:' + i + '" tabindex="0" role="button" aria-label="' + esc(t.label + ": " + t.why.join(", ")) + '"><span class="art">' + art(t.g) + '</span>' + esc(t.label) + '</span>';
+    }).join("");
+    $("slotList").innerHTML = p.wear.concat(p.take).map(function(it){
+      var inf = it.info || {}, alt = inf.alt && inf.alt !== it.label ? esc(inf.alt) + " · " : "";
+      return '<div class="row-i"><dt>' + esc(inf.slot || "") + '</dt><dd>' + esc(it.label) + '<small>' + alt + esc(it.why.join("; ")) + (inf.tip ? ". " + esc(inf.tip) : "") + '</small></dd></div>';
+    }).join("");
     var tips = (useDay ? dayNotes(day, p) : []).concat(p.notes).slice(0, 3);
     $("tips").innerHTML = tips.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join("");
     p = pc; // the hourly strip and facts below describe the current place
@@ -1341,6 +1453,79 @@ button{font:inherit;color:inherit}
     } finally { setBusy(false); }
     if (saved) { await fetchLive(); setStatus(saved + " kaydedildi. “Ev” gibi bir ad verebilirsin.", {label:"Adını değiştir", fn:openRoutine}); }
   }
+
+  /* ================= sticker info card ================= */
+  // Mouse: follows the pointer while over a sticker; click pins it. Touch: tap opens, tap elsewhere closes. Keyboard: focus shows it.
+  var TIP = {node:null, pinned:false};
+  function tipItem(node){
+    var k = node && node.getAttribute("data-k"); if (!k) return null;
+    var parts = k.split(":"); return (parts[0] === "w" ? CUR.wear : CUR.take)[+parts[1]] || null;
+  }
+  function tipHTML(it){
+    var inf = it.info || {};
+    return '<div class="ts">' + esc(inf.slot || "") + '</div><div class="tt">' + esc(it.label) + '</div>' +
+      (inf.alt && inf.alt !== it.label ? '<p class="ta">' + esc(inf.alt) + '</p>' : '') +
+      '<ul>' + it.why.map(function(w){ return '<li>' + esc(w) + '</li>'; }).join("") + '</ul>' +
+      (inf.tip ? '<p class="tp">' + esc(inf.tip) + '</p>' : '');
+  }
+  function placeTip(x, y){
+    var el = $("tipCard"), node = TIP.node; if (el.hidden || !node) return;
+    var w = el.offsetWidth, h = el.offsetHeight, vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    if (x == null) {
+      var r = node.getBoundingClientRect();
+      x = r.left + r.width / 2 - w / 2; y = r.bottom + 10;
+      if (y + h > vh - 10) y = r.top - h - 10;
+    } else {
+      x += 18; y += 20;
+      if (x + w > vw - 10) x -= w + 36;
+      if (y + h > vh - 10) y -= h + 40;
+    }
+    el.style.left = Math.round(Math.max(10, Math.min(x, vw - w - 10))) + "px";
+    el.style.top = Math.round(Math.max(10, Math.min(y, vh - h - 10))) + "px";
+  }
+  function showTip(node, x, y, pinned){
+    var it = tipItem(node); if (!it) return;
+    if (TIP.node && TIP.node !== node) TIP.node.classList.remove("on");
+    TIP.node = node; TIP.pinned = !!pinned; node.classList.add("on");
+    var el = $("tipCard"); el.innerHTML = tipHTML(it); el.hidden = false;
+    node.setAttribute("aria-describedby", "tipCard");
+    placeTip(x, y);
+  }
+  function hideTip(){
+    var el = $("tipCard"); if (el) el.hidden = true;
+    if (TIP.node) { TIP.node.classList.remove("on"); TIP.node.removeAttribute("aria-describedby"); }
+    TIP.node = null; TIP.pinned = false;
+  }
+  (function(){
+    var board = document.querySelector(".board");
+    board.addEventListener("pointerover", function(e){
+      if (e.pointerType !== "mouse" || TIP.pinned) return;
+      var n = e.target.closest("[data-k]"); if (n && n !== TIP.node) showTip(n, e.clientX, e.clientY, false);
+    });
+    board.addEventListener("pointermove", function(e){ if (e.pointerType === "mouse" && TIP.node && !TIP.pinned) placeTip(e.clientX, e.clientY); });
+    board.addEventListener("pointerout", function(e){
+      if (e.pointerType !== "mouse" || TIP.pinned) return;
+      var n = e.target.closest("[data-k]"); if (n && !(e.relatedTarget && n.contains(e.relatedTarget))) hideTip();
+    });
+    board.addEventListener("click", function(e){
+      var n = e.target.closest("[data-k]"); if (!n) return;
+      if (TIP.pinned && TIP.node === n) hideTip(); else showTip(n, null, null, true);
+    });
+    board.addEventListener("keydown", function(e){
+      var n = e.target.closest && e.target.closest("[data-k]"); if (!n) return;
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (TIP.pinned && TIP.node === n) hideTip(); else showTip(n, null, null, true); }
+    });
+    board.addEventListener("focusin", function(e){
+      var n = e.target.closest("[data-k]"), kb = true;
+      try { kb = n ? n.matches(":focus-visible") : false; } catch (err) {}
+      if (n && kb && !TIP.pinned) showTip(n, null, null, false);
+    });
+    board.addEventListener("focusout", function(){ if (!TIP.pinned) hideTip(); });
+    document.addEventListener("click", function(e){ if (TIP.pinned && !(e.target.closest && e.target.closest(".board [data-k]"))) hideTip(); });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape" && TIP.node) hideTip(); });
+    window.addEventListener("scroll", function(){ if (TIP.pinned) placeTip(); else if (TIP.node) hideTip(); }, {passive:true});
+    window.addEventListener("resize", function(){ if (TIP.node) placeTip(); });
+  })();
 
   /* ================= events ================= */
   document.addEventListener("click", function(e){

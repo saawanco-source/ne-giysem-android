@@ -16,7 +16,9 @@ object Day {
     data class Step(val m: String, val min: Int, val slope: String)
     data class Route(val id: String, val from: String, val to: String, val name: String, val steps: List<Step>)
     data class Trip(val id: String, val from: String, val to: String, val time: String, val days: List<Int>)
-    data class Routine(val dayMode: Boolean, val places: List<Place>, val routes: List<Route>, val trips: List<Trip>)
+    /** [choiceDate]/[picks]: the route the person picked on the app screen for a trip on that day ("2026-10-26" style key, as in the page). */
+    data class Routine(val dayMode: Boolean, val places: List<Place>, val routes: List<Route>, val trips: List<Trip>,
+                       val choiceDate: String = "", val picks: Map<String, String> = emptyMap())
 
     private data class W(val time: String, val app: Double, val t: Double, val p: Double, val code: Int, val wind: Double, val day: Boolean)
     private data class Out(val time: String, val end: Long, val min: Int, val app: Double, val t: Double, val p: Double,
@@ -58,7 +60,11 @@ object Day {
                     Trip(t.optString("id"), t.optString("from"), t.optString("to"), t.optString("time", "08:00"), (0 until d.length()).map { d.optInt(it, -1) })
                 }
             }
-            Routine(o.optBoolean("dayMode", true), places, routes, trips)
+            val choice = o.optJSONObject("choice")
+            val pk = choice?.optJSONObject("picks")
+            val picks = HashMap<String, String>()
+            if (pk != null) for (k in pk.keys()) picks[k] = pk.optString(k)
+            Routine(o.optBoolean("dayMode", true), places, routes, trips, choice?.optString("date", "") ?: "", picks)
         }.getOrNull()
     }
 
@@ -79,10 +85,12 @@ object Day {
         var i = -1
         for (k in 0 until times.length()) if (times.optString(k).take(13) == key) { i = k; break }
         if (i < 0) return null
-        val app = h.optJSONArray("apparent_temperature").dbl(i)
+        // A missing feels-like falls back to the air temperature, like the app screen.
+        val temp = h.optJSONArray("temperature_2m").dbl(i)
+        val app = h.optJSONArray("apparent_temperature").dbl(i).let { if (it.isNaN()) temp else it }
         if (app.isNaN()) return null
         return W(
-            time = times.optString(i), app = app, t = h.optJSONArray("temperature_2m").dbl(i),
+            time = times.optString(i), app = app, t = if (temp.isNaN()) app else temp,
             p = h.optJSONArray("precipitation_probability").dbl(i).let { if (it.isNaN()) 0.0 else it },
             code = h.optJSONArray("weather_code")?.optInt(i, 3) ?: 3,
             wind = h.optJSONArray("wind_speed_10m").dbl(i).let { if (it.isNaN()) 0.0 else it },
@@ -133,6 +141,12 @@ object Day {
     }
 
     private data class Item(val trip: Trip, val route: Route?, val ex: Ex?, val offset: Int)
+
+    /** Same day key as the page's dateKey(): year-month-day without leading zeros. */
+    private fun dateKey(ms: Long): String {
+        val c = Calendar.getInstance(); c.timeInMillis = ms
+        return "${c.get(Calendar.YEAR)}-${c.get(Calendar.MONTH) + 1}-${c.get(Calendar.DAY_OF_MONTH)}"
+    }
     private val DAY_NAMES = listOf("Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi")
 
     fun compute(r: Routine, byPlace: Map<String, JSONObject>, now: Long = System.currentTimeMillis()): Result? {
@@ -143,21 +157,25 @@ object Day {
         fun pick(offset: Int): List<Item> {
             val dow = (todayDow + offset) % 7
             val list = ArrayList<Item>()
-            for (t in r.trips.filter { dow in it.days && place(it.from) != null && place(it.to) != null }.sortedBy { it.time }) {
+            for (t in r.trips.filter { dow in it.days && it.from != it.to && place(it.from) != null && place(it.to) != null }.sortedBy { it.time }) {
                 val start = atTime(t.time, offset)
                 val routes = r.routes.filter { it.from == t.from && it.to == t.to && it.steps.isNotEmpty() }
                 if (routes.isEmpty()) { if (start > now) list.add(Item(t, null, null, offset)); continue }
-                val best = routes.map { it to exposure(t, it, start, byPlace) }.minByOrNull { score(it.second) } ?: continue
-                if (best.second.end < now) continue
-                list.add(Item(t, best.first, best.second, offset))
+                val evals = routes.map { it to exposure(t, it, start, byPlace) }
+                val best = evals.minByOrNull { score(it.second) } ?: continue
+                // The route the person picked on the app screen for that day wins over the suggestion.
+                val picked = if (r.choiceDate == dateKey(start)) r.picks[t.id] else null
+                val chosen = evals.firstOrNull { it.first.id == picked } ?: best
+                if (chosen.second.end < now) continue
+                list.add(Item(t, chosen.first, chosen.second, offset))
             }
             return list
         }
 
-        // Today first; otherwise the next day this week with a trip. Only today (or tomorrow in the evening) drives the outfit.
+        // Today first; otherwise the next day with a trip (7 = the same weekday next week). Only today (or tomorrow in the evening) drives the outfit.
         var items: List<Item> = emptyList()
         var offset = 0
-        for (o in 0 until 7) { items = pick(o); offset = o; if (items.isNotEmpty()) break }
+        for (o in 0..7) { items = pick(o); offset = o; if (items.isNotEmpty()) break }
         if (items.isEmpty()) return Result(null, null)
         val lead = offset == 0 || (offset == 1 && Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17)
 
@@ -168,6 +186,7 @@ object Day {
             when (offset) {
                 0 -> {}
                 1 -> append("Yarın ")
+                7 -> append("Haftaya ").append(DAY_NAMES[todayDow]).append(" ")
                 else -> append(DAY_NAMES[(todayDow + offset) % 7]).append(" ")
             }
             append(first.trip.time).append(" ").append(fromName).append(" → ").append(toName)
@@ -188,7 +207,8 @@ object Day {
                 wind = e0.wind, gust = 0.0, dir = null, rh = null, precip = 0.0),
             window = exps.map { Outfit.Hour(it.time, it.app, it.p, it.code, it.wind) },
             uvMax = uv,
-            uvDay = exps.any { (it.time.substring(11, 13).toIntOrNull() ?: 0) in 10..16 }
+            uvDay = exps.any { (it.time.substring(11, 13).toIntOrNull() ?: 0) in 10..16 && it.time.take(10) == e0.time.take(10) },
+            trip = true
         )
         return Result(input, next)
     }

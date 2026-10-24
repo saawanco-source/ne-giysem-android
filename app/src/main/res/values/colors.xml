@@ -2,4 +2,5 @@
 <resources>
     <color name="launcher_bg">#FFD65E</color>
     <color name="ink">#14161F</color>
+    <color name="night_bg">#15171F</color>
 </resources>

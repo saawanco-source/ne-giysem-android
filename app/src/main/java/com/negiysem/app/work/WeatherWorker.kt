@@ -11,6 +11,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.negiysem.app.data.Updater
+import com.negiysem.app.widget.NeGiysemWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import java.util.concurrent.TimeUnit
 
 class WeatherWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
@@ -28,15 +30,22 @@ object Scheduler {
 
     private val online = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
-    /** Keeps the widget fresh: every 30 minutes while there is a connection. */
+    /** Background refresh only makes sense while a widget is on the home screen. */
+    suspend fun hasWidgets(context: Context): Boolean =
+        runCatching { GlanceAppWidgetManager(context).getGlanceIds(NeGiysemWidget::class.java).isNotEmpty() }.getOrDefault(false)
+
+    /** Keeps the widget fresh: every 30 minutes while there is a connection. UPDATE lets a new app version change the schedule. */
     fun schedule(context: Context) {
         val req = PeriodicWorkRequestBuilder<WeatherWorker>(30, TimeUnit.MINUTES).setConstraints(online).build()
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.KEEP, req)
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, req)
     }
 
-    /** One refresh as soon as possible. [replace] restarts a refresh that is already queued. */
-    fun now(context: Context, replace: Boolean = false) {
-        val req = OneTimeWorkRequestBuilder<WeatherWorker>().setConstraints(online).build()
+    /**
+     * One refresh as soon as possible. [replace] restarts a refresh that is already queued;
+     * [delaySeconds] lets quick successive edits in the app collapse into one request.
+     */
+    fun now(context: Context, replace: Boolean = false, delaySeconds: Long = 0) {
+        val req = OneTimeWorkRequestBuilder<WeatherWorker>().setConstraints(online).setInitialDelay(delaySeconds, TimeUnit.SECONDS).build()
         WorkManager.getInstance(context).enqueueUniqueWork(
             NOW, if (replace) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.KEEP, req
         )
@@ -44,5 +53,6 @@ object Scheduler {
 
     fun cancel(context: Context) {
         WorkManager.getInstance(context).cancelUniqueWork(PERIODIC)
+        WorkManager.getInstance(context).cancelUniqueWork(NOW)
     }
 }

@@ -55,9 +55,12 @@ class NeGiysemWidget : GlanceAppWidget() {
 
     companion object {
         val PLAN = stringPreferencesKey("plan")
+        // Sizes Android lays the widget out for; the layout picked for each keeps its content inside the box.
         private val SMALL = DpSize(110.dp, 110.dp)
         private val WIDE = DpSize(250.dp, 110.dp)
-        private val TALL = DpSize(250.dp, 220.dp)
+        private val WIDE_MID = DpSize(250.dp, 160.dp)
+        private val TALL = DpSize(250.dp, 250.dp)
+        private val TALL_XL = DpSize(250.dp, 310.dp)
 
         /** Sends a fresh snapshot to every widget on the home screen. */
         suspend fun pushAll(context: Context, json: String) {
@@ -70,7 +73,7 @@ class NeGiysemWidget : GlanceAppWidget() {
         }
     }
 
-    override val sizeMode = SizeMode.Responsive(setOf(SMALL, WIDE, TALL))
+    override val sizeMode = SizeMode.Responsive(setOf(SMALL, WIDE, WIDE_MID, TALL, TALL_XL))
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -174,11 +177,23 @@ private fun Sticker(g: Garment, size: Dp) {
 
 @Composable
 private fun RefreshIcon(p: Palette) {
-    Image(
-        provider = ImageProvider(if (p.night) R.drawable.ic_refresh_light else R.drawable.ic_refresh_ink),
-        contentDescription = "Yenile",
-        modifier = GlanceModifier.size(22.dp).clickable(actionRunCallback<RefreshAction>())
-    )
+    // A 40 dp touch area around the 22 dp icon.
+    Box(
+        modifier = GlanceModifier.size(40.dp).clickable(actionRunCallback<RefreshAction>()),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            provider = ImageProvider(if (p.night) R.drawable.ic_refresh_light else R.drawable.ic_refresh_ink),
+            contentDescription = "Yenile",
+            modifier = GlanceModifier.size(22.dp)
+        )
+    }
+}
+
+/** "Son güncelleme 08:10" when the snapshot is more than two hours old (the phone may have put the app to sleep). */
+private fun staleText(d: WidgetData): String? {
+    if (!d.ok || d.updated <= 0 || System.currentTimeMillis() - d.updated < 2 * 3_600_000L) return null
+    return "Son güncelleme " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(d.updated))
 }
 
 @Composable
@@ -194,25 +209,26 @@ private fun Body(d: WidgetData) {
     ) {
         when {
             size.width < 200.dp -> SmallLayout(d, p)
-            size.height < 200.dp -> WideLayout(d, p)
-            else -> TallLayout(d, p)
+            size.height < 160.dp -> WideLayout(d, p, compact = true)
+            size.height < 250.dp -> WideLayout(d, p, compact = false)
+            else -> TallLayout(d, p, roomy = size.height >= 310.dp)
         }
     }
 }
 
 @Composable
 private fun SmallLayout(d: WidgetData, p: Palette) {
-    Column(modifier = GlanceModifier.fillMaxSize().padding(12.dp)) {
+    Column(modifier = GlanceModifier.fillMaxSize().padding(10.dp)) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(deg(d.temp), style = style(p.ink, 32), modifier = GlanceModifier.defaultWeight(), maxLines = 1)
+            Text(deg(d.temp), style = style(p.ink, 28), modifier = GlanceModifier.defaultWeight(), maxLines = 1)
             RefreshIcon(p)
         }
-        Text(if (d.ok) Outfit.LEVEL_NAMES[d.level] else "Ne Giysem?", style = style(p.sub, 12), maxLines = 1)
+        Text(staleText(d) ?: if (d.ok) Outfit.LEVEL_NAMES[d.level] else "Ne Giysem?", style = style(p.sub, 12), maxLines = 1)
         Spacer(GlanceModifier.defaultWeight())
         Row(verticalAlignment = Alignment.CenterVertically) {
             d.wear.take(2).forEachIndexed { i, g ->
                 if (i > 0) Spacer(GlanceModifier.width(2.dp))
-                Sticker(g, 46.dp)
+                Sticker(g, 40.dp)
             }
         }
     }
@@ -231,10 +247,11 @@ private fun Header(d: WidgetData, p: Palette, tempSize: Int) {
             Text(
                 when {
                     !d.ok -> "Bugünün kıyafeti bir bakışta"
+                    staleText(d) != null -> staleText(d)!!
                     d.next.isNotEmpty() -> "Sıradaki: " + d.next
                     else -> "Hissedilen " + deg(d.feels) + " · " + d.cond
                 },
-                style = style(p.sub, 12, bold = d.next.isNotEmpty()), maxLines = 1
+                style = style(p.sub, 12, bold = d.next.isNotEmpty() || staleText(d) != null), maxLines = 1
             )
         }
         RefreshIcon(p)
@@ -242,16 +259,16 @@ private fun Header(d: WidgetData, p: Palette, tempSize: Int) {
 }
 
 @Composable
-private fun WideLayout(d: WidgetData, p: Palette) {
-    Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp)) {
-        Header(d, p, 36)
-        Spacer(GlanceModifier.height(6.dp))
-        Text(d.headline, style = style(p.ink, 16), maxLines = 2)
+private fun WideLayout(d: WidgetData, p: Palette, compact: Boolean) {
+    Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = 14.dp, vertical = if (compact) 8.dp else 12.dp)) {
+        Header(d, p, if (compact) 28 else 36)
+        Spacer(GlanceModifier.height(if (compact) 2.dp else 6.dp))
+        Text(d.headline, style = style(p.ink, if (compact) 14 else 16), maxLines = if (compact) 1 else 2)
         Spacer(GlanceModifier.defaultWeight())
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             d.wear.take(4).forEachIndexed { i, g ->
                 if (i > 0) Spacer(GlanceModifier.width(2.dp))
-                Sticker(g, 44.dp)
+                Sticker(g, if (compact) 34.dp else 44.dp)
             }
             if (d.take.isNotEmpty()) {
                 Spacer(GlanceModifier.width(8.dp))
@@ -265,10 +282,10 @@ private fun WideLayout(d: WidgetData, p: Palette) {
 }
 
 @Composable
-private fun TallLayout(d: WidgetData, p: Palette) {
-    Column(modifier = GlanceModifier.fillMaxSize().padding(16.dp)) {
-        Header(d, p, 44)
-        Spacer(GlanceModifier.height(10.dp))
+private fun TallLayout(d: WidgetData, p: Palette, roomy: Boolean) {
+    Column(modifier = GlanceModifier.fillMaxSize().padding(if (roomy) 16.dp else 14.dp)) {
+        Header(d, p, if (roomy) 44 else 38)
+        Spacer(GlanceModifier.height(if (roomy) 10.dp else 6.dp))
         if (d.pills.isNotEmpty()) {
             Row {
                 d.pills.take(2).forEachIndexed { i, s ->
@@ -282,13 +299,13 @@ private fun TallLayout(d: WidgetData, p: Palette) {
             }
             Spacer(GlanceModifier.height(6.dp))
         }
-        Text(d.headline, style = style(p.ink, 20), maxLines = 3)
+        Text(d.headline, style = style(p.ink, if (roomy) 20 else 18), maxLines = if (roomy) 3 else 2)
         Spacer(GlanceModifier.defaultWeight())
         Row(modifier = GlanceModifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             d.wear.take(4).forEachIndexed { i, g ->
                 if (i > 0) Spacer(GlanceModifier.width(4.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Sticker(g, 58.dp)
+                    Sticker(g, if (roomy) 58.dp else 48.dp)
                     Text(g.label, style = style(p.ink, 11), maxLines = 1)
                 }
             }
@@ -299,7 +316,7 @@ private fun TallLayout(d: WidgetData, p: Palette) {
             val takeText = if (d.take.isNotEmpty()) "Yanına al: " + d.take.take(3).joinToString(", ") { it.label } else ""
             Text(
                 listOf(takeText, if (time.isNotEmpty()) "Güncelleme $time" else "").filter { it.isNotEmpty() }.joinToString("  ·  "),
-                style = style(p.sub, 12), maxLines = 2
+                style = style(p.sub, 12), maxLines = if (roomy) 2 else 1
             )
         }
     }

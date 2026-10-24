@@ -74,7 +74,8 @@ object Outfit {
         val t: Double, val app: Double, val code: Int, val isDay: Boolean,
         val wind: Double, val gust: Double, val dir: Double?, val rh: Double?, val precip: Double
     )
-    data class Input(val now: Now, val window: List<Hour>, val uvMax: Double?, val uvDay: Boolean)
+    /** [trip]: the "now" is the first outdoor moment of a day plan, not the present (no "it's raining now" wording). */
+    data class Input(val now: Now, val window: List<Hour>, val uvMax: Double?, val uvDay: Boolean, val trip: Boolean = false)
     data class Plan(
         val level: Int, val headline: String, val wear: List<Item>, val take: List<Item>,
         val pills: List<String>, val mine: Double
@@ -115,23 +116,25 @@ object Outfit {
         val wind: JSONArray? = hourly.optJSONArray("wind_speed_10m"); val dir: JSONArray? = hourly.optJSONArray("wind_direction_10m")
         val day: JSONArray? = hourly.optJSONArray("is_day")
         val fresh = System.currentTimeMillis() - fetchedAt < 45 * 60_000L && cur != null && !cur.d("temperature_2m").isNaN()
-        val now = if (fresh && cur != null) Now(
-            t = cur.d("temperature_2m"), app = cur.d("apparent_temperature"), code = cur.optInt("weather_code", 3),
+        fun appAt(j: Int): Double { val a = app.d(j); return if (!a.isNaN()) a else temp.d(j) }
+        val now0 = if (fresh && cur != null) Now(
+            t = cur.d("temperature_2m"), app = cur.d("apparent_temperature").let { if (it.isNaN()) cur.d("temperature_2m") else it }, code = cur.optInt("weather_code", 3),
             isDay = cur.optInt("is_day", 1) == 1, wind = cur.d("wind_speed_10m").let { if (it.isNaN()) 0.0 else it },
             gust = cur.d("wind_gusts_10m").let { if (it.isNaN()) 0.0 else it }, dir = cur.d("wind_direction_10m").takeIf { !it.isNaN() },
             rh = cur.d("relative_humidity_2m").takeIf { !it.isNaN() }, precip = cur.d("precipitation").let { if (it.isNaN()) 0.0 else it }
         ) else Now(
-            t = temp.d(idx), app = app.d(idx), code = code?.optInt(idx, 3) ?: 3, isDay = (day?.optInt(idx, 1) ?: 1) == 1,
+            t = temp.d(idx), app = appAt(idx), code = code?.optInt(idx, 3) ?: 3, isDay = (day?.optInt(idx, 1) ?: 1) == 1,
             wind = wind.d(idx).let { if (it.isNaN()) 0.0 else it }, gust = 0.0, dir = dir.d(idx).takeIf { !it.isNaN() },
             rh = null, precip = 0.0
         )
-        if (now.app.isNaN() || now.t.isNaN()) return null
+        if (now0.app.isNaN()) return null
+        val now = if (now0.t.isNaN()) now0.copy(t = now0.app) else now0
 
         val window = ArrayList<Hour>()
         var k = 0
         while (k <= hours && idx + k < times.length()) {
             val j = idx + k
-            window.add(Hour(times.optString(j), app.d(j), prob.d(j).let { if (it.isNaN()) 0.0 else it }, code?.optInt(j, 3) ?: 3,
+            window.add(Hour(times.optString(j), appAt(j), prob.d(j).let { if (it.isNaN()) 0.0 else it }, code?.optInt(j, 3) ?: 3,
                 wind.d(j).let { if (it.isNaN()) 0.0 else it }))
             k++
         }
@@ -140,7 +143,8 @@ object Outfit {
         if (dTimes != null) for (i in 0 until dTimes.length()) if (dTimes.optString(i) == nowKey.take(10)) { di = i; break }
         val uvArr: JSONArray? = daily?.optJSONArray("uv_index_max")
         val uv: Double? = if (di >= 0) uvArr.d(di).takeIf { !it.isNaN() } else null
-        val uvDay = window.any { val hr = it.time.substring(11, 13).toIntOrNull() ?: 0; hr in 10..16 }
+        // Only today's daylight hours: today's UV maximum says nothing about tomorrow morning.
+        val uvDay = window.any { val hr = it.time.substring(11, 13).toIntOrNull() ?: 0; hr in 10..16 && it.time.take(10) == nowKey.take(10) }
         return Input(now, window, uv, uvDay)
     }
 
@@ -154,11 +158,14 @@ object Outfit {
             if (h.app > rawHigh) { rawHigh = h.app; highAt = h.time }
         }
         val e = rawNow + off
-        val level = levelOf(e)
+        // The level follows the rounded number the person sees, like the app screen.
+        val level = levelOf(e.roundToInt().toDouble())
         val lLow = min(level, levelOf(rawLow + off + 0.7))
         val lHigh = max(level, levelOf(rawHigh + off - 0.7))
-        val base = if (act == "sport") sport(level) else OUT[level]
-        val wear = base.wear.map { Item(it, LABELS.getValue(it)) }.toMutableList()
+        val sport = act == "sport"
+        val base = if (sport) sport(level) else OUT[level]
+        val night = !inp.now.isDay && !inp.uvDay
+        val wear = base.wear.filter { !(night && it == "sapka") }.map { Item(it, LABELS.getValue(it)) }.toMutableList()
         var take = base.take.map { Item(it, LABELS.getValue(it)) }.toMutableList()
         var head = base.head
         val pills = ArrayList<String>()
@@ -173,37 +180,49 @@ object Outfit {
             if (first) take.add(0, Item(g, label)) else take.add(Item(g, label))
         }
         fun strip(s: String) = s.replace("{", "").replace("}", "")
+        fun outerNow(): String? = wear.firstOrNull { it.g in OUTER }?.g
+        fun takesOuter() = take.any { it.g in OUTER }
 
+        val trip = inp.trip
         val codes = listOf(inp.now.code) + w.map { it.code }
         val pMax = (listOf(0.0) + w.map { it.p }).maxOrNull()!!.roundToInt()
         val windMax = (listOf(inp.now.wind) + w.map { it.wind }).maxOrNull()!!.roundToInt()
         val gust = inp.now.gust.roundToInt()
         val wi = windIdx(inp.now.dir)
-        val rainNow = isRain(inp.now.code) || inp.now.precip >= 0.2
-        val snowy = codes.any { isSnow(it) }
-        val wet = rainNow || pMax >= 60 || (codes.any { isRain(it) } && pMax >= 40)
+        val precipNow = !trip && inp.now.precip >= 0.2
+        val snowNow = !trip && (isSnow(inp.now.code) || (precipNow && !isRain(inp.now.code) && !inp.now.t.isNaN() && inp.now.t <= 0.5))
+        val rainNow = !trip && (isRain(inp.now.code) || (precipNow && !snowNow))
+        val snowy = snowNow || codes.any { isSnow(it) }
+        val wet = rainNow || (codes.any { isRain(it) } && pMax >= (if (trip) 30 else 40)) || (pMax >= 60 && !snowy)
         val maybe = !wet && !snowy && pMax >= 30
+        val icy = codes.any { it == 56 || it == 57 || it == 66 || it == 67 }
+        val thunder = codes.any { it >= 95 }
         val windy = windMax >= 28 || gust >= 45
         val hasOuter = wear.any { it.g in OUTER }
 
         if (act == "field") {
             swap(BOTTOMS, "pantolon", "Uzun pantolon")
             swap(SHOES, "yuruyus")
-            if (level >= 5 && !has("sapka")) wear.add(Item("sapka", LABELS.getValue("sapka")))
+            if (level >= 5 && !night && !has("sapka")) wear.add(Item("sapka", LABELS.getValue("sapka")))
         }
 
+        var lowPool: List<String> = emptyList()
+        var carry: String? = null
         if (lLow < level) {
-            val lo = if (act == "sport") sport(lLow) else OUT[lLow]
+            val lo = if (sport) sport(lLow) else OUT[lLow]
             val pool = (lo.wear + lo.take).filter { !has(it) }
+            lowPool = pool
             // Already wearing a coat: carry a warmer layer or a scarf/beanie, never a second coat.
-            val cand = if (hasOuter) pool.firstOrNull { it in MID } ?: pool.firstOrNull { it in setOf("atki", "bere", "eldiven") }
-            else pool.firstOrNull { it in OUTER } ?: pool.firstOrNull { it in MID }
+            val cand = (if (hasOuter) pool.firstOrNull { it in MID } ?: pool.firstOrNull { it in setOf("atki", "bere", "eldiven") }
+                else pool.firstOrNull { it in OUTER } ?: pool.firstOrNull { it in MID })
+                ?: (if (sport) pool.firstOrNull { it == "longsleeve" || it == "thermal" } else null)
             val dp = lowAt?.let { daypart(it) } ?: "akşam"
             if (cand != null) {
                 take = take.filter { it.g !in OUTER && it.g !in MID }.toMutableList()
                 addTake(cand, first = true)
+                carry = cand
                 val acc = ACC[cand]
-                if (acc != null && act != "sport") head = "{$acc} yanına al, $dp serinliyor."
+                if (acc != null && !sport) head = "{$acc} yanına al, $dp " + (if (rawLow + off < 8) "soğuyor" else "serinliyor") + "."
             }
             pills.add(cap(dp) + " " + deg(rawLow))
         } else if (lHigh > level && highAt != null) {
@@ -212,33 +231,48 @@ object Outfit {
 
         if (wet) {
             pills.add(0, if (rainNow) "Yağmur yağıyor" else "Yağmur %$pMax")
-            var addedCoat = false
-            val takeOuter = take.any { it.g in OUTER }
-            if (!hasOuter && !takeOuter && act != "sport") {
-                wear.add(Item("yagmurluk", LABELS.getValue("yagmurluk"))); addedCoat = true
-                take = take.filter { it.g !in OUTER }.toMutableList()
-            }
-            if (act == "city" && wear.any { it.g == "sneaker" || it.g == "sandalet" }) swap(SHOES, "bot", "Su geçirmez ayakkabı")
-            if (windy) head = "{Kapüşonlu} bir şey giy, rüzgarda şemsiye uçar."
-            else {
-                addTake("semsiye", first = true)
-                head = if (addedCoat) "{Yağmurluğunu} giy, şemsiyeni al." else "{Şemsiyeni} al; " + lcf(strip(head))
+            if (sport) {
+                // No umbrella while running: a water-repellent shell instead.
+                if (!has("ruzgarlik")) wear.add(Item("ruzgarlik", "Su itici rüzgarlık"))
+                head = "Yağmur var: su itici {rüzgarlık} giy, kaymayan taban seç."
+            } else {
+                var addedCoat = false
+                val hot = level >= 6
+                if (!hasOuter && !(hot && !windy)) {
+                    // Something waterproof is worn, not carried: a raincoat replaces the jacket to take along.
+                    val dropped = takesOuter()
+                    take = take.filter { it.g !in OUTER }.toMutableList()
+                    wear.add(Item("yagmurluk", if (hot) "İnce yağmurluk" else LABELS.getValue("yagmurluk"))); addedCoat = true
+                    if (dropped && carry != null && carry in OUTER) lowPool.firstOrNull { it in MID && !has(it) }?.let { addTake(it, first = true) }
+                }
+                if (act == "city" && !hot && wear.any { it.g == "sneaker" || it.g == "sandalet" }) swap(SHOES, "bot", "Su geçirmez ayakkabı")
+                if (windy) head = if (addedCoat) "{Kapüşonlu yağmurluğunu} giy; rüzgarda şemsiye uçar." else "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgarda şemsiye uçar."
+                else {
+                    addTake("semsiye", first = true)
+                    head = if (addedCoat) "{Yağmurluğunu} giy, şemsiyeni al." else "{Şemsiyeni} al; " + lcf(strip(head))
+                }
             }
         } else if (maybe) {
-            addTake("semsiye", "Şemsiye (%$pMax)")
             pills.add("Yağmur ihtimali %$pMax")
+            if (!windy && !sport) addTake("semsiye", "Şemsiye (%$pMax)")
         }
         if (snowy) {
-            pills.add(0, "Kar")
-            if (act != "sport") swap(SHOES, "bot", "Kaymaz bot")
+            pills.add(0, if (snowNow) "Kar yağıyor" else "Kar")
+            if (!sport) swap(SHOES, "bot", "Kaymaz bot")
             addTake("eldiven")
         }
-        if (windy) {
-            pills.add((if (wi >= 0) WIND_NAMES[wi] + " " else "Rüzgar ") + "$windMax km/sa")
-            if (!hasOuter && level >= 4 && act != "sport" && take.none { it.g in OUTER }) addTake("ruzgarlik")
+        if (icy) {
+            pills.add(0, "Buzlanma")
+            if (act == "city") swap(SHOES, "bot", "Kaymaz bot")
         }
+        if (thunder) pills.add(0, "Fırtına")
+        if (windy) {
+            pills.add((if (wi >= 0) WIND_NAMES[wi] + " " else "Rüzgar ") + (if (windMax >= 28) "$windMax km/sa" else "hamlede $gust km/sa"))
+            if (!hasOuter && level in 4..5 && !sport && outerNow() == null && !takesOuter()) addTake("ruzgarlik")
+        }
+        val rainAllDay = wet && w.isNotEmpty() && w.all { isRain(it.code) }
         val uv = inp.uvMax
-        if (inp.uvDay && uv != null) {
+        if (inp.uvDay && uv != null && !rainAllDay) {
             if (uv >= 6) { addTake("gozluk"); addTake("krem"); addTake("sapka"); pills.add("UV yüksek") }
             else if (uv >= 3 && rawNow >= 15) addTake("gozluk")
         }

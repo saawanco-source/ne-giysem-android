@@ -17,6 +17,10 @@ class Store(context: Context) {
     val widgetJson: String? get() = prefs.getString("widget", null)
     val routineJson: String? get() = prefs.getString("routine", null)
     val updatedAt: Long get() = prefs.getLong("updated", 0L)
+    /** Set by "Tüm verilerimi sil": until a new place is chosen the widget stays empty (no location lookup). */
+    val wiped: Boolean get() = prefs.getBoolean("wiped", false)
+    /** Changes on every wipe, so a refresh that started before it never writes the deleted data back. */
+    val generation: Int get() = prefs.getInt("gen", 0)
 
     fun isStale(maxAgeMs: Long = 15 * 60_000L) = System.currentTimeMillis() - updatedAt > maxAgeMs
 
@@ -41,7 +45,9 @@ class Store(context: Context) {
                 val oldLat = lat; val oldLon = lon
                 if (oldLat == null || oldLon == null || kotlin.math.abs(oldLat - la) > 0.01 || kotlin.math.abs(oldLon - lo) > 0.01) changed = true
                 e.putString("lat", la.toString()).putString("lon", lo.toString())
+                if (place.optString("name", "Konumun") != placeName) changed = true
                 e.putString("place", place.optString("name", "Konumun"))
+                e.remove("wiped")
             }
         }
         val routine = o.optJSONObject("routine")?.toString()
@@ -55,7 +61,8 @@ class Store(context: Context) {
 
     /** Forgets every place, routine, preference and cached forecast. */
     fun clear() {
-        prefs.edit().clear().apply()
+        val gen = generation + 1
+        prefs.edit().clear().putBoolean("wiped", true).putInt("gen", gen).commit()
     }
 
     fun saveWidget(json: String) {

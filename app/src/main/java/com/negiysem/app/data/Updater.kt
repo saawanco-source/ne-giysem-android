@@ -21,7 +21,7 @@ object Updater {
             conn.connectTimeout = 12_000
             conn.readTimeout = 12_000
             conn.setRequestProperty("Accept", "application/json")
-            conn.setRequestProperty("User-Agent", "NeGiysem-Android/1.1")
+            conn.setRequestProperty("User-Agent", "NeGiysem-Android")
             val code = conn.responseCode
             if (code !in 200..299) throw IOException("HTTP $code")
             return conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
@@ -49,6 +49,12 @@ object Updater {
 
     suspend fun refresh(context: Context) {
         val store = Store(context)
+        val gen = store.generation
+        if (store.wiped && store.lat == null) {
+            // Everything was deleted in the app: show the empty widget, look nothing up.
+            NeGiysemWidget.pushAll(context, "")
+            return
+        }
         val snapshot = withContext(Dispatchers.IO) {
             var lat = store.lat
             var lon = store.lon
@@ -75,6 +81,7 @@ object Updater {
             val plan = Outfit.plan(day?.input ?: input, store.feel, store.act)
             Store.widgetSnapshot(plan, input, name, day?.next)
         }
+        if (Store(context).generation != gen) return // data was deleted while this refresh ran
         store.saveWidget(snapshot)
         NeGiysemWidget.pushAll(context, snapshot)
     }

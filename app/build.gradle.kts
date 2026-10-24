@@ -12,8 +12,9 @@ android {
         applicationId = "com.negiysem.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.6"
+        // Every cloud build gets a higher number, so a new APK always installs as an update.
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 7
+        versionName = "1.7"
     }
 
     signingConfigs {

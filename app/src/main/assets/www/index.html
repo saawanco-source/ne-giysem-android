@@ -6,7 +6,7 @@
 <title>Ne Giysem?</title>
 <!-- pwa:start -->
 <meta name="description" content="Bulunduğun yerin havasına göre bir bakışta bugünün kıyafeti.">
-<meta name="theme-color" content="#E6E86E">
+<meta name="theme-color" content="#FFD65E">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
@@ -26,7 +26,8 @@
 :root{
   --lv:#E6E86E;
   --field:var(--lv);
-  --ink:#14161f; --ink2:rgba(20,22,31,.68); --card:rgba(255,255,255,.55); --line:rgba(20,22,31,.13);
+  --ink:#14161f; --ink2:rgba(20,22,31,.78); --card:rgba(255,255,255,.55); --line:rgba(20,22,31,.13);
+  --input:#ffffff; --input-line:rgba(20,22,31,.52);
   --chip:rgba(255,255,255,.78); --halo:#ffffff; --shadow:rgba(20,22,31,.28);
   --hl-bg:#ffffff; --hl-ink:#14161f; --pill-bg:#14161f; --pill-ink:#ffffff; --focus:#14161f;
   --tip-bg:#ffffff; --tip-ink:#14161f; --tip-sub:rgba(20,22,31,.66);
@@ -36,8 +37,9 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --field:color-mix(in oklab,var(--lv) 22%,#0b0d16);
-    --ink:#f6f4ee; --ink2:rgba(246,244,238,.7); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
+    --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
     --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55);
+    --input:rgba(0,0,0,.32); --input-line:rgba(246,244,238,.58);
     --hl-bg:var(--lv); --hl-ink:#14161f; --pill-bg:var(--lv); --pill-ink:#14161f; --focus:var(--lv);
     --tip-bg:#1d2030; --tip-ink:#f6f4ee; --tip-sub:rgba(246,244,238,.7);
     color-scheme:dark;
@@ -45,8 +47,9 @@
 }
 :root[data-theme="dark"],:root[data-night="1"]{
   --field:color-mix(in oklab,var(--lv) 22%,#0b0d16);
-  --ink:#f6f4ee; --ink2:rgba(246,244,238,.7); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
+  --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
   --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55);
+  --input:rgba(0,0,0,.32); --input-line:rgba(246,244,238,.58);
   --hl-bg:var(--lv); --hl-ink:#14161f; --pill-bg:var(--lv); --pill-ink:#14161f; --focus:var(--lv);
     --tip-bg:#1d2030; --tip-ink:#f6f4ee; --tip-sub:rgba(246,244,238,.7);
   color-scheme:dark;
@@ -58,32 +61,34 @@ body{margin:0;background:var(--field);color:var(--ink);font:500 15px/1.45 var(--
 button{font:inherit;color:inherit}
 :focus-visible{outline:2.5px solid var(--focus);outline-offset:3px;border-radius:8px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 .app{max-width:1120px;margin:0 auto;padding-block:14px 36px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
 /* top bar */
-.bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 .logo{display:flex;align-items:center;gap:8px;font:800 1.15rem/1 var(--font-display);letter-spacing:-.02em;white-space:nowrap}
 .logo svg{width:28px;height:28px;flex:none}
-.bar-r{display:flex;align-items:center;gap:8px;min-width:0}
-.place-btn{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:52vw;border:0;background:var(--chip);border-radius:999px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer}
+.bar-r{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;flex:1 1 auto}
+@media (max-width:400px){.logo span{display:none}}
+.place-btn{display:inline-flex;align-items:center;gap:6px;min-width:min(8.5em,100%);max-width:100%;border:0;background:var(--chip);border-radius:999px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer}
 .place-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .place-btn svg{width:16px;height:16px;flex:none}
-.icon-btn{width:40px;height:40px;flex:none;border:0;border-radius:50%;background:var(--chip);display:grid;place-items:center;cursor:pointer}
+.icon-btn{width:44px;height:44px;flex:none;border:0;border-radius:50%;background:var(--chip);display:grid;place-items:center;cursor:pointer}
 .icon-btn svg{width:19px;height:19px}
 .icon-btn.busy svg{animation:spin .9s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .panel{margin-top:12px;background:var(--card);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:12px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{border:0;background:var(--chip);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer}
+.chip{border:0;background:var(--chip);border-radius:999px;padding:10px 14px;min-height:40px;font-weight:600;font-size:14px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--pill-bg);color:var(--pill-ink)}
 .chip-wrap{display:inline-flex}
 .chip-wrap .chip{border-radius:999px 0 0 999px;padding-right:10px}
-.chip-x{border:0;background:var(--chip);border-radius:0 999px 999px 0;padding:0 12px 0 6px;cursor:pointer;font-size:17px;line-height:1;color:var(--ink2)}
+.chip-x{border:0;background:var(--chip);border-radius:0 999px 999px 0;padding:0 14px 0 8px;min-width:36px;cursor:pointer;font-size:17px;line-height:1;color:var(--ink2)}
 .chip-wrap .chip[aria-pressed="true"]+.chip-x{background:var(--pill-bg);color:var(--pill-ink)}
 .search{display:flex;gap:8px;flex-wrap:wrap}
-.search input{flex:1 1 180px;min-width:0;border:0;background:var(--chip);color:var(--ink);border-radius:14px;padding:11px 14px;font:inherit}
+.search input{flex:1 1 180px;min-width:0;min-height:44px;border:1.5px solid var(--input-line);background:var(--input);color:var(--ink);border-radius:14px;padding:11px 14px;font:inherit}
 .search input::placeholder{color:var(--ink2)}
 .btn{border:0;border-radius:14px;padding:11px 16px;background:var(--pill-bg);color:var(--pill-ink);font-weight:700;cursor:pointer}
 .btn.soft{background:var(--chip);color:var(--ink)}
@@ -92,14 +97,15 @@ button{font:inherit;color:inherit}
 .results button[aria-selected="true"]{box-shadow:inset 0 0 0 2px var(--ink)}
 .results .rt{flex:1;min-width:0}
 .results .rt mark{background:none;color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
-.results small{display:block;font-weight:500;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.results .kind{flex:none;font-size:11.5px;font-weight:800;background:var(--card);border-radius:999px;padding:3px 8px}
+.results small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:500;color:var(--ink2);overflow:hidden}
+.results .kind{flex:none;font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 8px;box-shadow:inset 0 0 0 1.5px var(--input-line)}
+@media (max-width:420px){.search input{flex-basis:100%}.search .btn{flex:1 1 0}}
 .chip.here{display:inline-flex;align-items:center;gap:6px;align-self:flex-start}
 .chip.here svg{width:16px;height:16px}
 
 .status{margin:10px 2px 0;font-size:14px;color:var(--ink2);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .status:empty{display:none}
-.status .act{border:0;background:none;padding:0;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--ink)}
+.status .act{border:0;background:none;padding:8px 2px;margin:-8px 0;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--ink)}
 .ios-hint{margin-top:10px;display:flex;gap:12px;align-items:flex-start;background:var(--card);border-radius:16px;padding:10px 14px;font-size:14px}
 .ios-hint p{margin:0;flex:1;min-width:0}
 .ios-hint button{border:0;background:none;font-weight:700;cursor:pointer;padding:0}
@@ -119,7 +125,7 @@ button{font:inherit;color:inherit}
 
 /* my day */
 .tc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-.tc-head h2{margin:0}
+.card .tc-head h2{margin:0}
 .tc-head .chips{gap:6px}
 .trip{display:flex;flex-direction:column;gap:9px;padding:14px 0 4px;border-top:1px solid var(--line)}
 .trip:first-child{border-top:0;padding-top:6px}
@@ -130,6 +136,7 @@ button{font:inherit;color:inherit}
 .rchip{border:0;background:var(--chip);border-radius:999px;padding:7px 12px;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
 .rchip[aria-pressed="true"]{background:var(--pill-bg);color:var(--pill-ink)}
 .rchip .rec{font-size:11px;font-weight:800;background:var(--hl-bg);color:var(--hl-ink);border-radius:999px;padding:1px 7px}
+.rchip[aria-pressed="true"] .rec{background:var(--pill-ink);color:var(--pill-bg)}
 .steps{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 .step{display:inline-flex;align-items:center;gap:5px;background:var(--chip);border-radius:12px;padding:5px 9px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .step.out{box-shadow:inset 0 0 0 2px var(--ink)}
@@ -145,21 +152,22 @@ button{font:inherit;color:inherit}
 .edit h3{margin:18px 0 8px;font:800 1rem/1.1 var(--font-display)}
 .edit .lead{margin:0;font-size:13.5px;color:var(--ink2);max-width:62ch}
 .ed-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--chip);border-radius:16px;padding:10px;margin-top:8px}
-.ed-row select,.ed-row input{border:0;background:var(--card);color:var(--ink);border-radius:10px;padding:8px 10px;font:inherit;font-size:14px;min-width:0}
+.ed-row select,.ed-row input{border:1.5px solid var(--input-line);background:var(--input);color:var(--ink);border-radius:10px;padding:8px 10px;min-height:40px;font:inherit;font-size:14px;min-width:0}
 .ed-row input[type="number"]{width:4.6em}
-.ed-row input[type="time"]{width:7.2em}
+.ed-row input[type="time"]{width:auto;min-width:7.2em}
 .ed-row input.stop{flex:1 1 9em}
 .ed-row .lbl{font-size:13px;font-weight:700;color:var(--ink2)}
 .days{display:flex;gap:4px;flex-wrap:wrap}
-.days button{border:0;background:var(--card);border-radius:999px;padding:6px 9px;font-size:12.5px;font-weight:700;cursor:pointer}
+.days button{border:1.5px solid var(--input-line);background:var(--input);border-radius:999px;padding:7px 10px;min-height:36px;font-size:12.5px;font-weight:700;cursor:pointer}
+.days button[aria-pressed="true"]{border-color:transparent}
 .days button[aria-pressed="true"]{background:var(--pill-bg);color:var(--pill-ink)}
-.x{border:0;background:none;font-size:20px;line-height:1;cursor:pointer;color:var(--ink2);margin-left:auto;padding:2px 6px}
+.x{border:0;background:none;font-size:20px;line-height:1;cursor:pointer;color:var(--ink2);margin-left:auto;min-width:40px;min-height:40px;border-radius:999px}
 .route-box{background:var(--card);border-radius:18px;padding:12px;margin-top:10px}
 .route-box > .ed-row:first-child{margin-top:0}
 .route-box .name{font-weight:800;flex:1 1 10em}
 .add-steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
 .add-steps .lbl{font-size:13px;font-weight:700;color:var(--ink2);margin-right:2px}
-.mini-btn{border:0;background:var(--chip);border-radius:999px;padding:6px 11px;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.mini-btn{border:0;background:var(--chip);border-radius:999px;padding:8px 12px;min-height:36px;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
 .mini-btn svg{width:15px;height:15px}
 .ed-foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 .warn{font-size:13.5px;font-weight:700;margin:8px 0 0}
@@ -170,18 +178,20 @@ button{font:inherit;color:inherit}
 .pill.soft{background:var(--chip);color:var(--ink)}
 .head{margin:0;font:800 clamp(2.15rem,7.4vw,3.7rem)/1.02 var(--font-display);letter-spacing:-.035em;text-wrap:balance;max-width:16ch}
 .hl{display:inline-block;background:var(--hl-bg);color:var(--hl-ink);padding:.02em .2em .06em;border-radius:.22em;transform:rotate(-2deg);margin:0 .04em}
-.now{display:flex;align-items:center;gap:14px;margin-top:18px}
+.hero .now{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:18px}
+.hero .now > div{min-width:0;flex:1 1 12em}
 .big{font:800 4.4rem/.9 var(--font-display);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
-.now .ic{width:46px;height:46px}
-.now .t1{font-weight:700;font-size:16px}
-.now .t2{color:var(--ink2);font-size:14px}
+.hero .now .ic{width:46px;height:46px}
+.hero .now .t1{font-weight:700;font-size:16px}
+.hero .now .t2{color:var(--ink2);font-size:14px}
+.head:focus{outline:none}
 
 /* sticker board */
 .stickers{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 2px;padding:6px 0}
-.stk{width:118px;display:flex;flex-direction:column;align-items:center;gap:4px;transform:rotate(var(--r,0deg))}
+.stk{min-width:118px;padding:0 3px;display:flex;flex-direction:column;align-items:center;gap:4px;transform:rotate(var(--r,0deg))}
 .stk .art{width:100px;height:100px;filter:drop-shadow(3px 0 0 var(--halo)) drop-shadow(-3px 0 0 var(--halo)) drop-shadow(0 3px 0 var(--halo)) drop-shadow(0 -3px 0 var(--halo)) drop-shadow(0 10px 12px var(--shadow))}
 .stk .art svg{width:100%;height:100%;display:block}
-.stk .lab{background:var(--chip);border-radius:999px;padding:3px 10px;font-weight:700;font-size:13px;text-align:center;line-height:1.25;max-width:116px}
+.stk .lab{background:var(--chip);border-radius:999px;padding:3px 10px;font-weight:700;font-size:13px;text-align:center;line-height:1.25;white-space:nowrap}
 .pop .stk{animation:drop .5s cubic-bezier(.2,.9,.3,1.25) both}
 .pop .stk:nth-child(2){animation-delay:.05s}.pop .stk:nth-child(3){animation-delay:.1s}.pop .stk:nth-child(4){animation-delay:.15s}.pop .stk:nth-child(5){animation-delay:.2s}.pop .stk:nth-child(6){animation-delay:.25s}
 @keyframes drop{from{transform:translateY(-14px) rotate(calc(var(--r,0deg) - 10deg)) scale(.9)}to{transform:rotate(var(--r,0deg))}}
@@ -298,7 +308,7 @@ button{font:inherit;color:inherit}
   <main class="grid">
     <section class="hero" aria-label="Bugünün önerisi">
       <div class="pills" id="pills"></div>
-      <h1 class="head" id="headline">Bugün ne giysem?</h1>
+      <h1 class="head" id="headline" tabindex="-1">Bugün ne giysem?</h1>
       <div class="now">
         <span class="big" id="bigTemp">17°</span>
         <span id="nowIcon"></span>
@@ -419,26 +429,43 @@ button{font:inherit;color:inherit}
            routes:[], trips:[], dayMode:true, dayWx:null, choice:{date:"", picks:{}}, fix:null};
   (function(){
     var d = null;
-    try { var raw = localStorage.getItem(KEY); d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
+    // The first version kept the same kind of data under negiysem:v1; it is read once and saved under the new key.
+    try { var raw = localStorage.getItem(KEY) || localStorage.getItem("negiysem:v1"); d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
     if (!d || typeof d !== "object") return;
-    if (Array.isArray(d.places)) S.places = d.places.filter(function(p){ return p && p.id && isFinite(p.lat) && isFinite(p.lon); });
+    var num = function(v){ return typeof v === "number" && isFinite(v); };
+    var str = function(v){ return typeof v === "string" && v.length > 0; };
+    if (Array.isArray(d.places)) S.places = d.places.filter(function(p){ return p && str(p.id) && num(p.lat) && num(p.lon); })
+      .map(function(p){ return {id:p.id, name:String(p.name || "Kayıtlı yer"), sub:String(p.sub || ""), lat:p.lat, lon:p.lon}; });
     if (typeof d.sel === "string") S.sel = d.sel;
     if ([3,6,12].indexOf(d.hours) >= 0) S.hours = d.hours;
     if (["cold","normal","warm"].indexOf(d.feel) >= 0) S.feel = d.feel;
     if (["city","field","sport"].indexOf(d.act) >= 0) S.act = d.act;
     if (d.manual && typeof d.manual === "object") {
-      if (isFinite(d.manual.temp)) S.manual.temp = Math.max(-10, Math.min(40, +d.manual.temp));
-      if (d.manual.sky) S.manual.sky = d.manual.sky;
-      if (d.manual.wind) S.manual.wind = d.manual.wind;
+      if (num(+d.manual.temp)) S.manual.temp = Math.max(-10, Math.min(40, +d.manual.temp));
+      if (["sunny","partly","cloudy","rain","snow"].indexOf(d.manual.sky) >= 0) S.manual.sky = d.manual.sky;
+      if (["calm","breezy","windy","storm"].indexOf(d.manual.wind) >= 0) S.manual.wind = d.manual.wind;
     }
-    if (d.live && d.live.wx && d.live.wx.hourly && d.live.place) S.live = d.live;
+    var lv = d.live;
+    if (lv && lv.wx && lv.wx.hourly && Array.isArray(lv.wx.hourly.time) && Array.isArray(lv.wx.hourly.apparent_temperature) &&
+        lv.place && num(lv.place.lat) && num(lv.place.lon) && num(lv.fetchedAt)) S.live = lv;
     if (d.mode === "live" && S.live) S.mode = "live";
-    if (Array.isArray(d.routes)) S.routes = d.routes.filter(function(r){ return r && r.id && Array.isArray(r.steps); });
-    if (Array.isArray(d.trips)) S.trips = d.trips.filter(function(t){ return t && t.id && Array.isArray(t.days); });
+    if (Array.isArray(d.routes)) S.routes = d.routes.filter(function(r){ return r && str(r.id) && Array.isArray(r.steps); }).map(function(r){
+      return {id:r.id, from:String(r.from || ""), to:String(r.to || ""), name:String(r.name == null ? "" : r.name),
+        steps:r.steps.filter(function(st){ return st && typeof st === "object" && typeof st.m === "string"; }).map(function(st){
+          var o = {m:st.m, min:Math.max(1, Math.min(240, Math.round(+st.min) || 1))};
+          if (st.m === "walk") o.slope = ["flat","up","steep"].indexOf(st.slope) >= 0 ? st.slope : "flat";
+          if (st.a) o.a = String(st.a); if (st.b) o.b = String(st.b);
+          return o;
+        })};
+    });
+    if (Array.isArray(d.trips)) S.trips = d.trips.filter(function(t){ return t && str(t.id) && Array.isArray(t.days); }).map(function(t){
+      return {id:t.id, from:String(t.from || ""), to:String(t.to || ""), time:/^\d{1,2}:\d{2}$/.test(t.time) ? t.time : "08:00",
+        days:t.days.filter(function(x){ return x >= 0 && x <= 6 && x === Math.floor(x); })};
+    });
     if (typeof d.dayMode === "boolean") S.dayMode = d.dayMode;
-    if (d.dayWx && d.dayWx.byPlace) S.dayWx = d.dayWx;
-    if (d.choice && d.choice.picks) S.choice = d.choice;
-    if (d.fix && isFinite(d.fix.lat) && isFinite(d.fix.lon) && d.fix.at) S.fix = d.fix;
+    if (d.dayWx && d.dayWx.byPlace && typeof d.dayWx.byPlace === "object") S.dayWx = d.dayWx;
+    if (d.choice && d.choice.picks && typeof d.choice.picks === "object") S.choice = d.choice;
+    if (d.fix && num(d.fix.lat) && num(d.fix.lon) && num(d.fix.at)) S.fix = d.fix;
   })();
   var busy = false, lastWearSig = "", CUR = {wear:[], take:[]};
   function save(){
@@ -449,19 +476,21 @@ button{font:inherit;color:inherit}
       var pl = S.live && S.live.place ? {name:S.live.place.name, lat:S.live.place.lat, lon:S.live.place.lon} : null;
       var places = S.places.map(function(p){ return {id:p.id, name:p.name, lat:p.lat, lon:p.lon}; });
       try { window.NeGiysemAndroid.saveState(JSON.stringify({feel:S.feel, act:S.act, hours:S.hours, place:pl,
-        routine:{dayMode:S.dayMode, places:places, routes:S.routes, trips:S.trips}})); } catch (e) {}
+        routine:{dayMode:S.dayMode, places:places, routes:S.routes, trips:S.trips, choice:S.choice}})); } catch (e) {}
     }
   }
 
   /* ================= helpers ================= */
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+  function fin(v){ return typeof v === "number" && isFinite(v); }
   function rnd(v){ var r = Math.round(v); return r === 0 ? 0 : r; }
   function deg(v){ var r = rnd(v); return (r < 0 ? "−" + Math.abs(r) : String(r)) + "°"; }
   function cap(s){ return s ? s.charAt(0).toLocaleUpperCase("tr") + s.slice(1) : s; }
   function lcf(s){ return s ? s.charAt(0).toLocaleLowerCase("tr") + s.slice(1) : s; }
   function hm(t){ return t ? String(t).slice(11,16) : ""; }
   function num(v, d){ return Number(v).toLocaleString("tr-TR", {maximumFractionDigits: d || 0}); }
+  function smooth(){ return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"; }
   function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
   function daypart(t){ var h = +String(t).slice(11,13); return h >= 5 && h <= 11 ? "sabah" : h <= 16 && h >= 12 ? "öğleden sonra" : h >= 17 && h <= 20 ? "akşam" : "gece"; }
   var WN = ["Yıldız","Poyraz","Gündoğusu","Keşişleme","Kıble","Lodos","Günbatısı","Karayel"];
@@ -553,19 +582,19 @@ button{font:inherit;color:inherit}
     parka:{slot:"Dış katman", alt:"Kalın parka ya da kürk yakalı kışlık mont", tip:"Uzun boy ve kapüşon şart."},
     yagmurluk:{slot:"Dış katman", alt:"Yağmurluk ya da su geçirmez rüzgarlık", tip:"Kapüşonlu olanı rüzgarda şemsiyeden iyidir."},
     ruzgarlik:{slot:"Dış katman", alt:"İnce rüzgarlık ya da yelek", tip:"Katlanınca cebe sığar."},
-    jean:{slot:"Alt", alt:"Jean, chino ya da kanvas pantolon", tip:"Çok terlersen keten karışımlı bir pantolon daha rahat eder."},
+    jean:{slot:"Alt", alt:"Jean, chino ya da kanvas pantolon", tip:"Rahat kesim olsun; gün boyu yürümeye uygun."},
     pantolon:{slot:"Alt", alt:"Kalın kumaş pantolon ya da astarlı jean", tip:"Çok soğukta altına ince tayt giy."},
     sort:{slot:"Alt", alt:"Şort, keten pantolon ya da hafif etek", tip:"Açık renk ve keten serin tutar."},
     tayt:{slot:"Alt", alt:"Spor tayt ya da eşofman altı", tip:"Nefes alan kumaş seç."},
     sneaker:{slot:"Ayak", alt:"Sneaker ya da kapalı, rahat bir ayakkabı", tip:"Çok yürüyeceksen yumuşak tabanlı olanı seç."},
     spor:{slot:"Ayak", alt:"Koşu ya da spor ayakkabısı", tip:"Islak zeminde tabanı kaymayan bir model seç."},
     bot:{slot:"Ayak", alt:"Bot ya da su geçirmez kapalı ayakkabı", tip:"Kalın çorapla giy."},
-    yuruyus:{slot:"Ayak", alt:"Bilekli yürüyüş botu", tip:"Arazide bileği korur."},
+    yuruyus:{slot:"Ayak", alt:"Bilekli yürüyüş botu", tip:"Su geçirmez olanı ıslak çimende de işe yarar."},
     sandalet:{slot:"Ayak", alt:"Sandalet ya da file sneaker", tip:"Uzun yürüyüşte bantlı olanı ayağı tutar."},
     bere:{slot:"Baş", alt:"Bere", tip:"Isının önemli bir kısmı baştan kaçar."},
     sapka:{slot:"Baş", alt:"Şapka ya da kep", tip:"Siperlik yüzü güneşten korur."},
     semsiye:{slot:"Yanına al", alt:"Katlanır şemsiye", tip:"Rüzgar sertse kapüşon daha iyi iş görür."},
-    gozluk:{slot:"Yanına al", alt:"UV korumalı güneş gözlüğü", tip:"Kış güneşi de göz yorar."},
+    gozluk:{slot:"Yanına al", alt:"UV korumalı güneş gözlüğü", tip:"Gözü ve göz çevresini güneşten korur."},
     atki:{slot:"Yanına al", alt:"Atkı ya da boyunluk", tip:"Rüzgarda boynu kapatmak çok fark eder."},
     eldiven:{slot:"Yanına al", alt:"Eldiven", tip:"Dokunmatik uçlu olanla telefonu da kullanırsın."},
     su:{slot:"Yanına al", alt:"Su şişesi", tip:"Gün içinde azar azar iç."},
@@ -608,61 +637,73 @@ button{font:inherit;color:inherit}
 
   function plan(inp, P){
     var off = (FEEL_OFF[P.feel] || 0) + (ACT_OFF[P.act] || 0);
-    var W = inp.window.filter(function(h){ return isFinite(h.app); });
+    var W = inp.window.filter(function(h){ return fin(h.app); });
     var rawNow = inp.now.app, rawLow = rawNow, rawHigh = rawNow, lowAt = null, highAt = null;
     W.forEach(function(h){ if (h.app < rawLow) { rawLow = h.app; lowAt = h.time; } if (h.app > rawHigh) { rawHigh = h.app; highAt = h.time; } });
-    var E = rawNow + off, L = levelOf(E);
+    // The level follows the rounded number the person sees ("Hissedilen 3°" is never dressed as 2°).
+    var E = rawNow + off, L = levelOf(Math.round(E));
     var Llow = Math.min(L, levelOf(rawLow + off + 0.7)), Lhigh = Math.max(L, levelOf(rawHigh + off - 0.7));
-    var base = P.act === "sport" ? SPORT(L) : OUT[L];
-    var wear = base.wear.map(function(g){ return {g:g, label:G[g]}; });
+    var sport = P.act === "sport";
+    var base = sport ? SPORT(L) : OUT[L];
+    var night = inp.now.isDay === 0 && !inp.uvDay;
+    var wear = base.wear.filter(function(g){ return !(night && g === "sapka"); }).map(function(g){ return {g:g, label:G[g]}; });
     var take = base.take.map(function(g){ return {g:g, label:G[g]}; });
     var head = base.head, pills = [], notes = [];
     function has(g){ return wear.some(function(w){ return w.g === g; }); }
     function swap(list, g, label){ var it = {g:g, label:label || G[g]}; for (var i = 0; i < wear.length; i++) if (list.indexOf(wear[i].g) >= 0) { wear[i] = it; return; } wear.push(it); }
     function addTake(g, label, first){ if (has(g) || take.some(function(t){ return t.g === g; })) return; var it = {g:g, label:label || G[g]}; if (first) take.unshift(it); else take.push(it); }
     function strip(s){ return s.replace(/[{}]/g, ""); }
-    var reasons = {}; // why each piece is on the list, shown in the sticker's info card
+    var reasons = {}, infoOv = {}; // why each piece is on the list, and info-card text that depends on the weather
     function why(g, t){ (reasons[g] = reasons[g] || []).push(t); }
     function outerNow(){ for (var i = 0; i < wear.length; i++) if (OUTER.indexOf(wear[i].g) >= 0) return wear[i].g; return null; }
+    function takesOuter(){ return take.some(function(t){ return OUTER.indexOf(t.g) >= 0; }); }
 
+    var trip = inp.kind === "day"; // the "now" of a day plan is the first outdoor moment, not the present
     var codes = [inp.now.code].concat(W.map(function(h){ return h.code; }));
     var pMax = Math.round(Math.max.apply(null, [0].concat(W.map(function(h){ return h.p || 0; }))));
     var windMax = Math.round(Math.max.apply(null, [inp.now.wind || 0].concat(W.map(function(h){ return h.wind || 0; }))));
     var gust = Math.round(inp.now.gust || 0);
     var wi = windIdx(inp.now.dir);
-    var rainNow = isRain(inp.now.code) || (inp.now.precip || 0) >= 0.2;
-    var snowy = codes.some(isSnow);
-    var wet = rainNow || pMax >= 60 || (codes.some(isRain) && pMax >= 40);
+    var precipNow = !trip && (inp.now.precip || 0) >= 0.2;
+    var snowNow = !trip && (isSnow(inp.now.code) || (precipNow && !isRain(inp.now.code) && fin(inp.now.t) && inp.now.t <= 0.5));
+    var rainNow = !trip && (isRain(inp.now.code) || (precipNow && !snowNow));
+    var snowy = snowNow || codes.some(isSnow);
+    var wet = rainNow || (codes.some(isRain) && pMax >= (trip ? 30 : 40)) || (pMax >= 60 && !snowy);
     var maybe = !wet && !snowy && pMax >= 30;
+    var icy = codes.some(function(c){ return c === 56 || c === 57 || c === 66 || c === 67; });
+    var thunder = codes.some(function(c){ return c >= 95; });
     var windy = windMax >= 28 || gust >= 45;
     var stormy = windMax >= 45 || gust >= 70;
     var hasOuter = wear.some(function(w){ return OUTER.indexOf(w.g) >= 0; });
 
     if (P.act === "field") {
       swap(BOTTOMS, "pantolon", "Uzun pantolon");
+      infoOv.pantolon = {alt:"Dayanıklı uzun pantolon ya da kargo", tip:"Açık renk seçersen keneyi fark etmek kolaylaşır."};
       swap(SHOES, "yuruyus");
-      if (L >= 5 && !has("sapka")) { wear.push({g:"sapka", label:G.sapka}); why("sapka", "Arazide güneşe ve dallara karşı"); }
+      if (L >= 5 && !night && !has("sapka")) { wear.push({g:"sapka", label:G.sapka}); why("sapka", "Arazide güneşe ve dallara karşı"); }
       why("pantolon", "Arazide çalıya ve keneye karşı uzun ve dayanıklı olsun");
       why("yuruyus", "Engebeli yolda bileği korur, kaymaz");
       if (rawNow >= 7) notes.push("Açık renk giy, paçaları çorabın içine al: keneyi fark etmek kolaylaşır.");
     }
-    if (P.act === "sport") {
+    if (sport) {
       notes.push("Isınınca terleyeceğin için bir kat eksik önerildi; bitince kuru bir üst giy.");
       wear.forEach(function(w){ if (w.g !== "spor") why(w.g, "Hareket edince ısınırsın; bir kat hafif tutuldu"); });
     }
 
+    var lowPool = [], carryWhy = "", carry = null;
     if (Llow < L) {
-      var lo = P.act === "sport" ? SPORT(Llow) : OUT[Llow];
-      var pool = lo.wear.concat(lo.take).filter(function(g){ return !has(g); });
+      var lo = sport ? SPORT(Llow) : OUT[Llow];
+      var pool = lowPool = lo.wear.concat(lo.take).filter(function(g){ return !has(g); });
       var inGroup = function(list){ return pool.filter(function(g){ return list.indexOf(g) >= 0; })[0]; };
       // Already wearing a coat: carry a warmer layer or a scarf/beanie, never a second coat.
-      var cand = hasOuter ? (inGroup(MID) || inGroup(["atki","bere","eldiven"])) : (inGroup(OUTER) || inGroup(MID));
+      var cand = (hasOuter ? (inGroup(MID) || inGroup(["atki","bere","eldiven"])) : (inGroup(OUTER) || inGroup(MID))) || (sport ? inGroup(["longsleeve","thermal"]) : null);
       var dp = lowAt ? daypart(lowAt) : "akşam";
+      carryWhy = cap(dp) + (lowAt ? " (" + hm(lowAt) + ")" : "") + " hissedilen sıcaklık " + deg(rawLow) + " olacak";
       if (cand) {
         take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0 && MID.indexOf(t.g) < 0; }); addTake(cand, null, true);
-        why(cand, cap(dp) + (lowAt ? " (" + hm(lowAt) + ")" : "") + " hissedilen sıcaklık " + deg(rawLow) + " olacak");
+        why(cand, carryWhy); carry = cand;
       }
-      if (cand && ACC[cand] && P.act !== "sport") head = "{" + ACC[cand] + "} yanına al, " + dp + " serinliyor.";
+      if (cand && ACC[cand] && !sport) head = "{" + ACC[cand] + "} yanına al, " + dp + " " + (rawLow + off < 8 ? "soğuyor" : "serinliyor") + ".";
       pills.push(cap(dp) + " " + deg(rawLow));
     } else if (Lhigh > L && highAt) {
       var dpH = daypart(highAt);
@@ -672,41 +713,72 @@ button{font:inherit;color:inherit}
 
     if (wet) {
       pills.unshift(rainNow ? "Yağmur yağıyor" : "Yağmur %" + pMax);
-      var addedCoat = false;
-      var takeOuter = take.some(function(t){ return OUTER.indexOf(t.g) >= 0; });
-      var rainWhy = rainNow ? "Şu an yağmur yağıyor" : "Dışarıdayken yağmur ihtimali %" + pMax;
-      if (!hasOuter && !takeOuter && P.act !== "sport") {
-        wear.push({g:"yagmurluk", label:G.yagmurluk}); addedCoat = true; why("yagmurluk", rainWhy);
-        take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0; });
-      } else if (hasOuter || takeOuter) {
-        notes.push("Dış katmanın su geçirmez olsun.");
-        var og = outerNow() || (take.filter(function(t){ return OUTER.indexOf(t.g) >= 0; })[0] || {}).g;
-        if (og) why(og, rainWhy + ": su geçirmez ya da su itici olsun");
-      }
-      if (P.act === "city" && wear.some(function(w){ return w.g === "sneaker" || w.g === "sandalet"; })) { swap(SHOES, "bot", "Su geçirmez ayakkabı"); why("bot", "Islak zeminde su geçirmez olsun; kanvas ve süetten kaçın"); }
-      if (windy) head = "{Kapüşonlu} bir şey giy, rüzgarda şemsiye uçar.";
-      else {
-        addTake("semsiye", null, true); why("semsiye", rainWhy);
-        head = addedCoat ? "{Yağmurluğunu} giy, şemsiyeni al." : "{Şemsiyeni} al; " + lcf(strip(head));
+      var rainWhy = rainNow ? "Şu an yağmur yağıyor" : (trip ? "Yolculuğunda yağmur ihtimali %" : "Dışarıdayken yağmur ihtimali %") + pMax;
+      if (sport) {
+        // No umbrella while running: a water-repellent shell instead.
+        if (!has("ruzgarlik")) wear.push({g:"ruzgarlik", label:"Su itici rüzgarlık"});
+        why("ruzgarlik", rainWhy + "; su itici olsun");
+        head = "Yağmur var: su itici {rüzgarlık} giy, kaymayan taban seç.";
+      } else {
+        var addedCoat = false, hot = L >= 6;
+        if (!hasOuter && !(hot && !windy)) {
+          // Something waterproof is worn, not carried: a raincoat replaces the jacket to take along.
+          var dropped = takesOuter();
+          take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0; });
+          wear.push({g:"yagmurluk", label: hot ? "İnce yağmurluk" : G.yagmurluk}); addedCoat = true; why("yagmurluk", rainWhy);
+          if (dropped && carry && OUTER.indexOf(carry) >= 0) {
+            var mid = lowPool.filter(function(g){ return MID.indexOf(g) >= 0 && !has(g); })[0];
+            if (mid) { addTake(mid, null, true); why(mid, carryWhy); }
+          }
+        } else if (hasOuter) {
+          notes.push("Dış katmanın su geçirmez olsun.");
+          why(outerNow(), rainWhy + ": su geçirmez ya da su itici olsun");
+        }
+        if (P.act === "city" && !hot && wear.some(function(w){ return w.g === "sneaker" || w.g === "sandalet"; })) {
+          swap(SHOES, "bot", "Su geçirmez ayakkabı"); why("bot", "Islak zeminde su geçirmez olsun; kanvas ve süetten kaçın");
+          infoOv.bot = {alt:"Su geçirmez sneaker ya da bot", tip:"Kalın tabanlı olanı su birikintisinde de ayağı kuru tutar."};
+        }
+        if (windy) head = addedCoat ? "{Kapüşonlu yağmurluğunu} giy; rüzgarda şemsiye uçar." : "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgarda şemsiye uçar.";
+        else {
+          addTake("semsiye", null, true); why("semsiye", rainWhy);
+          head = addedCoat ? "{Yağmurluğunu} giy, şemsiyeni al." : "{Şemsiyeni} al; " + lcf(strip(head));
+        }
       }
     } else if (maybe) {
-      addTake("semsiye", "Şemsiye (%" + pMax + ")"); why("semsiye", "Yağmur ihtimali %" + pMax + "; çantada dursun");
       pills.push("Yağmur ihtimali %" + pMax);
+      if (!windy && !sport) { addTake("semsiye", "Şemsiye (%" + pMax + ")"); why("semsiye", "Yağmur ihtimali %" + pMax + "; çantada dursun"); }
     }
     if (snowy) {
-      pills.unshift("Kar");
-      if (P.act !== "sport") { swap(SHOES, "bot", "Kaymaz bot"); why("bot", "Kar ve buzda kaymaz taban"); }
+      pills.unshift(snowNow ? "Kar yağıyor" : "Kar");
+      if (!sport) {
+        swap(SHOES, "bot", "Kaymaz bot"); why("bot", "Kar ve buzda kaymaz taban");
+        infoOv.bot = {alt:"Tırtıklı, kaymaz tabanlı bot", tip:"Kalın çorapla giy; buzda adımlarını kısalt."};
+      }
       addTake("eldiven"); why("eldiven", "Kar var; eller ilk üşüyen yer");
+      var os = outerNow(); if (os && !wet) why(os, (snowNow ? "Kar yağıyor" : "Kar bekleniyor") + ": su itici olsun");
+    }
+    if (icy) {
+      pills.unshift("Buzlanma");
+      if (P.act === "city") {
+        swap(SHOES, "bot", "Kaymaz bot"); why("bot", "Donan yağmur: yerde buzlanma olabilir");
+        infoOv.bot = {alt:"Tırtıklı, kaymaz tabanlı bot", tip:"Kalın çorapla giy; buzda adımlarını kısalt."};
+      }
+      notes.unshift("Yerde buzlanma olabilir; kaymaz tabanlı ayakkabı giy, adımlarını kısalt.");
+    }
+    if (thunder) {
+      pills.unshift("Fırtına");
+      notes.unshift("Gök gürültüsü varken açık alanda ve ağaç altında bekleme.");
     }
     if (windy) {
-      var windTxt = (wi >= 0 ? WN[wi] + " " : "Rüzgar ") + windMax + " km/sa";
+      var windTxt = (wi >= 0 ? WN[wi] + " " : "Rüzgar ") + (windMax >= 28 ? windMax + " km/sa" : "hamlede " + gust + " km/sa");
       pills.push(windTxt);
       var ow = outerNow(); if (ow) why(ow, windTxt + ": rüzgar geçirmez olsun, yakası kapansın");
-      if (!hasOuter && L >= 4 && P.act !== "sport" && !take.some(function(t){ return OUTER.indexOf(t.g) >= 0; })) { addTake("ruzgarlik"); why("ruzgarlik", windTxt + "; ince bir rüzgarlık yeter"); }
-      if (!wet) notes.unshift((wi >= 0 ? WN[wi] : "Rüzgar") + " sert esiyor, yakanı kapat.");
-      if (stormy) notes.push("Rüzgar çok sert; şemsiye yerine kapüşon kullan.");
+      if (!hasOuter && L >= 4 && L <= 5 && !sport && !outerNow() && !takesOuter()) { addTake("ruzgarlik"); why("ruzgarlik", windTxt + "; ince bir rüzgarlık yeter"); }
+      if (!wet && L <= 5) notes.unshift((wi >= 0 ? WN[wi] : "Rüzgar") + " sert esiyor, yakanı kapat.");
+      if (stormy && (wet || maybe)) notes.push("Rüzgar çok sert; şemsiye yerine kapüşon kullan.");
     }
-    if (inp.uvDay && inp.uvMax != null) {
+    var rainAllDay = wet && W.length && W.every(function(h){ return isRain(h.code); });
+    if (inp.uvDay && inp.uvMax != null && !rainAllDay) {
       var uvTxt = "UV " + num(inp.uvMax, 1);
       if (inp.uvMax >= 6) {
         addTake("gozluk"); addTake("krem"); addTake("sapka"); pills.push("UV yüksek");
@@ -718,18 +790,26 @@ button{font:inherit;color:inherit}
     if (P.act === "field" && wet) { addTake("corap"); why("corap", "Arazide ayak ıslanırsa değiştirirsin"); }
     if (L === 7) why("su", "Sıcakta su kaybın artar");
 
-    var feltTxt = "Hissedilen " + deg(E) + ": " + LV[L].name.toLocaleLowerCase("tr");
-    var baseTake = base.take;
-    var withWhy = function(list, fallback){
+    var feltTxt = (off ? "Sana göre " : "Hissedilen ") + deg(E) + ": " + LV[L].name.toLocaleLowerCase("tr");
+    var takeWhy = "Hava " + (L >= 5 ? "serinlerse" : "değişirse") + " diye yanında dursun";
+    function fallback(g){
+      if (base.take.indexOf(g) < 0) return feltTxt;
+      if (L <= 2 && ["eldiven","atki","bere"].indexOf(g) >= 0) return feltTxt + "; dışarıda tak";
+      if (g === "su") return sport ? "Terledikçe su kaybedersin" : "Sıcakta su kaybın artar";
+      return takeWhy;
+    }
+    var withWhy = function(list, isTake){
       return list.map(function(it){
         var r = (reasons[it.g] || []).slice();
-        if (!fallback && base.wear.indexOf(it.g) >= 0) r.unshift(feltTxt); // level-driven pieces start with the temperature
-        if (!r.length) r = [baseTake.indexOf(it.g) >= 0 && fallback ? fallback : feltTxt];
-        return {g:it.g, label:it.label, why:r, info:INFO[it.g] || {}};
+        if (!isTake && base.wear.indexOf(it.g) >= 0) r.unshift(feltTxt); // level-driven pieces start with the temperature
+        if (!r.length) r = [isTake ? fallback(it.g) : feltTxt];
+        var info = {}, a = INFO[it.g] || {}, b = infoOv[it.g] || {}, k;
+        for (k in a) info[k] = a[k]; for (k in b) info[k] = b[k];
+        return {g:it.g, label:it.label, why:r, info:info};
       });
     };
     return {L:L, E:E, rawNow:rawNow, rawLow:rawLow, off:off,
-            wear:withWhy(wear.slice(0, 6), null), take:withWhy(take.slice(0, 5), "Hava " + (L >= 5 ? "serinlerse" : "değişirse") + " diye yanında dursun"),
+            wear:withWhy(wear.slice(0, 6), false), take:withWhy(take.slice(0, 5), true),
             head:head, pills:pills.slice(0, 3), notes:notes.slice(0, 2), pMax:pMax, windMax:windMax, gust:gust, wi:wi, wet:wet};
   }
 
@@ -779,7 +859,10 @@ button{font:inherit;color:inherit}
     var H = wx.hourly, key = new Date(ms + (wx.utc_offset_seconds || 0) * 1000).toISOString().slice(0,13), i = -1;
     for (var k = 0; k < H.time.length; k++) if (String(H.time[k]).slice(0,13) === key) { i = k; break; }
     if (i < 0) return null;
-    return {time:H.time[i], app:H.apparent_temperature[i], t:H.temperature_2m[i], p:(H.precipitation_probability && H.precipitation_probability[i]) || 0,
+    var app = H.apparent_temperature ? H.apparent_temperature[i] : null, tt = H.temperature_2m ? H.temperature_2m[i] : null;
+    if (!fin(app)) app = fin(tt) ? tt : null;
+    if (app == null) return null;
+    return {time:H.time[i], app:app, t:fin(tt) ? tt : app, p:(H.precipitation_probability && H.precipitation_probability[i]) || 0,
             code:H.weather_code[i], wind:(H.wind_speed_10m && H.wind_speed_10m[i]) || 0, day:H.is_day ? H.is_day[i] : 1};
   }
   // Walks a route step by step: the first half of the journey uses the start place's weather, the second half the destination's.
@@ -814,7 +897,7 @@ button{font:inherit;color:inherit}
     var now = Date.now(), today = new Date().getDay();
     function pick(offset){
       var dow = (today + offset) % 7, list = [];
-      S.trips.filter(function(t){ return t.days.indexOf(dow) >= 0 && placeById(t.from) && placeById(t.to); })
+      S.trips.filter(function(t){ return t.days.indexOf(dow) >= 0 && t.from !== t.to && placeById(t.from) && placeById(t.to); })
         .sort(function(a, b){ return String(a.time).localeCompare(String(b.time)); })
         .forEach(function(t){
           var start = atTime(t.time, offset), routes = routesFor(t);
@@ -822,31 +905,32 @@ button{font:inherit;color:inherit}
           var evals = routes.map(function(r){ var ex = exposure(t, r, start); return {route:r, ex:ex, score:score(ex)}; });
           var best = evals.slice().sort(function(a, b){ return a.score - b.score; })[0];
           var shortest = evals.slice().sort(function(a, b){ return a.ex.total - b.ex.total; })[0];
-          if (best.ex.end < now) return;
           var picked = S.choice && S.choice.date === dateKey(start) && S.choice.picks[t.id];
           var chosen = evals.filter(function(e){ return e.route.id === picked; })[0] || best;
+          if (chosen.ex.end < now) return; // this trip is over (on the route actually taken)
           list.push({trip:t, start:start, evals:evals, best:best, shortest:shortest, chosen:chosen, offset:offset});
         });
       return list;
     }
-    // Today first; otherwise the next day in the coming week that has a trip (shown as a preview).
+    // Today first; otherwise the next day in the coming week that has a trip (shown as a preview). Offset 7 = the same weekday next week.
     var items = [], offset = 0;
-    for (var o = 0; o < 7 && !items.length; o++) { items = pick(o); offset = o; }
+    for (var o = 0; o <= 7 && !items.length; o++) { items = pick(o); offset = o; }
     if (!items.length) return {items:[], offset:0, none:true};
     var lead = offset === 0 || (offset === 1 && new Date().getHours() >= 17);
-    var dayName = offset === 0 ? "Bugün" : offset === 1 ? "Yarın" : DAY_NAMES[(today + offset) % 7];
+    var dayName = offset === 0 ? "Bugün" : offset === 1 ? "Yarın" : (offset === 7 ? "Haftaya " : "") + DAY_NAMES[(today + offset) % 7];
+    var doneToday = offset > 0 && S.trips.some(function(t){ return t.days.indexOf(today) >= 0 && t.from !== t.to && placeById(t.from) && placeById(t.to); });
     var exps = [];
     items.forEach(function(it){ if (it.chosen) it.chosen.ex.out.forEach(function(e){ if (e.end > now) exps.push(e); }); });
-    if (!exps.length) return {items:items, offset:offset, lead:lead, dayName:dayName};
+    if (!exps.length) return {items:items, offset:offset, lead:lead, dayName:dayName, doneToday:doneToday};
     var first = exps[0];
     var w0 = S.dayWx.byPlace[first.place], di = -1;
     if (w0 && w0.daily && w0.daily.time) di = w0.daily.time.indexOf(String(first.time).slice(0,10));
     var inp = {kind:"day", now:{t:first.t, app:first.app, code:first.code, isDay:first.day, wind:first.wind, gust:0, dir:null, rh:null, precip:0},
                window:exps.map(function(e){ return {time:e.time, app:e.app, p:e.p, code:e.code, wind:e.wind, day:e.day}; }),
                uvMax: di >= 0 && w0.daily.uv_index_max ? w0.daily.uv_index_max[di] : null,
-               uvDay: exps.some(function(e){ var h = +String(e.time).slice(11,13); return h >= 10 && h <= 16; }), sunset:null};
+               uvDay: exps.some(function(e){ var h = +String(e.time).slice(11,13); return h >= 10 && h <= 16 && String(e.time).slice(0,10) === String(first.time).slice(0,10); }), sunset:null};
     var coldest = exps.slice().sort(function(a, b){ return a.app - b.app; })[0];
-    return {items:items, offset:offset, inp:inp, exps:exps, coldest:coldest, lead:lead, dayName:dayName};
+    return {items:items, offset:offset, inp:inp, exps:exps, coldest:coldest, lead:lead, dayName:dayName, doneToday:doneToday};
   }
   function dayNotes(day, p){
     var notes = [], walk = 0, ride = 0, rainRide = false, steep = false;
@@ -854,14 +938,18 @@ button{font:inherit;color:inherit}
     if (rainRide && !p.wet) notes.push("Yağmur sen toplu taşımadayken yağıyor; dışarıdaki anlarında kuru.");
     if (ride >= 25 && p.L <= 4) notes.push("Toplu taşımada içerisi sıcak olur; önü açılan bir dış katman seç.");
     if (steep) notes.push("Yokuşta ısınırsın; dış katmanı açabileceğin şekilde giy.");
-    if (walk >= 30) notes.push("Bugün toplam " + walk + " dk yürüyorsun; rahat ayakkabı seç.");
+    if (walk >= 30) notes.push((day.offset ? day.dayName : "Bugün") + " toplam " + walk + " dk yürüyorsun; rahat ayakkabı seç.");
     return notes;
   }
+  function feltAvg(ex){ var m = 0, t = 0; ex.out.forEach(function(e){ m += e.min; t += e.min * e.app; }); return m ? t / m : null; }
   function whyText(it){
     if (!it.best || !it.shortest || it.best.route.id === it.shortest.route.id) return "";
+    if (Math.abs(it.best.score - it.shortest.score) <= 0.5) return "";
     var b = it.best.ex, s = it.shortest.ex, extra = Math.round(b.total - s.total);
-    var reason = rainMin(b) < rainMin(s) ? "yağmurda daha az kalırsın" : coldMin(b) < coldMin(s) ? "soğukta daha az beklersin" : "dışarıda daha az kalırsın";
-    return "Bugün " + esc(it.best.route.name || "bu rota") + (extra > 0 ? ": " + extra + " dk daha uzun ama " : ": ") + reason + ".";
+    var reason = rainMin(b) < rainMin(s) ? "yağmurda daha az kalırsın" : coldMin(b) < coldMin(s) ? "soğukta daha az kalırsın" :
+      b.outMin < s.outMin ? "dışarıda daha az kalırsın" :
+      (feltAvg(s) != null && feltAvg(s) < 12 && feltAvg(b) > feltAvg(s) + 1) ? "yürürken daha az üşürsün" : "havaya daha uygun";
+    return "Önerilen " + esc(it.best.route.name || "bu rota") + (extra > 0 ? ": " + extra + " dk daha uzun ama " : ": ") + reason + ".";
   }
 
   /* ================= inputs ================= */
@@ -889,20 +977,25 @@ button{font:inherit;color:inherit}
     if (idx < 0) { if (nowKey < String(H.time[0]).slice(0,13)) idx = 0; else return null; }
     var age = (Date.now() - lv.fetchedAt) / 60000;
     var pk = function(a, j){ return a ? a[j] : null; };
-    var now = (age < 45 && C.temperature_2m != null)
-      ? {t:C.temperature_2m, app:C.apparent_temperature, code:C.weather_code, isDay:C.is_day, wind:C.wind_speed_10m, gust:C.wind_gusts_10m, dir:C.wind_direction_10m, rh:C.relative_humidity_2m, precip:C.precipitation}
-      : {t:H.temperature_2m[idx], app:H.apparent_temperature[idx], code:H.weather_code[idx], isDay:pk(H.is_day, idx), wind:pk(H.wind_speed_10m, idx), gust:0, dir:pk(H.wind_direction_10m, idx), rh:null, precip:0};
+    var appAt = function(j){ var a = pk(H.apparent_temperature, j), t = pk(H.temperature_2m, j); return fin(a) ? a : fin(t) ? t : null; };
+    var now = (age < 45 && fin(C.temperature_2m))
+      ? {t:C.temperature_2m, app:fin(C.apparent_temperature) ? C.apparent_temperature : C.temperature_2m, code:C.weather_code, isDay:C.is_day, wind:C.wind_speed_10m, gust:C.wind_gusts_10m, dir:C.wind_direction_10m, rh:C.relative_humidity_2m, precip:C.precipitation}
+      : {t:pk(H.temperature_2m, idx), app:appAt(idx), code:H.weather_code[idx], isDay:pk(H.is_day, idx), wind:pk(H.wind_speed_10m, idx), gust:0, dir:pk(H.wind_direction_10m, idx), rh:null, precip:0};
+    if (!fin(now.app)) return null;
+    if (!fin(now.t)) now.t = now.app;
     var win = [];
     for (var k = 0; k <= S.hours && idx + k < H.time.length; k++) { var j = idx + k;
-      win.push({time:H.time[j], app:H.apparent_temperature[j], t:H.temperature_2m[j], p:(H.precipitation_probability && H.precipitation_probability[j]) || 0, code:H.weather_code[j], wind:pk(H.wind_speed_10m, j), day:pk(H.is_day, j)}); }
-    var di = (D.time || []).indexOf(nowKey.slice(0,10));
+      win.push({time:H.time[j], app:appAt(j), t:pk(H.temperature_2m, j), p:(H.precipitation_probability && H.precipitation_probability[j]) || 0, code:H.weather_code[j], wind:pk(H.wind_speed_10m, j), day:pk(H.is_day, j)}); }
+    var today = nowKey.slice(0,10), di = (D.time || []).indexOf(today);
     var sunset = di >= 0 && D.sunset ? D.sunset[di] : null;
     return {kind:"live", now:now, window:win, uvMax: di >= 0 && D.uv_index_max ? D.uv_index_max[di] : null,
-            uvDay: win.some(function(h){ var hr = +String(h.time).slice(11,13); return hr >= 10 && hr <= 16; }), sunset: sunset ? hm(sunset) : null, age:age};
+            uvDay: win.some(function(h){ var hr = +String(h.time).slice(11,13); return hr >= 10 && hr <= 16 && String(h.time).slice(0,10) === today; }), sunset: sunset ? hm(sunset) : null, age:age};
   }
   function currentInput(){ if (S.mode === "live") { var li = liveInput(); if (li) return li; S.mode = "manual"; } return manualInput(); }
 
   /* ================= render ================= */
+  // "Hissedilen 8°: soğukça; şu an yağmur yağıyor" (keeps acronyms such as "UV" as they are)
+  function joinWhy(list, sep){ return list.map(function(w, i){ var c2 = w.charAt(1); return i && c2 && c2 === c2.toLocaleLowerCase("tr") ? lcf(w) : w; }).join(sep); }
   function headHTML(s){ return esc(s).replace(/\{([^}]*)\}/g, '<span class="hl">$1</span>'); }
   var ROT = [-5, 4, -2, 6, -4, 3];
   function render(opts){
@@ -919,7 +1012,9 @@ button{font:inherit;color:inherit}
     if (tc) tc.setAttribute("content", dark ? "#15171f" : LV[p.L].color);
     if (window.NeGiysemAndroid) { try { window.NeGiysemAndroid.setTheme(dark ? "#15171f" : LV[p.L].color, !!dark); } catch (e) {} }
 
-    $("placeLabel").textContent = live ? S.live.place.name : "Elle ayar";
+    var pname = live ? S.live.place.name : "Elle ayar";
+    $("placeLabel").textContent = pname; $("placeBtn").title = pname;
+    $("placeBtn").setAttribute("aria-label", "Yer: " + pname + ". Değiştir");
     var soft = [LV[p.L].name]; if (useDay) soft.unshift(day.offset ? "Yarınki günüme göre" : "Günüme göre");
     $("pills").innerHTML = soft.map(function(x){ return '<span class="pill soft">' + esc(x) + '</span>'; }).join("") + p.pills.map(function(x){ return '<span class="pill">' + esc(x) + '</span>'; }).join("");
     $("headline").innerHTML = headHTML(p.head);
@@ -927,7 +1022,7 @@ button{font:inherit;color:inherit}
     $("nowIcon").innerHTML = icon(kindOf(inp.now.code, inp.now.isDay));
     $("nowCond").textContent = live ? (COND[inp.now.code] || "") : (SKY[S.manual.sky] || SKY.partly).label;
     $("nowFeels").textContent = "Hissedilen " + deg(inp.now.app) + (useDay
-      ? " · en serin dış anın " + hmOf(day.coldest.ms) + ", " + deg(day.coldest.app)
+      ? " · en serin dış anın " + (day.offset ? day.dayName.toLocaleLowerCase("tr") + " " : "") + hmOf(day.coldest.ms) + ", " + deg(day.coldest.app)
       : (p.off ? " · sana göre " + deg(p.E) : ""));
     renderTrips(day, live, preview);
 
@@ -945,7 +1040,7 @@ button{font:inherit;color:inherit}
     }).join("");
     $("slotList").innerHTML = p.wear.concat(p.take).map(function(it){
       var inf = it.info || {}, alt = inf.alt && inf.alt !== it.label ? esc(inf.alt) + " · " : "";
-      return '<div class="row-i"><dt>' + esc(inf.slot || "") + '</dt><dd>' + esc(it.label) + '<small>' + alt + esc(it.why.join("; ")) + (inf.tip ? ". " + esc(inf.tip) : "") + '</small></dd></div>';
+      return '<div class="row-i"><dt>' + esc(inf.slot || "") + '</dt><dd>' + esc(it.label) + '<small>' + alt + esc(joinWhy(it.why, "; ")) + (inf.tip ? ". " + esc(inf.tip) : "") + '</small></dd></div>';
     }).join("");
     var tips = (useDay ? dayNotes(day, p) : []).concat(p.notes).slice(0, 3);
     $("tips").innerHTML = tips.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join("");
@@ -959,7 +1054,7 @@ button{font:inherit;color:inherit}
       $("dayTitle").textContent = "Önümüzdeki " + S.hours + " saat";
       $("hours").innerHTML = inp.window.map(function(h, i){
         var pr = Math.round(h.p || 0);
-        return '<div class="h' + (i === 0 ? ' now' : '') + (i === lowI ? ' low' : '') + '"><span class="hh">' + (i === 0 ? "Şimdi" : hm(h.time)) + '</span>' + icon(kindOf(h.code, h.day)) + '<span class="ht">' + deg(h.app) + '</span><span class="hp">' + (pr >= 20 ? "%" + pr : "") + '</span></div>';
+        return '<div class="h' + (i === 0 ? ' now' : '') + (i === lowI ? ' low' : '') + '"><span class="hh">' + (i === 0 ? "Şimdi" : hm(h.time)) + '</span>' + icon(kindOf(h.code, h.day)) + '<span class="ht">' + deg(h.app) + '</span><span class="hp">' + (pr >= 20 ? '<span class="sr">yağış ihtimali </span>%' + pr : "") + '</span></div>';
       }).join("");
       var n = inp.now, f = [];
       f.push((p.wi >= 0 ? '<b>' + WN[p.wi] + '</b> · ' : 'Rüzgar ') + rnd(n.wind || 0) + ' km/sa');
@@ -993,11 +1088,12 @@ button{font:inherit;color:inherit}
     $("tripTitle").textContent = "Günüm";
     if (!S.dayMode) { box.innerHTML = '<p class="empty">Öneri şu an bulunduğun yerin havasına göre. Günün tamamına göre seçilmesi için “Günüme göre”yi aç.</p>'; return; }
     if (!S.dayWx || !day) { box.innerHTML = '<p class="empty">Yolculuklarının havasını almak için yenile düğmesine bas.</p>'; return; }
-    if (day.none) { box.innerHTML = '<p class="empty">Yolculuklarında seçili gün yok. Rutinim’de her yolculuğun hangi günler olduğunu işaretle.</p>'; return; }
+    if (day.none) { box.innerHTML = '<p class="empty">' + (S.trips.some(function(t){ return t.days.length; }) ? "Yolculuklarının yerleri eksik ya da başlangıçla varış aynı. Rutinim’den yolculuklarını kontrol et." : "Yolculuklarında seçili gün yok. Rutinim’de her yolculuğun hangi günler olduğunu işaretle.") + '</p><div><button type="button" class="mini-btn" data-open-routine>Rutinimi aç</button></div>'; return; }
     $("tripTitle").textContent = day.lead ? (day.offset ? "Yarın" : "Bugün") : "Sıradaki: " + day.dayName;
     var intro = "";
     if (!day.lead) {
-      intro = '<p class="empty">Bugün kayıtlı yolculuğun yok; yukarıdaki öneri şu an bulunduğun yerin havasına göre. ' + esc(day.dayName) + ' için önizleme:</p>';
+      intro = '<p class="empty">' + (day.doneToday ? "Bugünkü yolculukların bitti" : "Bugün kayıtlı yolculuğun yok") + '; yukarıdaki öneri şu an bulunduğun yerin havasına göre. ' + esc(day.dayName) + ' için önizleme:</p>';
+      if (!preview && day.items.some(function(it){ return !it.missing; })) intro += '<p class="empty">O günün hava tahmini henüz yok; yaklaştıkça burada görünür.</p>';
       if (preview) intro += '<div class="why">' + esc(preview.head.replace(/[{}]/g, "")) + '</div><div class="tsum">Giy: ' + preview.wear.map(function(w){ return esc(w.label); }).join(", ") +
         (preview.take.length ? ' · Yanına al: ' + preview.take.map(function(t){ return esc(t.label); }).join(", ") : '') + '</div>';
     }
@@ -1005,15 +1101,17 @@ button{font:inherit;color:inherit}
       var t = it.trip, a = placeById(t.from), b = placeById(t.to);
       var head = '<div class="trip-h"><time>' + esc(t.time) + '</time><span>' + esc(a ? a.name : "?") + ' → ' + esc(b ? b.name : "?") + '</span>' + (it.offset ? '<span class="when">' + esc(day.dayName) + '</span>' : '') + '</div>';
       if (it.missing) return '<div class="trip">' + head + '<p class="empty">Bu yolculuk için henüz rota yok.</p><div><button type="button" class="mini-btn" data-open-routine>Rota ekle</button></div></div>';
-      var chips = it.evals.length > 1 ? '<div class="routes">' + it.evals.map(function(e){
+      // "önerilen" only when one route is really better, not for a tie.
+      var clear = it.evals.every(function(e){ return e === it.best || e.score - it.best.score > 0.5; });
+      var chips = it.evals.length > 1 ? '<div class="routes">' + it.evals.map(function(e, ri){
         return '<button type="button" class="rchip" data-pick-trip="' + esc(t.id) + '" data-pick-route="' + esc(e.route.id) + '" data-pick-date="' + dateKey(it.start) + '" aria-pressed="' + (e === it.chosen) + '">' +
-          esc(e.route.name || "Rota") + (e === it.best ? '<span class="rec">önerilen</span>' : '') + '</button>';
+          esc(e.route.name || "Rota " + (ri + 1)) + (e === it.best && clear ? '<span class="rec">önerilen</span>' : '') + '</button>';
       }).join("") + '</div>' : '';
       var ex = it.chosen.ex;
       var steps = ex.steps.map(function(s){
         var m = MODES[s.st.m] || MODES.bus, label = m.out ? "" : [s.st.a, s.st.b].filter(Boolean).map(esc).join("–");
         var extra = s.out && s.felt != null ? ' <b>' + deg(s.felt) + '</b>' + (s.w && s.w.p >= 30 ? ' <span class="wet">%' + Math.round(s.w.p) + '</span>' : '') : '';
-        return '<span class="step' + (s.out ? ' out' : '') + '" title="' + esc(m.label) + '">' + mIcon(s.st.m) + s.min + ' dk' + (label ? ' · ' + label : '') + extra + '</span>';
+        return '<span class="step' + (s.out ? ' out' : '') + '" title="' + esc(m.label) + '">' + mIcon(s.st.m) + '<span class="sr">' + esc(m.label) + ' </span>' + s.min + ' dk' + (label ? ' · ' + label : '') + extra + '</span>';
       }).join('<span class="arr">›</span>');
       var sum = hmOf(ex.start) + '–' + hmOf(ex.end) + ' · toplam ' + ex.total + ' dk · dışarıda ' + ex.outMin + ' dk' + (ex.walkMin ? ' · yürüyüş ' + ex.walkMin + ' dk' : '');
       var why = whyText(it);
@@ -1022,7 +1120,7 @@ button{font:inherit;color:inherit}
   }
 
   /* ================= routine editor ================= */
-  function openRoutine(){ var r = $("routine"); r.hidden = false; renderEditor(); if (r.scrollIntoView) r.scrollIntoView({behavior:"smooth", block:"start"}); }
+  function openRoutine(){ var r = $("routine"); r.hidden = false; renderEditor(); if (r.scrollIntoView) r.scrollIntoView({behavior:smooth(), block:"start"}); }
   function renderEditor(){
     var el = $("routine"); if (el.hidden) return;
     var pl = S.places;
@@ -1032,7 +1130,7 @@ button{font:inherit;color:inherit}
     pl.forEach(function(p){
       h += '<div class="ed-row"><input class="name" value="' + esc(p.name) + '" data-place="' + esc(p.id) + '" data-k="name" aria-label="Yer adı" placeholder="Ev, Okul…">' +
         (p.sub ? '<span class="lbl">' + esc(p.sub) + '</span>' : '') +
-        '<button type="button" class="x" data-act="delplace" data-place="' + esc(p.id) + '" aria-label="Yeri sil">×</button></div>';
+        '<button type="button" class="x" data-act="delplace" data-place="' + esc(p.id) + '" aria-label="' + esc(p.name) + ' yerini sil">×</button></div>';
     });
     h += '<div class="add-steps"><button type="button" class="mini-btn" data-act="addplace">+ Yer ekle</button></div>';
     if (pl.length < 2) h += '<p class="warn">Yolculuk eklemek için en az iki yer kaydet (ör. Ev ve Okul).</p>';
@@ -1043,7 +1141,9 @@ button{font:inherit;color:inherit}
         '<select data-trip="' + esc(t.id) + '" data-k="from" aria-label="Nereden">' + opts(t.from) + '</select><span class="lbl">→</span>' +
         '<select data-trip="' + esc(t.id) + '" data-k="to" aria-label="Nereye">' + opts(t.to) + '</select>' +
         '<div class="days">' + DAYS.map(function(d){ return '<button type="button" data-trip="' + esc(t.id) + '" data-day="' + d[1] + '" aria-pressed="' + (t.days.indexOf(d[1]) >= 0) + '">' + d[0] + '</button>'; }).join("") + '</div>' +
-        '<button type="button" class="x" data-act="deltrip" data-trip="' + esc(t.id) + '" aria-label="Yolculuğu sil">×</button></div>';
+        '<button type="button" class="x" data-act="deltrip" data-trip="' + esc(t.id) + '" aria-label="' + esc(t.time) + ' yolculuğunu sil">×</button></div>';
+      if (t.from === t.to) h += '<p class="warn">Başlangıç ve varış aynı; “Nereye”yi değiştir.</p>';
+      else if (!t.days.length) h += '<p class="warn">Bu yolculuk için gün seçilmedi.</p>';
     });
     if (pl.length >= 2) h += '<div class="add-steps"><button type="button" class="mini-btn" data-act="addtrip">+ Yolculuk ekle</button></div>';
 
@@ -1055,7 +1155,7 @@ button{font:inherit;color:inherit}
       h += '<h3>' + esc(a ? a.name : "?") + ' → ' + esc(b ? b.name : "?") + '</h3>';
       S.routes.filter(function(r){ return r.from === f && r.to === to; }).forEach(function(r){
         h += '<div class="route-box"><div class="ed-row"><input class="name" value="' + esc(r.name) + '" data-route="' + esc(r.id) + '" data-k="name" aria-label="Rota adı" placeholder="Rota adı">' +
-          '<button type="button" class="x" data-act="delroute" data-route="' + esc(r.id) + '" aria-label="Rotayı sil">×</button></div>';
+          '<button type="button" class="x" data-act="delroute" data-route="' + esc(r.id) + '" aria-label="' + esc(r.name || "Rota") + ' rotasını sil">×</button></div>';
         r.steps.forEach(function(st, i){
           var m = MODES[st.m] || MODES.bus;
           h += '<div class="ed-row"><span class="mini-btn" title="' + esc(m.label) + '">' + mIcon(st.m) + esc(m.label) + '</span>' +
@@ -1063,7 +1163,7 @@ button{font:inherit;color:inherit}
           if (st.m === "walk") h += '<select data-route="' + esc(r.id) + '" data-step="' + i + '" data-k="slope" aria-label="Eğim">' + Object.keys(SLOPES).map(function(s){ return '<option value="' + s + '"' + (st.slope === s ? ' selected' : '') + '>' + SLOPES[s].label + '</option>'; }).join("") + '</select>';
           else if (!m.out) h += '<input class="stop" value="' + esc(st.a || "") + '" data-route="' + esc(r.id) + '" data-step="' + i + '" data-k="a" placeholder="Bindiğin durak" aria-label="Bindiğin durak">' +
             '<input class="stop" value="' + esc(st.b || "") + '" data-route="' + esc(r.id) + '" data-step="' + i + '" data-k="b" placeholder="İndiğin durak" aria-label="İndiğin durak">';
-          h += '<button type="button" class="x" data-act="delstep" data-route="' + esc(r.id) + '" data-step="' + i + '" aria-label="Adımı sil">×</button></div>';
+          h += '<button type="button" class="x" data-act="delstep" data-route="' + esc(r.id) + '" data-step="' + i + '" aria-label="' + esc(m.label + " " + st.min + " dk") + ' adımını sil">×</button></div>';
         });
         h += '<div class="add-steps"><span class="lbl">Adım ekle:</span>' + MODE_ORDER.map(function(m){ return '<button type="button" class="mini-btn" data-act="addstep" data-route="' + esc(r.id) + '" data-m="' + m + '">' + mIcon(m) + MODES[m].label + '</button>'; }).join("") + '</div></div>';
       });
@@ -1081,15 +1181,17 @@ button{font:inherit;color:inherit}
       t = tripById(b.dataset.trip); if (!t) return;
       var d = +b.dataset.day, i = t.days.indexOf(d);
       if (i >= 0) t.days.splice(i, 1); else t.days.push(d);
-    } else if (act === "addplace") { togglePanel(true); openSearch(); window.scrollTo({top:0, behavior:"smooth"}); return; }
+    } else if (act === "addplace") { togglePanel(true); openSearch(true); window.scrollTo({top:0, behavior:smooth()}); return; }
     else if (act === "delplace") {
       var pid = b.dataset.place;
-      if (S.trips.some(function(x){ return x.from === pid || x.to === pid; })) { setStatus("Bu yer bir yolculukta kullanılıyor; önce o yolculuğu sil."); window.scrollTo({top:0, behavior:"smooth"}); return; }
+      if (S.trips.some(function(x){ return x.from === pid || x.to === pid; })) { var row = b.closest(".ed-row"); showRowWarn(row, "Bu yer bir yolculukta kullanılıyor; önce o yolculuğu sil ya da değiştir."); return; }
       removePlace(pid); return;
     }
     else if (act === "addtrip") {
-      var a = S.places[0], z = S.places[1];
-      S.trips.push({id:uid(), from:a.id, to:z.id, time:"08:00", days:[1,2,3,4,5]});
+      // A second trip between the same two places is most likely the way back.
+      var last = S.trips[S.trips.length - 1], a = S.places[0], z = S.places[1];
+      if (last && placeById(last.from) && placeById(last.to) && last.from !== last.to) S.trips.push({id:uid(), from:last.to, to:last.from, time:"17:00", days:last.days.slice()});
+      else S.trips.push({id:uid(), from:a.id, to:z.id, time:"08:00", days:[1,2,3,4,5]});
     }
     else if (act === "deltrip") S.trips = S.trips.filter(function(x){ return x.id !== b.dataset.trip; });
     else if (act === "addroute") {
@@ -1104,43 +1206,63 @@ button{font:inherit;color:inherit}
       r.steps.push(st);
     }
     else if (act === "delstep") { r = routeById(b.dataset.route); if (r) r.steps.splice(+b.dataset.step, 1); }
-    else if (act === "close") { $("routine").hidden = true; save(); render(); return; }
+    else if (act === "close") {
+      $("routine").hidden = true; save(); render(); $("routineBtn").focus({preventScroll:true});
+      if (S.mode === "live" && S.trips.length) fetchLive(false, true); // so new trips get their weather too
+      return;
+    }
     else if (act === "done") {
       $("routine").hidden = true; S.dayMode = true; save(); render();
-      window.scrollTo({top:0, behavior:"smooth"});
-      fetchLive().then(function(ok){ if (ok) dayStatus(); });
+      window.scrollTo({top:0, behavior:smooth()}); $("headline").focus({preventScroll:true});
+      fetchLive(false, true).then(function(ok){ if (ok) dayStatus(); });
       return;
     }
     else return;
     save(); render();
   }
+  function showRowWarn(row, msg){
+    if (!row) { setStatus(msg); return; }
+    var w = row.nextElementSibling;
+    if (!(w && w.classList.contains("warn") && w.dataset.tmp)) { w = document.createElement("p"); w.className = "warn"; w.dataset.tmp = "1"; w.setAttribute("role", "status"); row.parentNode.insertBefore(w, row.nextSibling); }
+    w.textContent = msg;
+  }
   function routineChange(e){
     var x = e.target, k = x.dataset && x.dataset.k; if (!k) return;
-    if (x.dataset.place) { var pp = placeById(x.dataset.place); if (!pp || !x.value.trim()) return; pp.name = x.value.trim(); }
-    else if (x.dataset.trip) { var t = tripById(x.dataset.trip); if (!t) return; t[k] = x.value; }
+    // What is stored is shown back, so a field never shows a value the app isn't using.
+    if (x.dataset.place) { var pp = placeById(x.dataset.place); if (!pp) return; if (!x.value.trim()) { x.value = pp.name; return; } pp.name = x.value.trim(); }
+    else if (x.dataset.trip) {
+      var t = tripById(x.dataset.trip); if (!t) return;
+      if (k === "time" && !/^\d{1,2}:\d{2}$/.test(x.value)) { x.value = t.time; return; }
+      t[k] = x.value;
+    }
     else if (x.dataset.route) {
       var r = routeById(x.dataset.route); if (!r) return;
-      if (x.dataset.step != null) { var st = r.steps[+x.dataset.step]; if (!st) return; st[k] = k === "min" ? Math.max(1, Math.min(240, Math.round(+x.value) || 1)) : x.value; }
+      if (x.dataset.step != null) {
+        var st = r.steps[+x.dataset.step]; if (!st) return;
+        if (k === "min") { st.min = Math.max(1, Math.min(240, Math.round(+x.value) || 1)); x.value = st.min; } else st[k] = x.value;
+      }
       else r[k] = x.value;
     }
     save();
     // Typing fields keep their place; only a changed start or destination redraws the editor (the route list depends on it).
     render({keepEditor: k !== "from" && k !== "to"});
+    if ((k === "from" || k === "to") && x.dataset.trip) { var sel = $("routine").querySelector('select[data-trip="' + x.dataset.trip + '"][data-k="' + k + '"]'); if (sel) sel.focus(); }
   }
   function renderChips(){
     var c = $("chips"); c.textContent = "";
     var live = S.mode === "live";
     function mk(text, pressed, fn){ var b = document.createElement("button"); b.type = "button"; b.className = "chip"; if (pressed !== null) b.setAttribute("aria-pressed", pressed ? "true" : "false"); b.textContent = text; b.addEventListener("click", fn); return b; }
-    var autoName = S.live && S.live.placeKey === "auto" ? S.live.place.name : "";
-    c.appendChild(mk("Konumum" + (autoName ? " · " + autoName : ""), live && S.sel === "auto", function(){ selectPlace("auto"); }));
+    var shown = live && S.live ? S.live.placeKey : null;
+    var autoName = shown === "auto" ? S.live.place.name : "";
+    c.appendChild(mk("Konumum" + (autoName ? " · " + autoName : ""), shown === "auto", function(){ selectPlace("auto"); }));
     S.places.forEach(function(p){
       var wrap = document.createElement("span"); wrap.className = "chip-wrap";
-      wrap.appendChild(mk(p.name, live && S.sel === p.id, function(){ selectPlace(p.id); }));
+      wrap.appendChild(mk(p.name, shown === p.id, function(){ selectPlace(p.id); }));
       var x = document.createElement("button"); x.type = "button"; x.className = "chip-x"; x.textContent = "×"; x.setAttribute("aria-label", p.name + " kaydını sil");
       x.addEventListener("click", function(){ removePlace(p.id); }); wrap.appendChild(x); c.appendChild(wrap);
     });
-    c.appendChild(mk("+ Yer ekle", null, openSearch));
-    c.appendChild(mk("Elle ayarla", !live, function(){ S.mode = "manual"; save(); togglePanel(false); render(); }));
+    var add = mk("+ Yer ekle", null, function(){ openSearch(false); }); add.id = "addPlaceChip"; c.appendChild(add);
+    c.appendChild(mk("Elle ayarla", !live, function(){ cancelLive(); S.mode = "manual"; save(); togglePanel(false); render(); setStatus(""); }));
   }
 
   /* ================= status ================= */
@@ -1213,9 +1335,12 @@ button{font:inherit;color:inherit}
   // Re-orders the service's list: exact and prefix name matches first, then nearby places, Turkish letters folded (kadikoy = Kadıköy).
   function rankPlaces(list, q, b){
     var fq = fold(q), toks = fq.split(" ").filter(Boolean), seen = {};
+    var kept = [];
     return list.filter(function(r){
-      var k = fold(r.name) + "|" + fold(r.sub) + "|" + r.kind;
-      if (seen[k]) return false; seen[k] = 1; return true;
+      var k = fold(r.name) + "|" + fold(r.sub);
+      if (seen[k]) return false; seen[k] = 1;
+      if (kept.some(function(o){ return fold(o.name) === fold(r.name) && km(o, r) < 1; })) return false;
+      kept.push(r); return true;
     }).map(function(r, i){
       var fn = fold(r.name), all = fold(r.name + " " + r.sub), s = -i * 0.2;
       if (fn === fq) s += 6; else if (fn.indexOf(fq) === 0) s += 4; else if (fn.indexOf(fq) >= 0) s += 2;
@@ -1231,6 +1356,7 @@ button{font:inherit;color:inherit}
     if (list.length < 3) {
       try { list = list.concat(fromOpenMeteo(await get(geocodeURL(q)))); } catch (e) { if (failed) throw failed; }
     }
+    if (failed && !list.length) throw failed; // the main search is down: say so instead of "no results"
     return rankPlaces(list, q, b);
   }
 
@@ -1249,13 +1375,21 @@ button{font:inherit;color:inherit}
     if (d.toDateString() === y.toDateString()) return "dün " + hm;
     return d.toLocaleDateString("tr-TR", {day:"numeric", month:"long"}) + " " + hm;
   }
-  function fromFix(note){
-    return {place:{name:S.fix.name || "Konumun", sub:"Son bilinen konum", lat:S.fix.lat, lon:S.fix.lon}, note:note,
-            action:{label:"Konumumu güncelle", fn:function(){ fetchLive(true); }}};
+  var BDC = "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=tr";
+  // The last found location; a name that could not be looked up before is looked up again (no permission needed for that).
+  async function fromFix(note){
+    var f = S.fix, name = f.name, fix = null;
+    if (!name || name === "Konumun") {
+      try { var g = await WEB.fetchJSON(BDC + "&latitude=" + f.lat + "&longitude=" + f.lon, 8000); var n = g.locality || g.city || g.principalSubdivision; if (n) { name = n; fix = {lat:f.lat, lon:f.lon, name:n, at:f.at}; } } catch (e) {}
+    }
+    return {place:{name:name || "Konumun", sub:"Son bilinen konum", lat:f.lat, lon:f.lon}, note:note, fix:fix,
+            action:{label:"Konumumu güncelle", fn:function(){ fetchLive(true, true); }}};
   }
   function nearSaved(f){ return S.places.some(function(p){ return km(p, f) < 0.5; }); }
   function saveFix(){
     if (!S.fix) return;
+    var near = S.places.filter(function(p){ return km(p, S.fix) < 0.3; })[0];
+    if (near) { S.sel = near.id; if (S.live && S.live.placeKey === "auto") S.live.placeKey = near.id; save(); render(); setStatus(near.name + " zaten kayıtlı; o seçildi."); return; }
     var id = "p" + uid(), name = S.fix.name && S.fix.name !== "Konumun" ? S.fix.name : "Kayıtlı yer";
     S.places.push({id:id, name:name, sub:"Kaydettiğin konum", lat:S.fix.lat, lon:S.fix.lon});
     S.sel = id;
@@ -1273,25 +1407,31 @@ button{font:inherit;color:inherit}
     position: function(){
       return new Promise(function(res, rej){
         if (!("geolocation" in navigator)) { rej({code:"geo_unsupported"}); return; }
-        navigator.geolocation.getCurrentPosition(function(p){ res(p.coords); }, function(e){ rej({code: e.code === 1 ? "geo_denied" : e.code === 3 ? "geo_timeout" : "geo_unavailable"}); }, {enableHighAccuracy:false, timeout:12000, maximumAge:600000});
+        var done = false, guard = setTimeout(function(){ if (!done) { done = true; rej({code:"geo_timeout"}); } }, 15000);
+        navigator.geolocation.getCurrentPosition(function(p){ if (done) return; done = true; clearTimeout(guard); res(p.coords); },
+          function(e){ if (done) return; done = true; clearTimeout(guard); rej({code: e.code === 1 ? "geo_denied" : e.code === 3 ? "geo_timeout" : "geo_unavailable"}); },
+          {enableHighAccuracy:false, timeout:12000, maximumAge:600000});
       });
     },
     // Uses the last found location instead of asking again when the browser would show its permission question.
     autoPlace: async function(force){
-      var BDC = "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=tr";
       var st = await geoState();
-      if (!force && S.fix && st !== "granted") return fromFix("Son bilinen konumun kullanılıyor (" + fixWhen(S.fix.at) + ").");
+      if (!force && S.fix && st !== "granted") return await fromFix("Son bilinen konumun kullanılıyor (" + fixWhen(S.fix.at) + ").");
       try {
         var c = await WEB.position();
         var place = {name:"Konumun", sub:"Cihaz konumu", lat:c.latitude, lon:c.longitude};
         try { var g = await WEB.fetchJSON(BDC + "&latitude=" + c.latitude + "&longitude=" + c.longitude, 8000); place.name = g.locality || g.city || g.principalSubdivision || place.name; } catch (e) {}
-        S.fix = {lat:c.latitude, lon:c.longitude, name:place.name, at:Date.now()};
-        if ((await geoState()) !== "granted" && !nearSaved(S.fix))
-          return {place:place, note:"Tarayıcın izni hatırlamıyor; bundan sonra bu konum kullanılır, tekrar sorulmaz. Kaydedersen hep hazır olur.", action:{label:"Bu konumu kaydet", fn:saveFix}};
-        return {place:place, note:null};
+        var fix = {lat:c.latitude, lon:c.longitude, name:place.name, at:Date.now()};
+        if ((await geoState()) !== "granted" && !nearSaved(fix))
+          return {place:place, fix:fix, note:"Tarayıcın izni hatırlamıyor; bundan sonra bu konum kullanılır, tekrar sorulmaz. Kaydedersen hep hazır olur.", action:{label:"Bu konumu kaydet", fn:saveFix}};
+        return {place:place, fix:fix, note:null};
       } catch (e) {
         if (!/^geo_/.test(e.code || "")) throw e;
-        if (S.fix) return fromFix((e.code === "geo_denied" ? "Konum izni verilmedi" : "Konum şu an bulunamadı") + "; son bilinen konumun kullanıldı (" + fixWhen(S.fix.at) + ").");
+        if (S.fix) {
+          var blocked = e.code === "geo_denied" && (await geoState()) === "denied";
+          return await fromFix((blocked ? "Bu sitenin konum izni kapalı; izin vermek için tarayıcının site ayarlarını ya da telefon ayarlarını aç. Son bilinen konumun kullanıldı ("
+            : (e.code === "geo_denied" ? "Konum izni verilmedi" : "Konum şu an bulunamadı") + "; son bilinen konumun kullanıldı (") + fixWhen(S.fix.at) + ").");
+        }
         var ip = await WEB.fetchJSON(BDC, 8000);
         if (!isFinite(ip.latitude) || !isFinite(ip.longitude)) throw {code:"geo_none"};
         return {place:{name: ip.city || ip.locality || ip.principalSubdivision || "Konumun", sub:"Yaklaşık konum", lat:+ip.latitude, lon:+ip.longitude},
@@ -1370,32 +1510,45 @@ button{font:inherit;color:inherit}
     }
   }
 
+  var liveSeq = 0;
+  function cancelLive(){ liveSeq++; if (busy) setBusy(false); }
   // force: ask the device for a fresh position even if the browser would show its permission question.
-  async function fetchLive(force){
-    if (busy) return;
+  // restart: a newer choice (another place, a reset) replaces a request that is still running; the refresh button doesn't.
+  async function fetchLive(force, restart){
+    if (busy && restart !== true) return;
     if (IS_ART && !mcp) { setStatus(mcpState === "pending" ? "Claude bağlantısı hazırlanıyor, birazdan tekrar dene." : NO_LIVE); return; }
+    var my = ++liveSeq;
     var p = null;
     if (S.sel !== "auto") { p = S.places.filter(function(x){ return x.id === S.sel; })[0]; if (!p) S.sel = "auto"; }
+    var key = S.sel;
     setBusy(true);
     try {
-      var place, note = null, action = null;
-      if (S.sel === "auto") { setStatus("Konumun bulunuyor…"); var r = await DATA.autoPlace(force === true); place = r.place; note = r.note; action = r.action || null; }
-      else place = {name:p.name, sub:p.sub || "", lat:p.lat, lon:p.lon};
+      var place, note = null, action = null, fix = null;
+      if (key === "auto") {
+        setStatus("Konumun bulunuyor…");
+        var r = await DATA.autoPlace(force === true);
+        if (my !== liveSeq) return;
+        place = r.place; note = r.note; action = r.action || null; fix = r.fix || null;
+      } else place = {name:p.name, sub:p.sub || "", lat:p.lat, lon:p.lon};
       var ids = tripPlaceIds();
       setStatus(place.name + (ids.length ? " ve yolculuk yerlerin" : "") + " için hava alınıyor…");
       var pts = [{lat:place.lat, lon:place.lon}].concat(ids.map(function(id){ var q = placeById(id); return {lat:q.lat, lon:q.lon}; }));
-      var all = await DATA.forecasts(pts), wx = all[0];
+      var all = await DATA.forecasts(pts);
+      if (my !== liveSeq) return; // the person chose something else meanwhile
+      var wx = all[0];
       if (!wx || !wx.hourly || !Array.isArray(wx.hourly.time)) throw {code:"parse"};
       var byPlace = {};
       ids.forEach(function(id, i){ if (all[i + 1] && all[i + 1].hourly) byPlace[id] = all[i + 1]; });
-      S.live = {placeKey:S.sel, place:place, wx:wx, fetchedAt:Date.now()};
+      if (fix) S.fix = fix;
+      S.live = {placeKey:key, place:place, wx:wx, fetchedAt:Date.now()};
       S.dayWx = ids.length ? {fetchedAt:Date.now(), byPlace:byPlace} : null;
       S.mode = "live"; save(); render(); setStatus(note || "", action);
       return true;
     } catch (e) {
-      setStatus(errMsg(e) + (S.mode === "live" ? " Son alınan hava gösteriliyor." : ""), mcpState === "no" ? null : {label:"Tekrar dene", fn:function(){ fetchLive(force === true); }});
+      if (my !== liveSeq) return;
+      setStatus(errMsg(e) + (S.mode === "live" ? " Son alınan hava gösteriliyor." : ""), mcpState === "no" ? null : {label:"Tekrar dene", fn:function(){ fetchLive(force === true, true); }});
       render();
-    } finally { setBusy(false); }
+    } finally { if (my === liveSeq) setBusy(false); }
   }
   // Tells, after the routine was saved, what the suggestion is now based on.
   function dayStatus(){
@@ -1404,23 +1557,48 @@ button{font:inherit;color:inherit}
     if (day.none) { setStatus("Yolculuklarında seçili gün yok; Rutinim’de günleri işaretle.", {label:"Rutinimi aç", fn:openRoutine}); return; }
     if (!day.items.length) return;
     var first = day.items[0];
-    if (day.lead) setStatus("Öneri " + (day.offset ? "yarınki" : "bugünkü") + " yolculuklarına göre güncellendi.");
-    else setStatus("Bugün kayıtlı yolculuğun yok, öneri şu anki yerine göre. " + day.dayName + " " + first.trip.time + " için önizleme Günüm kartında.");
+    if (day.items.every(function(it){ return it.missing; })) { setStatus("Yolculuklarına rota ekleyince öneri dışarıda geçireceğin anlara göre seçilir.", {label:"Rota ekle", fn:openRoutine}); return; }
+    if (day.lead && day.inp) setStatus("Öneri " + (day.offset ? "yarınki" : "bugünkü") + " yolculuklarına göre güncellendi.");
+    else if (day.lead) setStatus((day.offset ? "Yarınki" : "Bugünkü") + " yolculuklarında dışarıda kalacağın an yok; öneri şu anki havaya göre.");
+    else setStatus((day.doneToday ? "Bugünkü yolculukların bitti" : "Bugün kayıtlı yolculuğun yok") + ", öneri şu anki yerine göre. " + day.dayName + " " + first.trip.time + " için önizleme Günüm kartında.");
   }
-  function selectPlace(id){ S.sel = id; save(); togglePanel(false); fetchLive(); }
+  function selectPlace(id){
+    var fromPanel = document.activeElement && document.activeElement.closest && document.activeElement.closest("#placePanel");
+    S.sel = id; save(); togglePanel(false); if (fromPanel) $("placeBtn").focus({preventScroll:true});
+    fetchLive(false, true);
+  }
   function removePlace(id){
     var i = -1; S.places.forEach(function(p, k){ if (p.id === id) i = k; }); if (i < 0) return;
-    var p = S.places.splice(i, 1)[0]; if (S.sel === id) S.sel = "auto";
+    if (S.trips.some(function(x){ return x.from === id || x.to === id; })) {
+      setStatus(S.places[i].name + " bir yolculukta kullanılıyor; önce o yolculuğu sil ya da değiştir.", {label:"Rutinimi aç", fn:openRoutine}); return;
+    }
+    var p = S.places.splice(i, 1)[0], wasSel = S.sel === id;
+    if (wasSel) S.sel = "auto";
+    S.routes = S.routes.filter(function(r){ return r.from !== id && r.to !== id; });
     save(); render();
-    setStatus(p.name + " silindi.", {label:"Geri al", fn:function(){ S.places.splice(i, 0, p); save(); render(); setStatus(""); }});
+    // The weather on screen stays (it's still that place's); no chip is marked until another place is chosen.
+    setStatus(p.name + " silindi." + (wasSel ? " Gösterilen hava hâlâ onun; başka bir yer seç." : ""), {label:"Geri al", fn:function(){
+      if (!placeById(p.id)) S.places.splice(Math.min(i, S.places.length), 0, p);
+      if (wasSel) S.sel = p.id; save(); render(); setStatus("");
+    }});
   }
   /* ---- search box: suggestions while typing (installed app and website); in the Claude preview only on "Ara" ---- */
-  var SEARCH = {seq:0, timer:null, cache:{}, list:[], active:-1, shownFor:""};
-  function openSearch(){
+  var SEARCH = {seq:0, timer:null, cache:{}, list:[], active:-1, shownFor:"", forEditor:false};
+  // forEditor: opened from Rutinim, so a chosen place joins the routine without changing the place the weather is shown for.
+  function openSearch(forEditor){
     if (IS_ART && mcpState === "no") { setStatus(NO_LIVE); return; }
-    $("searchForm").hidden = false; $("saveHere").hidden = IS_ART; $("q").focus();
+    SEARCH.forEditor = forEditor === true;
+    $("searchForm").hidden = false; $("saveHere").hidden = IS_ART || SEARCH.forEditor; $("q").focus();
   }
   function closeSearch(){ $("searchForm").hidden = true; $("saveHere").hidden = true; SEARCH.seq++; clearTimeout(SEARCH.timer); showResults([], ""); $("q").value = ""; }
+  function backToEditor(){
+    SEARCH.forEditor = false; togglePanel(false);
+    var r = $("routine"); if (r.hidden) return false;
+    renderEditor(); if (r.scrollIntoView) r.scrollIntoView({behavior:smooth(), block:"start"});
+    var add = r.querySelector('[data-act="addplace"]'); if (add) add.focus({preventScroll:true});
+    return true;
+  }
+  function samePlace(r){ return S.places.filter(function(p){ return fold(p.name) === fold(r.name) && km(p, r) < 1; })[0] || null; }
   function fold1(c){
     var l = c.toLocaleLowerCase("tr"); if (l.length !== 1) l = c.toLowerCase().charAt(0);
     return {"ı":"i", "ş":"s", "ç":"c", "ğ":"g", "ö":"o", "ü":"u", "â":"a", "î":"i", "û":"u"}[l] || l;
@@ -1450,9 +1628,13 @@ button{font:inherit;color:inherit}
     if (SEARCH.active >= 0) $("q").setAttribute("aria-activedescendant", "res-" + SEARCH.active); else $("q").removeAttribute("aria-activedescendant");
   }
   function choosePlace(r){
-    var id = "p" + uid();
-    S.places.push({id:id, name:String(r.name), sub:String(r.sub || ""), lat:+r.lat, lon:+r.lon});
-    S.sel = id; save(); closeSearch(); togglePanel(false); fetchLive();
+    var known = samePlace(r), id = known ? known.id : "p" + uid(), forEditor = SEARCH.forEditor;
+    if (!known) S.places.push({id:id, name:String(r.name), sub:String(r.sub || ""), lat:+r.lat, lon:+r.lon});
+    closeSearch();
+    if (forEditor) { save(); render(); backToEditor(); setStatus(known ? r.name + " zaten kayıtlı." : r.name + " yerlerine eklendi."); return; }
+    S.sel = id; save(); togglePanel(false); $("placeBtn").focus({preventScroll:true});
+    if (known) setStatus(r.name + " zaten kayıtlı; o seçildi.");
+    fetchLive(false, true);
   }
   function queueSearch(){
     var q = $("q").value.trim();
@@ -1464,7 +1646,7 @@ button{font:inherit;color:inherit}
   async function runSearch(q, explicit){
     var key = fold(q), my = ++SEARCH.seq;
     if (SEARCH.cache[key]) { showResults(SEARCH.cache[key], q); if (explicit || !SEARCH.cache[key].length) noResults(SEARCH.cache[key]); return; }
-    if (explicit) { if (busy) return; setBusy(true); setStatus("“" + q + "” aranıyor…"); }
+    if (explicit) setStatus("“" + q + "” aranıyor…");
     try {
       var res = await DATA.search(q);
       SEARCH.cache[key] = res;
@@ -1472,13 +1654,20 @@ button{font:inherit;color:inherit}
       showResults(res, q);
       noResults(res);
     } catch (e) {
-      if (my === SEARCH.seq) setStatus(errMsg(e), {label:"Tekrar dene", fn:function(){ runSearch(q, true); }});
-    } finally { if (explicit) setBusy(false); }
+      if (my === SEARCH.seq) setStatus(searchErr(e), {label:"Tekrar dene", fn:function(){ runSearch(q, true); }});
+    }
+  }
+  function searchErr(e){
+    var c = (e && e.code) || "";
+    if (!navigator.onLine) return "Çevrimdışısın; yer aramak için internete bağlan.";
+    if (c === "http" && e.status === 429) return "Yer arama servisi şu an çok yoğun; biraz sonra tekrar dene.";
+    if (IS_ART && c !== "http" && c !== "network" && c !== "parse") return errMsg(e);
+    return "Yer arama servisine ulaşılamadı. İnternet bağlantını kontrol edip tekrar dene.";
   }
   function noResults(res){ setStatus(res.length ? "" : "Sonuç bulunamadı. Daha kısa yaz ya da yanına semtini ekle (ör. “kütüphane kadıköy”)."); }
   async function saveHere(){
-    if (busy) return;
-    var saved = null;
+    cancelLive();
+    var saved = null, my = liveSeq;
     setBusy(true); setStatus("Konumun bulunuyor…");
     try {
       var c = await WEB.position(), name = "Kayıtlı yer", sub = "";
@@ -1487,14 +1676,17 @@ button{font:inherit;color:inherit}
         name = g.locality || g.city || name;
         sub = [g.city, g.principalSubdivision].filter(function(x, i, a){ return x && x !== name && a.indexOf(x) === i; }).join(", ");
       } catch (e) { /* the name is optional */ }
-      var id = "p" + uid();
-      S.places.push({id:id, name:name, sub:sub, lat:c.latitude, lon:c.longitude});
+      if (my !== liveSeq) return;
+      var here = {lat:c.latitude, lon:c.longitude}, near = S.places.filter(function(p){ return km(p, here) < 0.3; })[0];
+      var id = near ? near.id : "p" + uid();
+      if (!near) S.places.push({id:id, name:name, sub:sub, lat:c.latitude, lon:c.longitude});
       S.fix = {lat:c.latitude, lon:c.longitude, name:name, at:Date.now()};
-      S.sel = id; save(); closeSearch(); togglePanel(false); saved = name;
+      S.sel = id; save(); closeSearch(); togglePanel(false); saved = near ? null : name;
+      if (near) { await fetchLive(false, true); setStatus(near.name + " zaten kayıtlı; o seçildi."); return; }
     } catch (e) {
       setStatus(e && e.code === "geo_denied" ? "Konum izni gerekiyor; tarayıcı ya da telefon ayarlarından izin ver." : "Konum bulunamadı, birazdan tekrar dene.");
-    } finally { setBusy(false); }
-    if (saved) { await fetchLive(); setStatus(saved + " kaydedildi. “Ev” gibi bir ad verebilirsin.", {label:"Adını değiştir", fn:openRoutine}); }
+    } finally { if (my === liveSeq) setBusy(false); }
+    if (saved) { await fetchLive(false, true); setStatus(saved + " kaydedildi. “Ev” gibi bir ad verebilirsin.", {label:"Adını değiştir", fn:openRoutine}); }
   }
 
   /* ================= sticker info card ================= */
@@ -1531,12 +1723,11 @@ button{font:inherit;color:inherit}
     if (TIP.node && TIP.node !== node) TIP.node.classList.remove("on");
     TIP.node = node; TIP.pinned = !!pinned; node.classList.add("on");
     var el = $("tipCard"); el.innerHTML = tipHTML(it); el.hidden = false;
-    node.setAttribute("aria-describedby", "tipCard");
     placeTip(x, y);
   }
   function hideTip(){
     var el = $("tipCard"); if (el) el.hidden = true;
-    if (TIP.node) { TIP.node.classList.remove("on"); TIP.node.removeAttribute("aria-describedby"); }
+    if (TIP.node) TIP.node.classList.remove("on");
     TIP.node = null; TIP.pinned = false;
   }
   (function(){
@@ -1566,7 +1757,11 @@ button{font:inherit;color:inherit}
     board.addEventListener("focusout", function(){ if (!TIP.pinned) hideTip(); });
     document.addEventListener("click", function(e){ if (TIP.pinned && !(e.target.closest && e.target.closest(".board [data-k]"))) hideTip(); });
     document.addEventListener("keydown", function(e){ if (e.key === "Escape" && TIP.node) hideTip(); });
-    window.addEventListener("scroll", function(){ if (TIP.pinned) placeTip(); else if (TIP.node) hideTip(); }, {passive:true});
+    window.addEventListener("scroll", function(){
+      if (!TIP.node) return;
+      var r = TIP.node.getBoundingClientRect();
+      if (TIP.pinned && r.bottom > 0 && r.top < window.innerHeight) placeTip(); else hideTip();
+    }, {passive:true});
     window.addEventListener("resize", function(){ if (TIP.node) placeTip(); });
   })();
 
@@ -1591,7 +1786,7 @@ button{font:inherit;color:inherit}
     var n = SEARCH.list.length;
     if (e.key === "ArrowDown" && n) { e.preventDefault(); SEARCH.active = (SEARCH.active + 1) % n; markActive(); }
     else if (e.key === "ArrowUp" && n) { e.preventDefault(); SEARCH.active = (SEARCH.active - 1 + n) % n; markActive(); }
-    else if (e.key === "Escape") { e.preventDefault(); closeSearch(); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); leaveSearch(); }
   });
   $("saveHere").addEventListener("click", saveHere);
 
@@ -1606,6 +1801,7 @@ button{font:inherit;color:inherit}
       return;
     }
     clearTimeout(resetTimer);
+    cancelLive(); SEARCH.seq++;
     b.dataset.armed = ""; b.setAttribute("aria-pressed", "false"); b.textContent = "Tüm verilerimi sil";
     try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + ":ioshint"); localStorage.removeItem("negiysem:v1"); } catch (e) {}
     S.places = []; S.sel = "auto"; S.hours = 6; S.feel = "normal"; S.act = "city";
@@ -1615,10 +1811,19 @@ button{font:inherit;color:inherit}
     closeSearch(); togglePanel(false); $("routine").hidden = true; hideTip();
     if (window.NeGiysemAndroid && window.NeGiysemAndroid.reset) { try { window.NeGiysemAndroid.reset(); } catch (e) {} }
     render();
-    window.scrollTo({top:0, behavior:"smooth"});
+    window.scrollTo({top:0, behavior:smooth()});
     setStatus("Tüm veriler silindi; uygulama ilk açıldığı haline döndü.");
   });
-  $("cancelSearch").addEventListener("click", function(){ closeSearch(); setStatus(""); });
+  function leaveSearch(){
+    var forEditor = SEARCH.forEditor; closeSearch();
+    if (forEditor && backToEditor()) return;
+    var add = $("addPlaceChip"); if (add) add.focus();
+  }
+  $("cancelSearch").addEventListener("click", function(){ leaveSearch(); setStatus(""); });
+  document.addEventListener("keydown", function(e){
+    if (e.key !== "Escape" || $("placePanel").hidden || TIP.node || !$("searchForm").hidden) return;
+    togglePanel(false); $("placeBtn").focus();
+  });
   $("routine").addEventListener("click", routineClick);
   $("routine").addEventListener("change", routineChange);
   document.addEventListener("click", function(e){
@@ -1652,10 +1857,12 @@ button{font:inherit;color:inherit}
   /* ================= boot ================= */
   async function maybeRefresh(){
     if (busy) return;
-    if (!navigator.onLine) { if (S.live) setStatus("Çevrimdışısın; son alınan hava gösteriliyor."); return; }
+    if (!navigator.onLine) { setStatus(S.live ? "Çevrimdışısın; son alınan hava gösteriliyor." : "Çevrimdışısın; hava durumu için internete bağlan."); return; }
     if (S.mode === "manual" && S.live) return;
     var age = S.live ? Date.now() - S.live.fetchedAt : Infinity;
-    if (age < 20 * 60000) return;
+    // A place chosen while offline (or while a request failed) is loaded as soon as possible, however fresh the old weather is.
+    var pending = S.live && S.live.placeKey !== S.sel && (S.sel === "auto" || placeById(S.sel));
+    if (age < 20 * 60000 && !pending) return;
     if (IS_ART) {
       if (!mcp) return;
       var st = "prompt"; if (perms) { try { st = await perms.state("mcp:" + HOST); } catch (e) { st = "unavailable"; } }
@@ -1664,10 +1871,12 @@ button{font:inherit;color:inherit}
       return;
     }
     if (S.sel !== "auto") { fetchLive(); return; }
-    // The last found location needs no permission question, so it refreshes on its own too.
-    if (S.fix || (await geoState()) === "granted") fetchLive(); else if (!S.live) setStatus("Başlamak için yenile düğmesine bas ya da sağ üstten konum seç.");
+    // No permission question can appear with a last found location, a granted permission or a denied one, so those refresh on their own.
+    var gs = S.fix ? "" : await geoState();
+    if (S.fix || gs === "granted" || gs === "denied") fetchLive(); else if (!S.live) setStatus("Başlamak için yenile düğmesine bas ya da sağ üstten konum seç.");
   }
-  render();
+  // A stored state this version can't draw must not leave a broken screen: drop the stored weather and draw again.
+  try { render(); } catch (e) { S.live = null; S.dayWx = null; S.mode = "manual"; try { render(); } catch (e2) {} }
   if (IS_ART) {
     (async function(){
       try { mcp = await window.claude.use("mcp"); } catch (e) { mcp = null; }
@@ -1680,7 +1889,7 @@ button{font:inherit;color:inherit}
     maybeRefresh();
   }
   document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") maybeRefresh(); });
-  window.addEventListener("online", function(){ maybeRefresh(); });
+  window.addEventListener("online", function(){ if (/^Çevrimdışısın/.test($("status").textContent)) setStatus(""); maybeRefresh(); });
 })();
 </script>
 </body>

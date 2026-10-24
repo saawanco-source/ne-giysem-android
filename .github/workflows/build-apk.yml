@@ -33,7 +33,17 @@ jobs:
         working-directory: tests
         env:
           TZ: Europe/Istanbul
-        run: node run-web.js
+        run: |
+          set -o pipefail
+          node run-web.js 2>&1 | tee web.log
+      # Job logs cannot always be opened: failed checks also go into the run's annotations.
+      - name: Test hatasını özetle
+        if: failure()
+        working-directory: tests
+        run: |
+          touch web.log
+          grep -E "^(FAIL |BAŞARISIZ)|Error:" web.log | head -40 > fail.txt || true
+          [ -s fail.txt ] && echo "::error title=Web testleri::$(sed -e 's/%/%25/g' -e 's/\r//g' fail.txt | awk '{printf "%s%%0A", $0}')" || true
       - name: Ekran görüntülerini sakla
         if: failure()
         uses: actions/upload-artifact@v4

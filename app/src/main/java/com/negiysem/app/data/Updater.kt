@@ -39,7 +39,7 @@ object Updater {
             "&longitude=" + points.joinToString(",") { String.format(Locale.US, "%.4f", it.second) } +
             "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
             "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
-            "&daily=uv_index_max,sunset&timezone=auto&forecast_days=2"
+            "&daily=uv_index_max,sunset&timezone=auto&forecast_days=7"
         return when (val v = JSONTokener(getText(url)).nextValue()) {
             is JSONArray -> (0 until v.length()).mapNotNull { v.optJSONObject(it) }
             is JSONObject -> listOf(v)

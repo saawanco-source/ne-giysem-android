@@ -195,7 +195,9 @@ object Outfit {
         if (lLow < level) {
             val lo = if (act == "sport") sport(lLow) else OUT[lLow]
             val pool = (lo.wear + lo.take).filter { !has(it) }
-            val cand = pool.firstOrNull { it in OUTER } ?: pool.firstOrNull { it in MID }
+            // Already wearing a coat: carry a warmer layer or a scarf/beanie, never a second coat.
+            val cand = if (hasOuter) pool.firstOrNull { it in MID } ?: pool.firstOrNull { it in setOf("atki", "bere", "eldiven") }
+            else pool.firstOrNull { it in OUTER } ?: pool.firstOrNull { it in MID }
             val dp = lowAt?.let { daypart(it) } ?: "akşam"
             if (cand != null) {
                 take = take.filter { it.g !in OUTER && it.g !in MID }.toMutableList()

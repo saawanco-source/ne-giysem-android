@@ -571,7 +571,9 @@ button{font:inherit;color:inherit}
     if (Llow < L) {
       var lo = P.act === "sport" ? SPORT(Llow) : OUT[Llow];
       var pool = lo.wear.concat(lo.take).filter(function(g){ return !has(g); });
-      var cand = pool.filter(function(g){ return OUTER.indexOf(g) >= 0; })[0] || pool.filter(function(g){ return MID.indexOf(g) >= 0; })[0];
+      var inGroup = function(list){ return pool.filter(function(g){ return list.indexOf(g) >= 0; })[0]; };
+      // Already wearing a coat: carry a warmer layer or a scarf/beanie, never a second coat.
+      var cand = hasOuter ? (inGroup(MID) || inGroup(["atki","bere","eldiven"])) : (inGroup(OUTER) || inGroup(MID));
       var dp = lowAt ? daypart(lowAt) : "akşam";
       if (cand) { take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0 && MID.indexOf(t.g) < 0; }); addTake(cand, null, true); }
       if (cand && ACC[cand] && P.act !== "sport") head = "{" + ACC[cand] + "} yanına al, " + dp + " serinliyor.";
@@ -632,6 +634,7 @@ button{font:inherit;color:inherit}
   var SLOPES = {flat:{label:"Düz", heat:2}, up:{label:"Hafif yokuş", heat:3.5}, steep:{label:"Dik yokuş", heat:5}};
   var WAIT_HEAT = -1.5; // standing still feels colder
   var DAYS = [["Pzt",1],["Sal",2],["Çar",3],["Per",4],["Cum",5],["Cmt",6],["Paz",0]];
+  var DAY_NAMES = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
   function mIcon(m){
     var w = function(inner){ return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>'; };
     switch (m) {
@@ -706,7 +709,7 @@ button{font:inherit;color:inherit}
         .sort(function(a, b){ return String(a.time).localeCompare(String(b.time)); })
         .forEach(function(t){
           var start = atTime(t.time, offset), routes = routesFor(t);
-          if (!routes.length) { if (start > now) list.push({trip:t, start:start, evals:[], missing:true}); return; }
+          if (!routes.length) { if (start > now) list.push({trip:t, start:start, evals:[], missing:true, offset:offset}); return; }
           var evals = routes.map(function(r){ var ex = exposure(t, r, start); return {route:r, ex:ex, score:score(ex)}; });
           var best = evals.slice().sort(function(a, b){ return a.score - b.score; })[0];
           var shortest = evals.slice().sort(function(a, b){ return a.ex.total - b.ex.total; })[0];
@@ -717,12 +720,15 @@ button{font:inherit;color:inherit}
         });
       return list;
     }
-    var items = pick(0), offset = 0;
-    if (!items.length && new Date().getHours() >= 17) { items = pick(1); offset = 1; }
-    if (!items.length) return {items:[], offset:offset};
+    // Today first; otherwise the next day in the coming week that has a trip (shown as a preview).
+    var items = [], offset = 0;
+    for (var o = 0; o < 7 && !items.length; o++) { items = pick(o); offset = o; }
+    if (!items.length) return {items:[], offset:0, none:true};
+    var lead = offset === 0 || (offset === 1 && new Date().getHours() >= 17);
+    var dayName = offset === 0 ? "Bugün" : offset === 1 ? "Yarın" : DAY_NAMES[(today + offset) % 7];
     var exps = [];
     items.forEach(function(it){ if (it.chosen) it.chosen.ex.out.forEach(function(e){ if (e.end > now) exps.push(e); }); });
-    if (!exps.length) return {items:items, offset:offset};
+    if (!exps.length) return {items:items, offset:offset, lead:lead, dayName:dayName};
     var first = exps[0];
     var w0 = S.dayWx.byPlace[first.place], di = -1;
     if (w0 && w0.daily && w0.daily.time) di = w0.daily.time.indexOf(String(first.time).slice(0,10));
@@ -731,7 +737,7 @@ button{font:inherit;color:inherit}
                uvMax: di >= 0 && w0.daily.uv_index_max ? w0.daily.uv_index_max[di] : null,
                uvDay: exps.some(function(e){ var h = +String(e.time).slice(11,13); return h >= 10 && h <= 16; }), sunset:null};
     var coldest = exps.slice().sort(function(a, b){ return a.app - b.app; })[0];
-    return {items:items, offset:offset, inp:inp, exps:exps, coldest:coldest};
+    return {items:items, offset:offset, inp:inp, exps:exps, coldest:coldest, lead:lead, dayName:dayName};
   }
   function dayNotes(day, p){
     var notes = [], walk = 0, ride = 0, rainRide = false, steep = false;
@@ -792,8 +798,9 @@ button{font:inherit;color:inherit}
   var ROT = [-5, 4, -2, 6, -4, 3];
   function render(opts){
     var inp = currentInput(), live = inp.kind === "live";
-    var day = live ? dayPlan() : null, useDay = !!(day && day.inp);
+    var day = live ? dayPlan() : null, useDay = !!(day && day.inp && day.lead);
     var pc = plan(inp, S), p = useDay ? plan(day.inp, S) : pc;
+    var preview = day && day.inp && !day.lead ? plan(day.inp, S) : null;
     var root = document.documentElement;
     root.style.setProperty("--lv", LV[p.L].color);
     var night = live && (useDay ? day.inp.now.isDay === 0 : inp.now.isDay === 0);
@@ -813,7 +820,7 @@ button{font:inherit;color:inherit}
     $("nowFeels").textContent = "Hissedilen " + deg(inp.now.app) + (useDay
       ? " · en serin dış anın " + hmOf(day.coldest.ms) + ", " + deg(day.coldest.app)
       : (p.off ? " · sana göre " + deg(p.E) : ""));
-    renderTrips(day, live);
+    renderTrips(day, live, preview);
 
     var sig = p.wear.map(function(w){ return w.g; }).join(",");
     var wearEl = $("wear");
@@ -859,19 +866,26 @@ button{font:inherit;color:inherit}
     if (!(opts && opts.keepEditor)) renderEditor();
   }
 
-  function renderTrips(day, live){
+  function renderTrips(day, live, preview){
     var card = $("tripCard");
     card.hidden = !(live && S.trips.length);
     if (card.hidden) return;
     $("dayToggle").setAttribute("aria-pressed", S.dayMode ? "true" : "false");
     var box = $("trips");
+    $("tripTitle").textContent = "Günüm";
     if (!S.dayMode) { box.innerHTML = '<p class="empty">Öneri şu an bulunduğun yerin havasına göre. Günün tamamına göre seçilmesi için “Günüme göre”yi aç.</p>'; return; }
     if (!S.dayWx || !day) { box.innerHTML = '<p class="empty">Yolculuklarının havasını almak için yenile düğmesine bas.</p>'; return; }
-    $("tripTitle").textContent = day.offset ? "Yarın" : "Günüm";
-    if (!day.items.length) { box.innerHTML = '<p class="empty">Bugün için kalan yolculuğun yok.</p>'; return; }
-    box.innerHTML = day.items.map(function(it){
+    if (day.none) { box.innerHTML = '<p class="empty">Yolculuklarında seçili gün yok. Rutinim’de her yolculuğun hangi günler olduğunu işaretle.</p>'; return; }
+    $("tripTitle").textContent = day.lead ? (day.offset ? "Yarın" : "Bugün") : "Sıradaki: " + day.dayName;
+    var intro = "";
+    if (!day.lead) {
+      intro = '<p class="empty">Bugün kayıtlı yolculuğun yok; yukarıdaki öneri şu an bulunduğun yerin havasına göre. ' + esc(day.dayName) + ' için önizleme:</p>';
+      if (preview) intro += '<div class="why">' + esc(preview.head.replace(/[{}]/g, "")) + '</div><div class="tsum">Giy: ' + preview.wear.map(function(w){ return esc(w.label); }).join(", ") +
+        (preview.take.length ? ' · Yanına al: ' + preview.take.map(function(t){ return esc(t.label); }).join(", ") : '') + '</div>';
+    }
+    box.innerHTML = intro + day.items.map(function(it){
       var t = it.trip, a = placeById(t.from), b = placeById(t.to);
-      var head = '<div class="trip-h"><time>' + esc(t.time) + '</time><span>' + esc(a ? a.name : "?") + ' → ' + esc(b ? b.name : "?") + '</span>' + (it.offset ? '<span class="when">yarın</span>' : '') + '</div>';
+      var head = '<div class="trip-h"><time>' + esc(t.time) + '</time><span>' + esc(a ? a.name : "?") + ' → ' + esc(b ? b.name : "?") + '</span>' + (it.offset ? '<span class="when">' + esc(day.dayName) + '</span>' : '') + '</div>';
       if (it.missing) return '<div class="trip">' + head + '<p class="empty">Bu yolculuk için henüz rota yok.</p><div><button type="button" class="mini-btn" data-open-routine>Rota ekle</button></div></div>';
       var chips = it.evals.length > 1 ? '<div class="routes">' + it.evals.map(function(e){
         return '<button type="button" class="rchip" data-pick-trip="' + esc(t.id) + '" data-pick-route="' + esc(e.route.id) + '" data-pick-date="' + dateKey(it.start) + '" aria-pressed="' + (e === it.chosen) + '">' +
@@ -973,7 +987,12 @@ button{font:inherit;color:inherit}
     }
     else if (act === "delstep") { r = routeById(b.dataset.route); if (r) r.steps.splice(+b.dataset.step, 1); }
     else if (act === "close") { $("routine").hidden = true; save(); render(); return; }
-    else if (act === "done") { $("routine").hidden = true; S.dayMode = true; save(); render(); fetchLive(); return; }
+    else if (act === "done") {
+      $("routine").hidden = true; S.dayMode = true; save(); render();
+      window.scrollTo({top:0, behavior:"smooth"});
+      fetchLive().then(function(ok){ if (ok) dayStatus(); });
+      return;
+    }
     else return;
     save(); render();
   }
@@ -1022,7 +1041,7 @@ button{font:inherit;color:inherit}
       "&longitude=" + pts.map(function(p){ return (+p.lon).toFixed(4); }).join(",") +
       "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
       "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
-      "&daily=uv_index_max,sunset&timezone=auto&forecast_days=2";
+      "&daily=uv_index_max,sunset&timezone=auto&forecast_days=7";
   }
   function geocodeURL(q){ return "https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(q) + "&count=8&language=tr&format=json"; }
 
@@ -1169,7 +1188,7 @@ button{font:inherit;color:inherit}
         if (!m) throw {code:"parse"};
         tab = tabId = m[1];
       }
-      for (var i = 0; i < 5; i++) { var j = ARTD.json(ARTD.text(await ARTD.call("get_page_text", {tabId:tab, max_chars:60000}))); if (j) return j; await sleep(700); }
+      for (var i = 0; i < 5; i++) { var j = ARTD.json(ARTD.text(await ARTD.call("get_page_text", {tabId:tab, max_chars:400000}))); if (j) return j; await sleep(700); }
       throw {code:"parse"};
     },
     autoPlace: async function(){
@@ -1218,10 +1237,21 @@ button{font:inherit;color:inherit}
       S.live = {placeKey:S.sel, place:place, wx:wx, fetchedAt:Date.now()};
       S.dayWx = ids.length ? {fetchedAt:Date.now(), byPlace:byPlace} : null;
       S.mode = "live"; save(); render(); setStatus(note || "");
+      return true;
     } catch (e) {
       setStatus(errMsg(e) + (S.mode === "live" ? " Son alınan hava gösteriliyor." : ""), mcpState === "no" ? null : {label:"Tekrar dene", fn:fetchLive});
       render();
     } finally { setBusy(false); }
+  }
+  // Tells, after the routine was saved, what the suggestion is now based on.
+  function dayStatus(){
+    if (!S.trips.length || S.mode !== "live") return;
+    var day = dayPlan(); if (!day) return;
+    if (day.none) { setStatus("Yolculuklarında seçili gün yok; Rutinim’de günleri işaretle.", {label:"Rutinimi aç", fn:openRoutine}); return; }
+    if (!day.items.length) return;
+    var first = day.items[0];
+    if (day.lead) setStatus("Öneri " + (day.offset ? "yarınki" : "bugünkü") + " yolculuklarına göre güncellendi.");
+    else setStatus("Bugün kayıtlı yolculuğun yok, öneri şu anki yerine göre. " + day.dayName + " " + first.trip.time + " için önizleme Günüm kartında.");
   }
   function selectPlace(id){ S.sel = id; save(); togglePanel(false); fetchLive(); }
   function removePlace(id){

@@ -132,7 +132,8 @@ object Day {
         return c.timeInMillis
     }
 
-    private data class Item(val trip: Trip, val route: Route?, val ex: Ex?, val tomorrow: Boolean)
+    private data class Item(val trip: Trip, val route: Route?, val ex: Ex?, val offset: Int)
+    private val DAY_NAMES = listOf("Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi")
 
     fun compute(r: Routine, byPlace: Map<String, JSONObject>, now: Long = System.currentTimeMillis()): Result? {
         if (!r.dayMode || r.trips.isEmpty() || byPlace.isEmpty()) return null
@@ -145,26 +146,34 @@ object Day {
             for (t in r.trips.filter { dow in it.days && place(it.from) != null && place(it.to) != null }.sortedBy { it.time }) {
                 val start = atTime(t.time, offset)
                 val routes = r.routes.filter { it.from == t.from && it.to == t.to && it.steps.isNotEmpty() }
-                if (routes.isEmpty()) { if (start > now) list.add(Item(t, null, null, offset > 0)); continue }
+                if (routes.isEmpty()) { if (start > now) list.add(Item(t, null, null, offset)); continue }
                 val best = routes.map { it to exposure(t, it, start, byPlace) }.minByOrNull { score(it.second) } ?: continue
                 if (best.second.end < now) continue
-                list.add(Item(t, best.first, best.second, offset > 0))
+                list.add(Item(t, best.first, best.second, offset))
             }
             return list
         }
 
-        var items = pick(0)
-        if (items.isEmpty() && Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17) items = pick(1)
+        // Today first; otherwise the next day this week with a trip. Only today (or tomorrow in the evening) drives the outfit.
+        var items: List<Item> = emptyList()
+        var offset = 0
+        for (o in 0 until 7) { items = pick(o); offset = o; if (items.isNotEmpty()) break }
         if (items.isEmpty()) return Result(null, null)
+        val lead = offset == 0 || (offset == 1 && Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17)
 
         val first = items.first()
         val fromName = place(first.trip.from)?.name ?: ""
         val toName = place(first.trip.to)?.name ?: ""
         val next = buildString {
-            if (first.tomorrow) append("Yarın ")
+            when (offset) {
+                0 -> {}
+                1 -> append("Yarın ")
+                else -> append(DAY_NAMES[(todayDow + offset) % 7]).append(" ")
+            }
             append(first.trip.time).append(" ").append(fromName).append(" → ").append(toName)
             if (first.route != null && first.ex != null) append(" · ").append(first.route.name).append(" · dışarıda ").append(first.ex.outMin).append(" dk")
         }
+        if (!lead) return Result(null, next)
 
         val exps = items.flatMap { it.ex?.out ?: emptyList() }.filter { it.end > now }
         if (exps.isEmpty()) return Result(null, next)

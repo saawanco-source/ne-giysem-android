@@ -63,12 +63,17 @@ class NeGiysemWidget : GlanceAppWidget() {
         /** The app's language ("tr" / "en") for the widget's own words when there is no snapshot yet. */
         val LANG = stringPreferencesKey("lang")
         // Sizes Android lays the widget out for; the layout picked for each keeps its content inside the box.
+        // Each height also comes 320 dp wide (a 4-column widget on most phones): the clock gets bigger there.
         private val SMALL = DpSize(110.dp, 110.dp)
         private val SMALL_WIDE = DpSize(160.dp, 110.dp)
         private val WIDE = DpSize(250.dp, 110.dp)
+        private val WIDE_L = DpSize(320.dp, 110.dp)
         private val WIDE_MID = DpSize(250.dp, 160.dp)
+        private val WIDE_MID_L = DpSize(320.dp, 160.dp)
         private val TALL = DpSize(250.dp, 250.dp)
+        private val TALL_L = DpSize(320.dp, 250.dp)
         private val TALL_XL = DpSize(250.dp, 310.dp)
+        private val TALL_XL_L = DpSize(320.dp, 310.dp)
 
         /** Sends a fresh snapshot to every widget on the home screen. */
         suspend fun pushAll(context: Context, json: String) {
@@ -82,7 +87,7 @@ class NeGiysemWidget : GlanceAppWidget() {
         }
     }
 
-    override val sizeMode = SizeMode.Responsive(setOf(SMALL, SMALL_WIDE, WIDE, WIDE_MID, TALL, TALL_XL))
+    override val sizeMode = SizeMode.Responsive(setOf(SMALL, SMALL_WIDE, WIDE, WIDE_L, WIDE_MID, WIDE_MID_L, TALL, TALL_L, TALL_XL, TALL_XL_L))
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -109,8 +114,7 @@ private object Words {
         "Son güncelleme" to "Last updated",
         "Sıradaki: " to "Next: ",
         "Hissedilen " to "Feels like ",
-        "Yanına al: " to "Take along: ",
-        "Güncelleme" to "Updated"
+        "Yanına al: " to "Take along: "
     )
     fun of(s: String, lang: String) = if (lang == "en") EN[s] ?: s else s
 }
@@ -222,14 +226,33 @@ private fun RefreshIcon(p: Palette, d: WidgetData) {
     }
 }
 
-/** The time of day in the bottom-right corner: a TextClock, so it keeps ticking without the app running. */
+/** The clock's text size and its distance from the widget's right and bottom edges (the layout's own padding). */
+private class ClockSpec(val sp: Int, val end: Dp, val bottom: Dp) {
+    /** Room the layouts keep free for it in their bottom row: "00:00" in bold is about 2.7 em wide. */
+    val width: Dp get() = (sp * 2.75f + 4f).dp
+    val height: Dp get() = (sp * 1.2f).dp
+}
+
+/** Keeps the clock's corner free in a bottom row (and makes the row at least as tall as the clock). */
 @Composable
-private fun Clock(p: Palette, sizeSp: Int) {
+private fun ClockRoom(c: ClockSpec) = Spacer(GlanceModifier.width(c.width).height(c.height))
+
+/**
+ * The time of day, pinned to the bottom-right corner on its own layer: a TextClock, so it keeps ticking without
+ * the app running. The TextClock fills its frame and draws at its bottom-right, whatever size Glance gives the frame.
+ */
+@Composable
+private fun CornerClock(p: Palette, c: ClockSpec) {
     val views = RemoteViews(LocalContext.current.packageName, R.layout.widget_clock).apply {
         setTextColor(R.id.widget_clock, p.ink.toArgb())
-        setTextViewTextSize(R.id.widget_clock, TypedValue.COMPLEX_UNIT_SP, sizeSp.toFloat())
+        setTextViewTextSize(R.id.widget_clock, TypedValue.COMPLEX_UNIT_SP, c.sp.toFloat())
     }
-    AndroidRemoteViews(views)
+    Box(
+        modifier = GlanceModifier.fillMaxSize().padding(end = c.end, bottom = c.bottom),
+        contentAlignment = Alignment.BottomEnd
+    ) {
+        AndroidRemoteViews(views)
+    }
 }
 
 /** "Son güncelleme 08:10" when the snapshot is more than two hours old (the phone may have put the app to sleep). */
@@ -249,17 +272,27 @@ private fun Body(d: WidgetData) {
             .cornerRadius(26.dp)
             .clickable(actionStartActivity<MainActivity>())
     ) {
-        when {
-            size.width < 200.dp -> SmallLayout(d, p, twoStickers = size.width >= 160.dp)
-            size.height < 160.dp -> WideLayout(d, p, compact = true)
-            size.height < 250.dp -> WideLayout(d, p, compact = false)
-            else -> TallLayout(d, p, roomy = size.height >= 310.dp)
+        val large = size.width >= 320.dp
+        val roomy = size.height >= 310.dp
+        val clock = when {
+            size.width < 200.dp -> ClockSpec(if (size.width >= 160.dp) 18 else 16, 10.dp, 10.dp)
+            size.height < 160.dp -> ClockSpec(if (large) 26 else 20, 14.dp, 8.dp)
+            size.height < 250.dp -> ClockSpec(if (large) 34 else 26, 14.dp, 12.dp)
+            roomy -> ClockSpec(if (large) 32 else 30, 16.dp, 16.dp)
+            else -> ClockSpec(if (large) 28 else 26, 14.dp, 14.dp)
         }
+        when {
+            size.width < 200.dp -> SmallLayout(d, p, clock, twoStickers = size.width >= 160.dp)
+            size.height < 160.dp -> WideLayout(d, p, clock, compact = true, large = large)
+            size.height < 250.dp -> WideLayout(d, p, clock, compact = false, large = large)
+            else -> TallLayout(d, p, clock, roomy = roomy)
+        }
+        CornerClock(p, clock)
     }
 }
 
 @Composable
-private fun SmallLayout(d: WidgetData, p: Palette, twoStickers: Boolean) {
+private fun SmallLayout(d: WidgetData, p: Palette, clock: ClockSpec, twoStickers: Boolean) {
     Column(modifier = GlanceModifier.fillMaxSize().padding(10.dp)) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(deg(d.temp), style = style(p.ink, 28), modifier = GlanceModifier.defaultWeight(), maxLines = 1)
@@ -274,7 +307,7 @@ private fun SmallLayout(d: WidgetData, p: Palette, twoStickers: Boolean) {
                 Sticker(g, 40.dp)
             }
             Spacer(GlanceModifier.defaultWeight())
-            Clock(p, 15)
+            ClockRoom(clock)
         }
     }
 }
@@ -304,7 +337,7 @@ private fun Header(d: WidgetData, p: Palette, tempSize: Int) {
 }
 
 @Composable
-private fun WideLayout(d: WidgetData, p: Palette, compact: Boolean) {
+private fun WideLayout(d: WidgetData, p: Palette, clock: ClockSpec, compact: Boolean, large: Boolean) {
     Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = 14.dp, vertical = if (compact) 8.dp else 12.dp)) {
         Header(d, p, if (compact) 28 else 36)
         Spacer(GlanceModifier.height(if (compact) 2.dp else 6.dp))
@@ -317,7 +350,9 @@ private fun WideLayout(d: WidgetData, p: Palette, compact: Boolean) {
         }
         Spacer(GlanceModifier.defaultWeight())
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            d.wear.take(if (compact && take.isNotEmpty()) 3 else 4).forEachIndexed { i, g ->
+            // Room for the clock: three stickers beside the "take along" note, and three in the taller 250 dp layout.
+            val count = if (compact) (if (take.isNotEmpty()) 3 else 4) else (if (large) 4 else 3)
+            d.wear.take(count).forEachIndexed { i, g ->
                 if (i > 0) Spacer(GlanceModifier.width(2.dp))
                 Sticker(g, if (compact) 34.dp else 40.dp)
             }
@@ -328,13 +363,13 @@ private fun WideLayout(d: WidgetData, p: Palette, compact: Boolean) {
                 Spacer(GlanceModifier.defaultWeight())
             }
             Spacer(GlanceModifier.width(6.dp))
-            Clock(p, if (compact) 15 else 16)
+            ClockRoom(clock)
         }
     }
 }
 
 @Composable
-private fun TallLayout(d: WidgetData, p: Palette, roomy: Boolean) {
+private fun TallLayout(d: WidgetData, p: Palette, clock: ClockSpec, roomy: Boolean) {
     Column(modifier = GlanceModifier.fillMaxSize().padding(if (roomy) 16.dp else 14.dp)) {
         Header(d, p, if (roomy) 44 else 38)
         Spacer(GlanceModifier.height(if (roomy) 10.dp else 6.dp))
@@ -363,15 +398,12 @@ private fun TallLayout(d: WidgetData, p: Palette, roomy: Boolean) {
             }
         }
         Spacer(GlanceModifier.height(8.dp))
-        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-            val time = if (d.updated > 0) SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(d.updated)) else ""
+        // The clock shows the time now; an old snapshot is already flagged in the header ("Son güncelleme").
+        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             val takeText = if (d.take.isNotEmpty()) d.w("Yanına al: ") + d.take.take(3).joinToString(", ") { it.label } else ""
-            Text(
-                listOf(takeText, if (time.isNotEmpty()) d.w("Güncelleme") + " " + time else "").filter { it.isNotEmpty() }.joinToString("  ·  "),
-                style = style(p.sub, 12), maxLines = if (roomy) 2 else 1, modifier = GlanceModifier.defaultWeight()
-            )
+            Text(takeText, style = style(p.sub, 12), maxLines = if (roomy) 2 else 1, modifier = GlanceModifier.defaultWeight())
             Spacer(GlanceModifier.width(8.dp))
-            Clock(p, if (roomy) 22 else 18)
+            ClockRoom(clock)
         }
     }
 }

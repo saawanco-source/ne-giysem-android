@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
+import android.graphics.drawable.RippleDrawable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -105,7 +106,8 @@ class WidgetLookTest {
                 val fit = fitFor(ctx, c.json, c.lang, w - 2f, h - 2f)
                 val found = mutableListOf<String>()
                 val notes = mutableListOf<String>()
-                inst.runOnMainSync { render(ctx, views, w, h, File(out, "$name.png"), found, notes) }
+                val debug = c.name == "tr" && (w to h) in listOf(110 to 110, 360 to 184)
+                inst.runOnMainSync { render(ctx, views, w, h, File(out, "$name.png"), found, notes, debug) }
                 report.appendLine("$name  $fit" + (if (notes.isEmpty()) "" else "  | " + notes.joinToString("; ")))
                 found.forEach { report.appendLine("   !! $it"); problems += "$name: $it" }
             }
@@ -117,6 +119,7 @@ class WidgetLookTest {
     /** Lays the widget out at [wDp] × [hDp], draws it into [png] and checks every visible text, picture and the clock. */
     private fun render(
         ctx: Context, views: RemoteViews, wDp: Int, hDp: Int, png: File, problems: MutableList<String>, notes: MutableList<String>,
+        debug: Boolean = false,
     ) {
         val density = ctx.resources.displayMetrics.density
         val wPx = (wDp * density).roundToInt()
@@ -142,6 +145,16 @@ class WidgetLookTest {
                 is TextClock -> {
                     // match_parent with gravity end|bottom: the digits sit at the frame's bottom-right.
                     val text = view.text.toString()
+                    if (debug) {
+                        val alone = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+                        view.draw(Canvas(alone))
+                        var inked = 0
+                        for (yy in 0 until alone.height step 2) for (xx in 0 until alone.width step 2) if (alone.getPixel(xx, yy) ushr 24 != 0) inked++
+                        notes += "saat: '$text' renk=#%08X boy=%.0fpx görünür=%s alfa=%.2f view=%dx%d @%d,%d boyalı=%d ebeveyn=%s".format(
+                            view.currentTextColor, view.textSize, view.isShown, view.alpha, view.width, view.height, x, y, inked,
+                            (view.parent as? View)?.let { it.javaClass.simpleName + " " + it.width + "x" + it.height + " a=" + it.alpha } ?: "-"
+                        )
+                    }
                     val tw = view.paint.measureText(text)
                     val fm = view.paint.fontMetrics
                     val right = x + view.width - view.totalPaddingRight
@@ -162,13 +175,18 @@ class WidgetLookTest {
                     val top = y + view.totalPaddingTop
                     val room = view.height - view.totalPaddingTop - view.totalPaddingBottom
                     if (layout.height > room + 2) problems += "kırpıldı $label (${layout.height} > $room px)"
-                    if (layout.getLineRight(0) > view.width - view.totalPaddingLeft - view.totalPaddingRight + 2) problems += "taştı $label"
+                    if (layout.getEllipsisCount(0) == 0 && layout.getLineRight(0) > view.width - view.totalPaddingLeft - view.totalPaddingRight + 2) {
+                        problems += "taştı $label"
+                    }
                     items += label to Rect(
                         (x + view.totalPaddingLeft + left).toInt(), top,
                         (x + view.totalPaddingLeft + right).toInt(), top + minOf(layout.height, room)
                     )
                 }
-                is ImageView -> if (view.drawable != null) items += "resim" to Rect(x, y, x + view.width, y + view.height)
+                // Glance adds a transparent ripple picture over everything that can be tapped: not content.
+                is ImageView -> if (view.drawable != null && view.drawable !is RippleDrawable) {
+                    items += "resim" to Rect(x, y, x + view.width, y + view.height)
+                }
             }
         }
         val box = Rect(0, 0, wPx, hPx)

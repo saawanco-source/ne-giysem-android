@@ -20,6 +20,9 @@ interface TextMeter {
     /** Height of one line of text. */
     fun lineHeight(sp: Float, bold: Boolean): Float = block("Ağ", sp, bold, 100_000f, 1).first
 
+    /** The phone's font size setting (1 = normal): text is already that much larger than its sp. */
+    val fontScale: Float get() = 1f
+
     /** Width and height of the clock's widest time ("00:00"…) at [sp]. */
     fun clockWidth(sp: Float): Float
     fun clockHeight(sp: Float): Float
@@ -115,7 +118,7 @@ object WidgetFit {
 
     fun fit(i: FitInput, m: TextMeter): Fit = when {
         i.width < 200f -> small(i, m)
-        i.height < 250f -> wide(i, m)
+        i.height < 240f -> wide(i, m)
         else -> tall(i, m)
     }
 
@@ -139,6 +142,7 @@ object WidgetFit {
      * Picks the richest variant whose scale is close to the best one; [fallback] when nothing fits.
      */
     private fun <V> choose(
+        m: TextMeter,
         variants: List<V>,
         baseClock: Float,
         build: (s: Float, v: V, clock: Float) -> Fit?,
@@ -157,20 +161,26 @@ object WidgetFit {
             val best = fits.maxOf { it.scale }
             return fits.first { it.scale >= best * RICHER }
         }
-        // The whole headline when its text stays readable; otherwise the larger of whole and cut.
+        // The whole headline when its text stays readable (a larger font setting already makes it larger);
+        // otherwise the larger of whole and cut.
         val whole = pick(run(variants))
-        if (whole != null && whole.scale >= READABLE) return whole
+        if (whole != null && whole.scale * m.fontScale >= READABLE) return whole
         val shortened = pick(run(cut))
         return listOfNotNull(whole, shortened).maxByOrNull { it.scale } ?: fallback()
     }
 
+    private const val TEXT_SHARE = 0.42f
+
     private class Header(val height: Float, val tempW: Float, val textW: Float)
 
-    /** Temperature, then the two text lines (single lines, cut with … when long), then the refresh button. */
+    /**
+     * Temperature, then the two text lines (single lines, cut with … when long), then the refresh button.
+     * The text lines keep at least [TEXT_SHARE] of the width, so a big temperature can't squeeze the place name away.
+     */
     private fun header(i: FitInput, m: TextMeter, w: Float, temp: Float, place: Float, sub: Float): Header? {
         val tempW = m.width(i.temp, temp, true) * SAFE
         val textW = w - tempW - HEADER_GAP - REFRESH
-        if (textW < 56f) return null
+        if (textW < max(56f, TEXT_SHARE * w)) return null
         val h = maxOf(m.lineHeight(temp, true) * SAFE, (m.lineHeight(place, true) + m.lineHeight(sub, true)) * SAFE, REFRESH)
         return Header(h, tempW, textW)
     }
@@ -209,7 +219,7 @@ object WidgetFit {
                 0f, 0, 0f, sticker, n, clock, cw, ch
             )
         }
-        return choose(variants, SMALL_CLOCK, { s, n, c -> build(s, n, c) }, { build(MIN_S, 1, SMALL_CLOCK * MIN_S, force = true)!! })
+        return choose(m, variants, SMALL_CLOCK, { s, n, c -> build(s, n, c) }, { build(MIN_S, 1, SMALL_CLOCK * MIN_S, force = true)!! })
     }
 
     // ---------------------------------------------------------------- wide (200+ dp wide, under 250 dp tall)
@@ -248,7 +258,7 @@ object WidgetFit {
                 }
                 TakeMode.INLINE -> {
                     takeW = w - rowW - 6f - CLOCK_GAP - cw
-                    if (takeW < minOf(m.width(i.takeShort, take, true) * SAFE, 64f)) ok = false
+                    if (takeW < m.width(i.takeShort, take, true) * SAFE) ok = false
                     takeLines = 1
                 }
                 TakeMode.NONE -> if (rowW + CLOCK_GAP + cw > w) ok = false
@@ -262,7 +272,7 @@ object WidgetFit {
             )
         }
         return choose(
-            variants.map { Triple(it.first, it.second, false) }, WIDE_CLOCK,
+            m, variants.map { Triple(it.first, it.second, false) }, WIDE_CLOCK,
             { s, v, c -> build(s, v.first, v.second, c, cut = v.third) },
             { build(MIN_S, minOf(most, 3), modes.last(), WIDE_CLOCK * MIN_S, cut = true, force = true)!! },
             cut = variants.map { Triple(it.first, it.second, true) },
@@ -323,7 +333,7 @@ object WidgetFit {
             )
         }
         return choose(
-            variants.map { Triple(it.first, it.second, false) }, TALL_CLOCK,
+            m, variants.map { Triple(it.first, it.second, false) }, TALL_CLOCK,
             { s, v, c -> build(s, v.first, v.second, c, cut = v.third) },
             { build(MIN_S, minOf(most, 3), 0, TALL_CLOCK * MIN_S, cut = true, force = true)!! },
             cut = variants.map { Triple(it.first, it.second, true) },

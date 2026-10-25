@@ -226,6 +226,7 @@ private fun RefreshIcon(p: Palette, d: WidgetData) {
  */
 private class AndroidMeter(context: Context) : TextMeter {
     private val dm = context.resources.displayMetrics
+    override val fontScale: Float = context.resources.configuration.fontScale
     private val family: Typeface = runCatching {
         Typeface.create(TextAppearanceSpan(context, android.R.style.TextAppearance_DeviceDefault).family, Typeface.NORMAL)
     }.getOrNull() ?: Typeface.DEFAULT

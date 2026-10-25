@@ -2,11 +2,8 @@ package com.negiysem.app.widget
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import androidx.glance.GlanceId
-import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.glance.appwidget.action.ActionCallback
 import com.negiysem.app.data.Store
 import com.negiysem.app.work.Scheduler
 
@@ -28,12 +25,5 @@ class NeGiysemReceiver : GlanceAppWidgetReceiver() {
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
         Scheduler.cancel(context)
-    }
-}
-
-/** Tapping the refresh icon on the widget. */
-class RefreshAction : ActionCallback {
-    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        Scheduler.now(context, replace = true)
     }
 }

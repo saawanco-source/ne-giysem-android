@@ -85,9 +85,6 @@ data class Fit(
 }
 
 object WidgetFit {
-    /** The refresh button's touch target. */
-    const val REFRESH = 40f
-
     /** Room kept on every measured text, for the home screen's own rounding. */
     private const val SAFE = 1.06f
 
@@ -174,14 +171,14 @@ object WidgetFit {
     private class Header(val height: Float, val tempW: Float, val textW: Float)
 
     /**
-     * Temperature, then the two text lines (single lines, cut with … when long), then the refresh button.
+     * Temperature, then the two text lines (single lines, cut with … when long).
      * The text lines keep at least [TEXT_SHARE] of the width, so a big temperature can't squeeze the place name away.
      */
     private fun header(i: FitInput, m: TextMeter, w: Float, temp: Float, place: Float, sub: Float): Header? {
         val tempW = m.width(i.temp, temp, true) * SAFE
-        val textW = w - tempW - HEADER_GAP - REFRESH
+        val textW = w - tempW - HEADER_GAP
         if (textW < max(56f, TEXT_SHARE * w)) return null
-        val h = maxOf(m.lineHeight(temp, true) * SAFE, (m.lineHeight(place, true) + m.lineHeight(sub, true)) * SAFE, REFRESH)
+        val h = max(m.lineHeight(temp, true) * SAFE, (m.lineHeight(place, true) + m.lineHeight(sub, true)) * SAFE)
         return Header(h, tempW, textW)
     }
 
@@ -207,15 +204,15 @@ object WidgetFit {
             val tempW = m.width(i.temp, temp, true) * SAFE
             val cw = m.clockWidth(clock) * SAFE
             val ch = m.clockHeight(clock) * SAFE
-            val row1 = max(m.lineHeight(temp, true) * SAFE, REFRESH)
+            val row1 = m.lineHeight(temp, true) * SAFE
             val row2 = m.lineHeight(line, true) * SAFE
             val row3 = max(sticker, ch)
-            val fits = tempW + REFRESH <= w &&
+            val fits = tempW <= w &&
                 n * sticker + (n - 1) * STICKER_GAP + CLOCK_GAP + cw <= w &&
                 row1 + row2 + 4f + row3 <= h
             if (!fits && !force) return null
             return Fit(
-                FitKind.SMALL, s, pad, pad, temp, 0f, line, w - REFRESH, 0f, 0, 0f, TakeMode.NONE, 0, 0f,
+                FitKind.SMALL, s, pad, pad, temp, 0f, line, w, 0f, 0, 0f, TakeMode.NONE, 0, 0f,
                 0f, 0, 0f, sticker, n, clock, cw, ch
             )
         }
@@ -240,7 +237,7 @@ object WidgetFit {
             val head = 16f * s
             val take = 12f * s
             val sticker = 40f * s
-            val hd = header(i, m, w, temp, place, sub) ?: if (force) Header(REFRESH, 0f, w - REFRESH - 60f) else return null
+            val hd = header(i, m, w, temp, place, sub) ?: if (force) Header(40f, 0f, w - 60f) else return null
             val (headH, headLines) = (if (cut) m.lineHeight(head, true) * SAFE to 1 else whole(m, i.headline, head, w, 3))
                 ?: if (force) (m.lineHeight(head, true) * SAFE to 1) else return null
             var takeH = 0f
@@ -299,7 +296,7 @@ object WidgetFit {
             val label = 11f * s
             val take = 12f * s
             var ok = true
-            val hd = header(i, m, w, temp, place, sub) ?: if (force) Header(REFRESH, 0f, w - REFRESH - 60f) else return null
+            val hd = header(i, m, w, temp, place, sub) ?: if (force) Header(40f, 0f, w - 60f) else return null
             var pillsH = 0f
             if (k > 0) {
                 val pillsW = i.pills.take(k).sumOf { (m.width(it, pill, true) * SAFE + 2 * PILL_PAD_H).toDouble() }.toFloat() +

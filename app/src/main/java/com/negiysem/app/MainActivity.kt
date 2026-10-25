@@ -165,7 +165,13 @@ class MainActivity : Activity() {
         startAds()
 
         // The 30-minute background refresh is only for the home-screen widget.
-        scope.launch { if (Scheduler.hasWidgets(applicationContext)) Scheduler.schedule(applicationContext) }
+        scope.launch {
+            if (Scheduler.hasWidgets(applicationContext)) {
+                Scheduler.schedule(applicationContext)
+                // Opening the app also brings an old widget up to date.
+                if (com.negiysem.app.data.Store(applicationContext).isStale()) Scheduler.now(applicationContext)
+            }
+        }
     }
 
     private fun hasLocation(): Boolean =

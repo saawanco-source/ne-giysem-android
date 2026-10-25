@@ -49,43 +49,81 @@ object Updater {
         }
     }
 
-    suspend fun refresh(context: Context) {
+    /**
+     * Fetches the forecasts (when there is a connection) and redraws every widget from the newest ones kept.
+     * Without a connection the widget is still redrawn for the current hour from the forecast fetched last.
+     * Returns whether the fetch worked; throws only when there is nothing at all to draw.
+     */
+    suspend fun refresh(context: Context): Boolean {
         val store = Store(context)
         val gen = store.generation
         if (store.wiped && store.lat == null) {
             // Everything was deleted in the app: show the empty widget, look nothing up.
             NeGiysemWidget.pushAll(context, "")
-            return
+            return true
         }
-        val snapshot = withContext(Dispatchers.IO) {
-            val lang = store.lang
-            var lat = store.lat
-            var lon = store.lon
-            var name = store.placeName ?: "Konumun"
-            if (lat == null || lon == null) {
-                // No place chosen in the app yet: approximate location from the internet connection.
-                val ip = getJson(if (Config.API.isNotEmpty()) Config.API + "/api/ip" else "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=$lang")
-                val la = ip.optDouble("latitude", Double.NaN)
-                val lo = ip.optDouble("longitude", Double.NaN)
-                if (la.isNaN() || lo.isNaN()) throw IOException("no location")
-                lat = la
-                lon = lo
-                name = ip.optString("city").ifBlank { ip.optString("locality") }.ifBlank { "Konumun" }
-            }
-            val routine = Day.parse(store.routineJson)?.takeIf { it.dayMode && it.trips.isNotEmpty() }
-            val tripPlaces = routine?.let { Day.tripPlaces(it) } ?: emptyList()
-            val all = getForecasts(listOf(lat to lon) + tripPlaces.map { it.lat to it.lon })
-            val wx = all.firstOrNull() ?: throw IOException("unexpected forecast")
-            val byPlace = HashMap<String, JSONObject>()
-            tripPlaces.forEachIndexed { i, p -> all.getOrNull(i + 1)?.let { byPlace[p.id] = it } }
-
-            val input = Outfit.parse(wx, store.hours) ?: throw IOException("unexpected forecast")
-            val day = routine?.let { Day.compute(it, byPlace, lang = lang) }
-            val plan = Outfit.plan(day?.input ?: input, store.feel, store.act, store.who, store.missing, lang)
-            Store.widgetSnapshot(plan, input, Outfit.ownName(name, lang), day?.next, lang)
+        val failure: Exception? = withContext(Dispatchers.IO) {
+            try { fetch(store, gen); null } catch (e: Exception) { e }
         }
-        if (Store(context).generation != gen) return // data was deleted while this refresh ran
-        store.saveWidget(snapshot)
+        val cached = store.forecast?.let { runCatching { JSONObject(it) }.getOrNull() }?.takeIf { forThisPlace(store, it) }
+            ?: throw (failure ?: IOException("no forecast"))
+        val snapshot = withContext(Dispatchers.IO) { snapshot(store, cached) }
+            ?: throw (failure ?: IOException("forecast no longer covers this hour"))
+        if (Store(context).generation != gen) return failure == null // data was deleted while this refresh ran
+        store.saveWidget(snapshot, cached.optLong("at"))
         NeGiysemWidget.pushAll(context, snapshot)
+        return failure == null
+    }
+
+    /** Looks the forecasts up for the saved place (or the connection's rough location) and every routine place. */
+    private fun fetch(store: Store, gen: Int) {
+        val lang = store.lang
+        var lat = store.lat
+        var lon = store.lon
+        var name = store.placeName ?: "Konumun"
+        if (lat == null || lon == null) {
+            // No place chosen in the app yet: approximate location from the internet connection.
+            val ip = getJson(if (Config.API.isNotEmpty()) Config.API + "/api/ip" else "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=$lang")
+            val la = ip.optDouble("latitude", Double.NaN)
+            val lo = ip.optDouble("longitude", Double.NaN)
+            if (la.isNaN() || lo.isNaN()) throw IOException("no location")
+            lat = la
+            lon = lo
+            name = ip.optString("city").ifBlank { ip.optString("locality") }.ifBlank { "Konumun" }
+        }
+        val routine = Day.parse(store.routineJson)?.takeIf { it.dayMode && it.trips.isNotEmpty() }
+        val tripPlaces = routine?.let { Day.tripPlaces(it) } ?: emptyList()
+        val all = getForecasts(listOf(lat to lon) + tripPlaces.map { it.lat to it.lon })
+        val main = all.firstOrNull() ?: throw IOException("unexpected forecast")
+        val places = JSONObject()
+        tripPlaces.forEachIndexed { i, p -> all.getOrNull(i + 1)?.let { places.put(p.id, it) } }
+        if (store.generation != gen) return // deleted meanwhile: keep nothing
+        store.saveForecast(
+            JSONObject().put("at", System.currentTimeMillis()).put("lat", lat).put("lon", lon).put("name", name)
+                .put("main", main).put("places", places).toString()
+        )
+    }
+
+    /** A kept forecast belongs to the place chosen now (one from the connection's location is fine without a choice). */
+    private fun forThisPlace(store: Store, cached: JSONObject): Boolean {
+        val lat = store.lat ?: return true
+        val lon = store.lon ?: return true
+        return kotlin.math.abs(cached.optDouble("lat", 999.0) - lat) < 0.01 && kotlin.math.abs(cached.optDouble("lon", 999.0) - lon) < 0.01
+    }
+
+    /** The widget's snapshot for this hour from a kept forecast; null when it no longer covers the current hour. */
+    private fun snapshot(store: Store, cached: JSONObject): String? {
+        val lang = store.lang
+        val at = cached.optLong("at")
+        val main = cached.optJSONObject("main") ?: return null
+        val byPlace = HashMap<String, JSONObject>()
+        cached.optJSONObject("places")?.let { o -> o.keys().forEach { k -> o.optJSONObject(k)?.let { byPlace[k] = it } } }
+        val routine = Day.parse(store.routineJson)?.takeIf { it.dayMode && it.trips.isNotEmpty() }
+        // Within 45 minutes of the fetch the measured "now" is used, after that the forecast for the current hour.
+        val input = Outfit.parse(main, store.hours, at) ?: return null
+        val day = routine?.let { Day.compute(it, byPlace, lang = lang) }
+        val plan = Outfit.plan(day?.input ?: input, store.feel, store.act, store.who, store.missing, lang)
+        val name = store.placeName ?: cached.optString("name", "Konumun")
+        return Store.widgetSnapshot(plan, input, Outfit.ownName(name, lang), day?.next, lang, at)
     }
 }

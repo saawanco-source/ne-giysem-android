@@ -25,7 +25,13 @@ class Store(context: Context) {
     val lang: String get() = prefs.getString("lang", null)?.takeIf { it == "tr" || it == "en" } ?: deviceLang()
     val widgetJson: String? get() = prefs.getString("widget", null)
     val routineJson: String? get() = prefs.getString("routine", null)
+    /** When the forecast the widget shows was fetched (not when it was last redrawn from it). */
     val updatedAt: Long get() = prefs.getLong("updated", 0L)
+    /**
+     * The last forecasts fetched: {"at", "lat", "lon", "name", "main": forecast, "places": {trip place id: forecast}}.
+     * Seven days hour by hour, so without a connection the widget still moves on with the clock.
+     */
+    val forecast: String? get() = prefs.getString("forecast", null)
     /** Set by "Tüm verilerimi sil": until a new place is chosen the widget stays empty (no location lookup). */
     val wiped: Boolean get() = prefs.getBoolean("wiped", false)
     /** Changes on every wipe, so a refresh that started before it never writes the deleted data back. */
@@ -83,15 +89,23 @@ class Store(context: Context) {
         prefs.edit().clear().putBoolean("wiped", true).putInt("gen", gen).commit()
     }
 
-    fun saveWidget(json: String) {
-        prefs.edit().putString("widget", json).putLong("updated", System.currentTimeMillis()).apply()
+    fun saveForecast(json: String) {
+        prefs.edit().putString("forecast", json).apply()
+    }
+
+    /** [fetchedAt]: when its forecast was fetched; a redraw from an older forecast keeps that time. */
+    fun saveWidget(json: String, fetchedAt: Long) {
+        prefs.edit().putString("widget", json).putLong("updated", fetchedAt).apply()
     }
 
     companion object {
         fun deviceLang(): String = if (Locale.getDefault().language == "tr") "tr" else "en"
 
         /** The compact snapshot the widget draws; its texts are in [lang], which the widget's own words follow too. */
-        fun widgetSnapshot(plan: Outfit.Plan, input: Outfit.Input, place: String, next: String? = null, lang: String = "tr"): String {
+        fun widgetSnapshot(
+            plan: Outfit.Plan, input: Outfit.Input, place: String, next: String? = null, lang: String = "tr",
+            updated: Long = System.currentTimeMillis(),
+        ): String {
             val o = JSONObject()
             if (!next.isNullOrBlank()) o.put("next", next)
             o.put("lang", lang)
@@ -102,7 +116,7 @@ class Store(context: Context) {
             o.put("cond", Outfit.condition(input.now.code, lang))
             o.put("isDay", input.now.isDay)
             o.put("place", place)
-            o.put("updated", System.currentTimeMillis())
+            o.put("updated", updated)
             o.put("wear", JSONArray().apply { plan.wear.forEach { put(JSONObject().put("g", it.g).put("label", it.label)) } })
             o.put("take", JSONArray().apply { plan.take.forEach { put(JSONObject().put("g", it.g).put("label", it.label)) } })
             o.put("pills", JSONArray().apply { plan.pills.forEach { put(it) } })

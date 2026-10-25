@@ -29,7 +29,6 @@ import androidx.glance.appwidget.AndroidRemoteViews
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
-import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
@@ -104,7 +103,6 @@ private object Words {
     private val EN = mapOf(
         "Uygulamayı aç ve konumunu seç." to "Open the app and choose your location.",
         "Bugünün kıyafeti bir bakışta" to "Today's outfit at a glance",
-        "Yenile" to "Refresh",
         "Son güncelleme" to "Last updated",
         "Sıradaki: " to "Next: ",
         "Hissedilen " to "Feels like ",
@@ -216,21 +214,6 @@ private fun Sticker(g: Garment, size: Float) {
         contentDescription = g.label,
         modifier = GlanceModifier.size(size.dp)
     )
-}
-
-@Composable
-private fun RefreshIcon(p: Palette, d: WidgetData) {
-    // A 40 dp touch area around the 22 dp icon.
-    Box(
-        modifier = GlanceModifier.size(40.dp).clickable(actionRunCallback<RefreshAction>()),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            provider = ImageProvider(if (p.night) R.drawable.ic_refresh_light else R.drawable.ic_refresh_ink),
-            contentDescription = d.w("Yenile"),
-            modifier = GlanceModifier.size(22.dp)
-        )
-    }
 }
 
 /**
@@ -373,7 +356,6 @@ private fun SmallLayout(d: WidgetData, p: Palette, f: Fit) {
     Column(modifier = GlanceModifier.fillMaxSize().padding(f.padH.dp)) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(deg(d.temp), style = style(p.ink, f.temp), modifier = GlanceModifier.width(f.textW.dp), maxLines = 1)
-            RefreshIcon(p, d)
         }
         Text(staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?", style = style(p.sub, f.sub), maxLines = 1)
         Spacer(GlanceModifier.defaultWeight())
@@ -384,7 +366,7 @@ private fun SmallLayout(d: WidgetData, p: Palette, f: Fit) {
     }
 }
 
-/** Temperature, place and level, the second line, and the refresh button; the text column has a fixed width. */
+/** Temperature, place and level, and the second line; the text column has a fixed width. */
 @Composable
 private fun Header(d: WidgetData, p: Palette, f: Fit) {
     Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -394,7 +376,6 @@ private fun Header(d: WidgetData, p: Palette, f: Fit) {
             Text(placeLine(d), style = style(p.ink, f.place), maxLines = 1)
             Text(subLine(d), style = style(p.sub, f.sub, bold = d.next.isNotEmpty() || staleText(d) != null), maxLines = 1)
         }
-        RefreshIcon(p, d)
     }
 }
 

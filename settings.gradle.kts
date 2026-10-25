@@ -14,3 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "NeGiysem"
 include(":app")
+include(":watchface")

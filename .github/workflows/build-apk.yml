@@ -92,6 +92,30 @@ jobs:
       - name: API testleri (MET ve Photon olmadan)
         run: node --test tests/api
 
+  # The watch face: its XML is generated (tools/build_face.py) and must match Google's Watch Face Format schema.
+  watchface:
+    name: Saat yüzü (Watch Face Format)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Şemayı ve doğrulayıcıyı hazırla
+        run: |
+          pip install xmlschema==4.3.2
+          git clone -q --depth 1 https://github.com/google/watchface.git "$RUNNER_TEMP/wff"
+      - name: Üretilen XML güncel mi
+        run: |
+          python3 watchface/tools/build_face.py
+          git diff --exit-code -- watchface/src/main/res \
+            || { echo "::error title=Saat yüzü::watchface.xml ya da metinler build_face.py'den yeniden üretilmemiş."; exit 1; }
+      - name: WFF v2 şemasına uyuyor mu
+        run: |
+          python3 watchface/tools/validate.py "$RUNNER_TEMP/wff/third_party/wff/specification/documents" 2 | tee wff.txt
+          grep -q '^Geçerli' wff.txt || { echo "::error title=Saat yüzü::$(grep HATA wff.txt | head -5 | tr '\n' ' ')"; exit 1; }
+
   # The same code against the real MET Norway and Photon services. For information only: never stops the APK.
   api-live:
     name: API canlı deneme (MET Norway, Photon)
@@ -109,7 +133,7 @@ jobs:
         run: node tests/api/live-smoke.mjs
 
   build:
-    needs: [web-tests, parity, api-tests]
+    needs: [web-tests, parity, api-tests, watchface]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -204,9 +228,12 @@ jobs:
           mkdir -p out
           if [ "$MODE" = debug ]; then
             cp app/build/outputs/apk/debug/app-debug.apk out/NeGiysem.apk
+            cp watchface/build/outputs/apk/debug/watchface-debug.apk out/NeGiysem-SaatYuzu.apk
           else
             cp app/build/outputs/bundle/release/app-release.aab out/NeGiysem.aab
             cp app/build/outputs/apk/release/app-release.apk out/NeGiysem.apk
+            cp watchface/build/outputs/bundle/release/watchface-release.aab out/NeGiysem-SaatYuzu.aab
+            cp watchface/build/outputs/apk/release/watchface-release.apk out/NeGiysem-SaatYuzu.apk
           fi
 
       # What Play checks, checked here first: target API, version number, signature, permissions, AdMob ID, 16 KB pages.
@@ -285,6 +312,32 @@ jobs:
               aabso=$(unzip -Z1 "$aab" | grep -E '/lib/.+\.so$' || true)
               [ -z "$aabso" ] && echo "   AAB'da .so yok" || echo "$aabso" | sed 's/^/   /'
             fi
+            # The watch face: resources only (no code), Watch Face Format 2, Wear OS 5+ (API 34).
+            wapk=out/NeGiysem-SaatYuzu.apk; waab=out/NeGiysem-SaatYuzu.aab
+            echo
+            echo "== Saat yüzü APK: $(stat -c %s "$wapk") bayt"
+            wb=$("$BT/aapt2" dump badging "$wapk")
+            echo "$wb" | grep -E "^(package:|minSdkVersion|targetSdkVersion|uses-feature:)"
+            echo "$wb" | grep -q "^package: name='com.negiysem.app.watchface'" || problem "saat yüzü paket adı com.negiysem.app.watchface değil"
+            echo "$wb" | grep -q "^minSdkVersion:'34'" || problem "saat yüzü minSdk 34 değil"
+            echo "$wb" | grep -q "android.hardware.type.watch" || problem "saat yüzü android.hardware.type.watch istemiyor"
+            wt=$("$BT/aapt2" dump xmltree --file AndroidManifest.xml "$wapk")
+            echo "$wt" | grep -q 'android:hasCode(0x[0-9a-f]*)=false' && echo "   hasCode=false" || problem "saat yüzünde hasCode=false yok"
+            echo "$wt" | grep -A1 '"com.google.wear.watchface.format.version"' | grep -q '"2"' && echo "   WFF sürümü: 2" || problem "WFF sürüm özelliği 2 değil"
+            unzip -Z1 "$wapk" | grep -q '\.dex$' && problem "saat yüzü APK'sında kod (.dex) var" || echo "   kod yok (.dex yok)"
+            # Release builds may shorten resource paths, so look the resource up by name.
+            "$BT/aapt2" dump resources "$wapk" | grep -q 'raw/watchface' && echo "   raw/watchface paketlendi" || problem "watchface.xml paketlenmemiş"
+            echo "   resimler: $("$BT/aapt2" dump resources "$wapk" | grep -c 'drawable/wf_') çıkartma"
+            if "$BT/apksigner" verify --print-certs "$wapk" > wsig.txt 2>&1; then
+              grep -E "certificate SHA-256" wsig.txt | sed 's/^/   /'
+            else
+              sed 's/^/   /' wsig.txt | head -10; problem "saat yüzü APK imzası doğrulanamadı"
+            fi
+            if [ -f "$waab" ]; then
+              echo "== Saat yüzü AAB: $(stat -c %s "$waab") bayt"
+              bt validate --bundle="$waab" > /dev/null 2>&1 && echo "   bundletool validate: geçerli" || problem "saat yüzü AAB bundletool hatası"
+              jarsigner -verify "$waab" 2>&1 | grep -q "jar verified" && echo "   jar verified" || problem "saat yüzü AAB imzası doğrulanamadı"
+            fi
           } > verify.txt 2>&1
           cat verify.txt
           { echo '```'; cat verify.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
@@ -311,6 +364,8 @@ jobs:
               echo "**NeGiysem.aab**: Google Play Console'a yüklenecek dosya (RELEASE.md)."
               echo
               echo "**NeGiysem.apk**: telefona doğrudan kurmak için, yükleme anahtarıyla imzalı. Telefonda eski (debug) sürüm varsa bu bir kez kaldırılıp kurulur."
+              echo
+              echo "**NeGiysem-SaatYuzu.apk / .aab**: Wear OS 5+ saat yüzü (Galaxy Watch 7 ve sonrası). Play'de ayrı bir uygulama kaydı olarak yüklenir."
             } > notes.md
           fi
 

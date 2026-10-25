@@ -53,6 +53,7 @@ async function open(opts = {}) {
   let meteoCalls = 0;
   await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
   await page.route(/bigdatacloud/, r => r.abort());
+  await page.addInitScript(() => { window.NG_API = ""; }); // legacy direct services, mocked below (CONFIG.api points at the live server)
   await page.route(/api\.open-meteo\.com\/v1\/forecast/, r => { meteoCalls++; r.fulfill({status:200, contentType:'application/json', body:JSON.stringify(fixture)}); });
   const hour = opts.hour == null ? 9 : opts.hour;
   await page.clock.setFixedTime(new Date(Date.UTC(2026, 9, 24, hour - 3, opts.minute || 0)));

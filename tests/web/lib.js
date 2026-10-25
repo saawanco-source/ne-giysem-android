@@ -256,7 +256,8 @@ async function start() {
       await context.addInitScript(GEO_INIT);
     }
     if (o.seed) await context.addInitScript(SEED_INIT, o.seed);
-    if (o.api) await context.addInitScript((a) => { window.NG_API = a; }, API_ORIGIN);
+    // API mode talks to the fake server; otherwise force the legacy direct services even though CONFIG.api is set.
+    await context.addInitScript((a) => { window.NG_API = a; }, o.api ? API_ORIGIN : "");
     const page = await context.newPage();
     const errors = [], consoleErr = [];
     page.on("pageerror", (e) => errors.push(String(e && e.stack || e)));

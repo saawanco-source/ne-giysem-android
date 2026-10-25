@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget's digital clock. TextClock ticks on its own on the home screen, so the app never wakes up for it.
+     Follows the phone's 24-hour setting; colour and size are set from the widget. -->
+<TextClock xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_clock"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:format24Hour="HH:mm"
+    android:format12Hour="h:mm"
+    android:includeFontPadding="false"
+    android:maxLines="1"
+    android:singleLine="true"
+    android:textColor="#FF14161F"
+    android:textSize="16sp"
+    android:textStyle="bold" />

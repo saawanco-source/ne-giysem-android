@@ -1,8 +1,11 @@
 package com.negiysem.app.widget
 
 import android.content.Context
+import android.util.TypedValue
+import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -13,9 +16,11 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.AndroidRemoteViews
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
@@ -59,6 +64,7 @@ class NeGiysemWidget : GlanceAppWidget() {
         val LANG = stringPreferencesKey("lang")
         // Sizes Android lays the widget out for; the layout picked for each keeps its content inside the box.
         private val SMALL = DpSize(110.dp, 110.dp)
+        private val SMALL_WIDE = DpSize(160.dp, 110.dp)
         private val WIDE = DpSize(250.dp, 110.dp)
         private val WIDE_MID = DpSize(250.dp, 160.dp)
         private val TALL = DpSize(250.dp, 250.dp)
@@ -76,7 +82,7 @@ class NeGiysemWidget : GlanceAppWidget() {
         }
     }
 
-    override val sizeMode = SizeMode.Responsive(setOf(SMALL, WIDE, WIDE_MID, TALL, TALL_XL))
+    override val sizeMode = SizeMode.Responsive(setOf(SMALL, SMALL_WIDE, WIDE, WIDE_MID, TALL, TALL_XL))
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -216,6 +222,16 @@ private fun RefreshIcon(p: Palette, d: WidgetData) {
     }
 }
 
+/** The time of day in the bottom-right corner: a TextClock, so it keeps ticking without the app running. */
+@Composable
+private fun Clock(p: Palette, sizeSp: Int) {
+    val views = RemoteViews(LocalContext.current.packageName, R.layout.widget_clock).apply {
+        setTextColor(R.id.widget_clock, p.ink.toArgb())
+        setTextViewTextSize(R.id.widget_clock, TypedValue.COMPLEX_UNIT_SP, sizeSp.toFloat())
+    }
+    AndroidRemoteViews(views)
+}
+
 /** "Son güncelleme 08:10" when the snapshot is more than two hours old (the phone may have put the app to sleep). */
 private fun staleText(d: WidgetData): String? {
     if (!d.ok || d.updated <= 0 || System.currentTimeMillis() - d.updated < 2 * 3_600_000L) return null
@@ -234,7 +250,7 @@ private fun Body(d: WidgetData) {
             .clickable(actionStartActivity<MainActivity>())
     ) {
         when {
-            size.width < 200.dp -> SmallLayout(d, p)
+            size.width < 200.dp -> SmallLayout(d, p, twoStickers = size.width >= 160.dp)
             size.height < 160.dp -> WideLayout(d, p, compact = true)
             size.height < 250.dp -> WideLayout(d, p, compact = false)
             else -> TallLayout(d, p, roomy = size.height >= 310.dp)
@@ -243,7 +259,7 @@ private fun Body(d: WidgetData) {
 }
 
 @Composable
-private fun SmallLayout(d: WidgetData, p: Palette) {
+private fun SmallLayout(d: WidgetData, p: Palette, twoStickers: Boolean) {
     Column(modifier = GlanceModifier.fillMaxSize().padding(10.dp)) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(deg(d.temp), style = style(p.ink, 28), modifier = GlanceModifier.defaultWeight(), maxLines = 1)
@@ -251,11 +267,14 @@ private fun SmallLayout(d: WidgetData, p: Palette) {
         }
         Text(staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?", style = style(p.sub, 12), maxLines = 1)
         Spacer(GlanceModifier.defaultWeight())
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            d.wear.take(2).forEachIndexed { i, g ->
+        // The narrowest size keeps one sticker so the clock fits beside it.
+        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+            d.wear.take(if (twoStickers) 2 else 1).forEachIndexed { i, g ->
                 if (i > 0) Spacer(GlanceModifier.width(2.dp))
                 Sticker(g, 40.dp)
             }
+            Spacer(GlanceModifier.defaultWeight())
+            Clock(p, 15)
         }
     }
 }
@@ -289,20 +308,27 @@ private fun WideLayout(d: WidgetData, p: Palette, compact: Boolean) {
     Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = 14.dp, vertical = if (compact) 8.dp else 12.dp)) {
         Header(d, p, if (compact) 28 else 36)
         Spacer(GlanceModifier.height(if (compact) 2.dp else 6.dp))
-        Text(d.headline, style = style(p.ink, if (compact) 14 else 16), maxLines = if (compact) 1 else 2)
+        val take = d.take.take(2).joinToString(", ") { it.label }
+        // Taller: "take along" gets its own line under a one-line headline, so the stickers and the clock share the bottom row.
+        Text(d.headline, style = style(p.ink, if (compact) 14 else 16), maxLines = if (compact || take.isNotEmpty()) 1 else 2)
+        if (!compact && take.isNotEmpty()) {
+            Spacer(GlanceModifier.height(2.dp))
+            Text(d.w("Yanına al: ") + take, style = style(p.sub, 12), maxLines = 1)
+        }
         Spacer(GlanceModifier.defaultWeight())
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            d.wear.take(4).forEachIndexed { i, g ->
+            d.wear.take(if (compact && take.isNotEmpty()) 3 else 4).forEachIndexed { i, g ->
                 if (i > 0) Spacer(GlanceModifier.width(2.dp))
-                Sticker(g, if (compact) 34.dp else 44.dp)
+                Sticker(g, if (compact) 34.dp else 40.dp)
             }
-            if (d.take.isNotEmpty()) {
-                Spacer(GlanceModifier.width(8.dp))
-                Text(
-                    "+ " + d.take.take(2).joinToString(", ") { it.label },
-                    style = style(p.ink, 12), maxLines = 2, modifier = GlanceModifier.defaultWeight()
-                )
+            if (compact && take.isNotEmpty()) {
+                Spacer(GlanceModifier.width(6.dp))
+                Text("+ " + d.take.first().label, style = style(p.ink, 12), maxLines = 1, modifier = GlanceModifier.defaultWeight())
+            } else {
+                Spacer(GlanceModifier.defaultWeight())
             }
+            Spacer(GlanceModifier.width(6.dp))
+            Clock(p, if (compact) 15 else 16)
         }
     }
 }
@@ -336,14 +362,16 @@ private fun TallLayout(d: WidgetData, p: Palette, roomy: Boolean) {
                 }
             }
         }
-        if (d.take.isNotEmpty() || d.updated > 0) {
-            Spacer(GlanceModifier.height(8.dp))
+        Spacer(GlanceModifier.height(8.dp))
+        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
             val time = if (d.updated > 0) SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(d.updated)) else ""
             val takeText = if (d.take.isNotEmpty()) d.w("Yanına al: ") + d.take.take(3).joinToString(", ") { it.label } else ""
             Text(
                 listOf(takeText, if (time.isNotEmpty()) d.w("Güncelleme") + " " + time else "").filter { it.isNotEmpty() }.joinToString("  ·  "),
-                style = style(p.sub, 12), maxLines = if (roomy) 2 else 1
+                style = style(p.sub, 12), maxLines = if (roomy) 2 else 1, modifier = GlanceModifier.defaultWeight()
             )
+            Spacer(GlanceModifier.width(8.dp))
+            Clock(p, if (roomy) 22 else 18)
         }
     }
 }

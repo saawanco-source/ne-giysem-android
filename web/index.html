@@ -302,6 +302,21 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .rain-alert b{font-weight:800}
 .rain-alert .x{color:inherit;margin-left:0;flex:none}
 .rain-alert :focus-visible{outline-color:currentColor}
+.severe{display:grid;gap:8px;max-width:36rem;margin:0 0 14px}
+.sv{border-radius:18px;padding:10px 14px 11px;background:#ffe27a;color:#2a2100;box-shadow:0 12px 24px -16px var(--shadow)}
+.sv.sv2{background:#ff8a5b;color:#2a0c00}
+.sv-top{display:flex;align-items:center;gap:8px;font-size:16px}
+.sv-top .ic{width:22px;height:22px;flex:none}
+.sv-top b{font-weight:800}
+.sv-lv{margin-left:auto;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:999px;background:rgba(0,0,0,.13)}
+.sv-when{margin:3px 0 0 30px;font-weight:650;font-size:14px}
+.sv details{margin:6px 0 0 30px}
+.sv summary{cursor:pointer;font-weight:750;font-size:14px}
+.sv ul{margin:6px 0 2px;padding-left:18px}
+.sv li{font-size:14px;line-height:1.38;margin:3px 0}
+.sv :focus-visible{outline-color:currentColor}
+.sv-note{margin:0 2px;font-size:12.5px;line-height:1.4;color:var(--ink2)}
+.sv-note a{color:inherit;font-weight:700}
 @keyframes alertIn{from{opacity:0;transform:translateY(-6px) rotate(-.8deg)}to{opacity:1;transform:rotate(-.8deg)}}
 .hero-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 .act-chip{display:inline-flex;align-items:center;gap:7px}
@@ -435,6 +450,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 
   <main class="grid">
     <section class="hero" aria-label="Bugünün önerisi" data-i18n-attr="aria-label">
+      <div class="severe" id="severe" hidden></div>
       <div class="rain-alert" id="rainAlert" role="status" hidden></div>
       <div class="pills" id="pills"></div>
       <h1 class="head" id="headline" tabindex="-1">Bugün ne giysem?</h1>
@@ -990,6 +1006,43 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "<b>Yağmur {0} civarı</b> başlıyor; {1} yolunda ({2}) {3}.": "<b>Rain starts around {0}</b>; on your {1} trip ({2}), {3}.",
     "<b>Yağmur {0} civarı</b> {1} yolunda; {2}.": "<b>Rain around {0}</b> on your {1} trip; {2}.",
     "Yağmur uyarısını bugünlük kapat": "Dismiss the rain warning for today",
+    // severe weather
+    "Fırtına": "Storm", "Gök gürültülü sağanak": "Thunderstorms", "Dolu ve gök gürültülü sağanak": "Hail and thunderstorms",
+    "Kuvvetli yağış": "Heavy rain", "Çok kuvvetli yağış": "Very heavy rain", "Kar": "Snow", "Yoğun kar": "Heavy snow",
+    "Buzlanma": "Icy conditions", "Dondurucu yağmur": "Freezing rain", "Aşırı sıcak": "Extreme heat", "Dondurucu soğuk": "Extreme cold",
+    "Yoğun sis": "Dense fog", "Dikkat": "Caution", "Tehlikeli": "Danger", "Ne yapmalı?": "What to do", "yarın": "tomorrow",
+    "rüzgâr saatte {0} km'ye kadar": "wind up to {0} km/h", "hissedilen {0}'ye kadar": "feels like up to {0}",
+    "hissedilen {0}'ye kadar düşüyor": "feels as low as {0}",
+    "saatte {0} mm'ye kadar": "up to {0} mm an hour", "sıcaklık {0}": "temperature {0}",
+    "Çatı, tabela, iskele ve ağaçların yakınından geçme.": "Keep away from roofs, signs, scaffolding and trees.",
+    "Balkondaki saksı ve eşyaları içeri al ya da sabitle.": "Bring in or tie down pots and anything loose on your balcony.",
+    "Vapur ve deniz otobüsü seferleri iptal olabilir; yola çıkmadan kontrol et.": "Ferries may be cancelled; check before you set out.",
+    "Şemsiye yerine kapüşonlu, rüzgâr geçirmez bir mont giy.": "Wear a hooded, windproof jacket instead of carrying an umbrella.",
+    "Açık alanda, ağaç altında ve su kenarında durma; bir binaya ya da araca gir.": "Don't stay in the open, under trees or by water; get inside a building or a car.",
+    "Metal direk ve çitlerden uzak dur.": "Keep away from metal poles and fences.",
+    "Dolu için aracını kapalı bir yere çek.": "Move your car under cover from the hail.",
+    "Alt geçitlerden, dere yataklarından ve su birikintilerinden uzak dur.": "Avoid underpasses, stream beds and standing water.",
+    "Selde yürüme, araçla geçmeye çalışma.": "Don't walk or drive through flood water.",
+    "Bodrum ya da zemin kattaysan eşyaları yükseğe kaldır.": "On a basement or ground floor, move your belongings up off the floor.",
+    "Su geçirmez ayakkabı ve yağmurluk giy.": "Wear waterproof shoes and a raincoat.",
+    "Gerekmedikçe yola çıkma; çıkacaksan toplu taşımayı seç.": "Avoid travel unless you must; if you go, take public transport.",
+    "Bot ve yün çorap giy, yedek çorap al.": "Wear boots and wool socks, and take a spare pair.",
+    "Çatılardan düşebilecek kar ve buz kütlelerine dikkat et.": "Watch out for snow and ice falling from roofs.",
+    "Kaymayan tabanlı ayakkabı giy; merdiven ve yokuşlarda tutunarak yürü.": "Wear shoes with grippy soles; hold on to rails on stairs and slopes.",
+    "Araç kullanacaksan kış lastiği takılı olsun, yavaş git ve takip mesafesini artır.": "If you drive, use winter tyres, slow down and keep a longer distance.",
+    "11:00–16:00 arası güneşe çıkma, gölgede kal.": "Stay out of the sun between 11:00 and 16:00.",
+    "Susamayı bekleme, sık sık su iç.": "Drink water often; don't wait until you're thirsty.",
+    "Açık renkli, bol giysi ve şapka giy.": "Wear light-coloured, loose clothes and a hat.",
+    "Yaşlılara, çocuklara ve hayvanlara dikkat et; araçta kimseyi bırakma.": "Look out for older people, children and animals; never leave anyone in a car.",
+    "Kat kat giy; bere, eldiven ve atkı şart.": "Dress in layers; a beanie, gloves and a scarf are a must.",
+    "Uzun süre dışarıda kalma, ıslanan giysiyi hemen değiştir.": "Don't stay out for long; change out of wet clothes right away.",
+    "Soba ya da şofben yanan yeri havalandır: karbonmonoksit zehirlenmesine dikkat.": "Air any room with a stove or gas heater on: beware of carbon monoxide.",
+    "Görüş kısa: yolda dikkatli ol, açık renkli ya da yansıtıcı bir şey giy.": "Visibility is low: take care on the road and wear something light or reflective.",
+    "Vapur ve uçak seferlerinde gecikme ya da iptal olabilir.": "Ferries and flights may be delayed or cancelled.",
+    "Bu, Ne Giysem’in tahmine dayalı uyarısıdır; resmî uyarı değildir. Resmî uyarılar: {0} · Acil durumda {1}.":
+      "This is Ne Giysem's own forecast-based warning, not an official one. Official warnings: {0} · In an emergency call {1}.",
+    "Bu, Ne Giysem’in tahmine dayalı uyarısıdır; resmî uyarı değildir. Resmî uyarılar için yerel meteoroloji servisine bak.":
+      "This is Ne Giysem's own forecast-based warning, not an official one. Check your local weather service for official warnings.",
     "Alt ve ayakkabı": "Bottoms and shoes", "Temel": "Basics", "her güne bir": "one for each day",
     "Tene yakın içlik; iki günde bir değiştir": "Base layer next to the skin; change it every two days",
     "Kazak ya da sweatshirt altına; {0}": "Under a sweater or sweatshirt; {0}", "Serinlerse diye: {0}": "In case it gets cooler: {0}", "Her gün": "Every day",
@@ -1665,6 +1718,52 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   function currentInput(){ if (S.mode === "live") { var li = liveInput(); if (li) return li; S.mode = "manual"; } return manualInput(); }
 
+  /* ---- severe weather: the app's own reading of the forecast, not an official warning ---- */
+  // Same rules as Alerts.kt (widget strip and notifications); tests/parity compares the two.
+  // The next 24 hours from the current hour. Levels: 1 "Dikkat", 2 "Tehlikeli". Per kind: first and last hour, and the peak.
+  var SEVERE_KINDS = ["storm","thunder","rain","snow","ice","heat","cold","fog"];
+  function severe(wx, nowMs){
+    var H = wx && wx.hourly; if (!H || !Array.isArray(H.time) || !H.time.length) return [];
+    var key = new Date(nowMs + ((wx.utc_offset_seconds) || 0) * 1000).toISOString().slice(0,13), i0 = -1, i, j, q;
+    for (i = 0; i < H.time.length; i++) if (String(H.time[i]).slice(0,13) === key) { i0 = i; break; }
+    if (i0 < 0) { if (key < String(H.time[0]).slice(0,13)) i0 = 0; else return []; }
+    var num = function(a, k){ var v = Array.isArray(a) ? a[k] : null; return typeof v === "number" && isFinite(v) ? v : null; };
+    var found = {};
+    function hit(k, lv, at, peak){
+      var a = found[k];
+      if (!a) { found[k] = {lv:lv, i:at, j:at, peak:peak}; return; }
+      if (lv > a.lv) a.lv = lv;
+      a.j = at;
+      if (peak != null && (a.peak == null || (k === "cold" || k === "ice" ? peak < a.peak : peak > a.peak))) a.peak = peak;
+    }
+    for (j = i0; j < Math.min(H.time.length, i0 + 24); j++) {
+      var T = num(H.temperature_2m, j), A = num(H.apparent_temperature, j), c = num(H.weather_code, j);
+      var W = num(H.wind_speed_10m, j), G = num(H.wind_gusts_10m, j), P = num(H.precipitation, j), p6 = 0;
+      if (A == null) A = T;
+      c = c == null ? -1 : Math.round(c);
+      for (q = j; q < Math.min(H.time.length, j + 6); q++) p6 += num(H.precipitation, q) || 0;
+      var snow = (c >= 71 && c <= 77) || c === 85 || c === 86;
+      if (A != null && A >= 34) hit("heat", A >= 40 ? 2 : 1, j, A);
+      if (A != null && A <= -10) hit("cold", A <= -20 ? 2 : 1, j, A);
+      if (c === 56 || c === 57 || c === 66 || c === 67) hit("ice", 2, j, T);
+      else if (T != null && T <= 0.5 && ((c >= 51 && c <= 67) || (c >= 80 && c <= 82) || snow)) hit("ice", 1, j, T);
+      // A six-hour total counts only in hours that are wet themselves (so the warning doesn't start before the rain).
+      var wet = P != null && P >= 1;
+      if (!snow && ((P != null && P >= 15) || (wet && p6 >= 40))) hit("rain", 2, j, P);
+      else if (!snow && ((P != null && P >= 6) || (wet && p6 >= 20) || c === 65 || c === 82)) hit("rain", 1, j, P);
+      if (c === 96 || c === 99) hit("thunder", 2, j, null); else if (c === 95) hit("thunder", 1, j, null);
+      var gust = Math.max(W || 0, G || 0);
+      if ((G != null && G >= 95) || (W != null && W >= 70)) hit("storm", 2, j, gust);
+      else if ((G != null && G >= 70) || (W != null && W >= 50)) hit("storm", 1, j, gust);
+      if (c === 75 || c === 86) hit("snow", 2, j, null); else if (c === 73 || c === 85) hit("snow", 1, j, null);
+      if (c === 45 || c === 48) hit("fog", 1, j, null);
+    }
+    return SEVERE_KINDS.filter(function(k){ return found[k]; }).map(function(k){
+      var a = found[k];
+      return {k:k, lv:a.lv, from:String(H.time[a.i]).slice(0,16), to:String(H.time[a.j]).slice(0,16), peak:a.peak == null ? null : Math.round(a.peak)};
+    }).sort(function(x, y){ return y.lv - x.lv || (x.from < y.from ? -1 : x.from > y.from ? 1 : 0) || SEVERE_KINDS.indexOf(x.k) - SEVERE_KINDS.indexOf(y.k); });
+  }
+
   /* ================= render ================= */
   // "Hissedilen 8°: soğukça; şu an yağmur yağıyor" (keeps acronyms such as "UV" as they are)
   function joinWhy(list, sep){ return list.map(function(w, i){ var c2 = w.charAt(1); return i && c2 && c2 === c2.toLocaleLowerCase("tr") ? lcf(w) : w; }).join(sep); }
@@ -1754,6 +1853,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       $("mTempOut").textContent = deg(S.manual.temp);
     }
     // A fault in these extras must never cost the stored weather (the boot fallback drops it), so they fail on their own.
+    try { renderSevere(live); } catch (e) { $("severe").hidden = true; console.error(e); }
     try { renderRain(live, inp, day); } catch (e) { $("rainAlert").hidden = true; console.error(e); }
     try { renderWeek(live); } catch (e) { $("weekCard").hidden = true; console.error(e); }
     $("heroActs").hidden = !live;
@@ -1952,6 +2052,74 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (!r) { el.hidden = true; return; }
     var html = icon("rain") + '<p>' + rainMsg(r) + '</p><button type="button" class="x" data-rain-off aria-label="' + esc(tx("Yağmur uyarısını bugünlük kapat")) + '">×</button>';
     if (html !== RAIN_HTML) { el.innerHTML = html; RAIN_HTML = html; }
+    el.hidden = false;
+  }
+
+  /* ---- severe weather card ---- */
+  var SEVERE_TEXT = {
+    storm:["Fırtına", "Fırtına"], thunder:["Gök gürültülü sağanak", "Dolu ve gök gürültülü sağanak"], rain:["Kuvvetli yağış", "Çok kuvvetli yağış"],
+    snow:["Kar", "Yoğun kar"], ice:["Buzlanma", "Dondurucu yağmur"], heat:["Aşırı sıcak", "Aşırı sıcak"], cold:["Dondurucu soğuk", "Dondurucu soğuk"],
+    fog:["Yoğun sis", "Yoğun sis"]
+  };
+  var SEVERE_TIPS = {
+    storm:["Çatı, tabela, iskele ve ağaçların yakınından geçme.", "Balkondaki saksı ve eşyaları içeri al ya da sabitle.",
+      "Vapur ve deniz otobüsü seferleri iptal olabilir; yola çıkmadan kontrol et.", "Şemsiye yerine kapüşonlu, rüzgâr geçirmez bir mont giy."],
+    thunder:["Açık alanda, ağaç altında ve su kenarında durma; bir binaya ya da araca gir.", "Metal direk ve çitlerden uzak dur."],
+    rain:["Alt geçitlerden, dere yataklarından ve su birikintilerinden uzak dur.", "Selde yürüme, araçla geçmeye çalışma.",
+      "Bodrum ya da zemin kattaysan eşyaları yükseğe kaldır.", "Su geçirmez ayakkabı ve yağmurluk giy."],
+    snow:["Gerekmedikçe yola çıkma; çıkacaksan toplu taşımayı seç.", "Bot ve yün çorap giy, yedek çorap al.",
+      "Çatılardan düşebilecek kar ve buz kütlelerine dikkat et."],
+    ice:["Kaymayan tabanlı ayakkabı giy; merdiven ve yokuşlarda tutunarak yürü.",
+      "Araç kullanacaksan kış lastiği takılı olsun, yavaş git ve takip mesafesini artır."],
+    heat:["11:00–16:00 arası güneşe çıkma, gölgede kal.", "Susamayı bekleme, sık sık su iç.", "Açık renkli, bol giysi ve şapka giy.",
+      "Yaşlılara, çocuklara ve hayvanlara dikkat et; araçta kimseyi bırakma."],
+    cold:["Kat kat giy; bere, eldiven ve atkı şart.", "Uzun süre dışarıda kalma, ıslanan giysiyi hemen değiştir.",
+      "Soba ya da şofben yanan yeri havalandır: karbonmonoksit zehirlenmesine dikkat."],
+    fog:["Görüş kısa: yolda dikkatli ol, açık renkli ya da yansıtıcı bir şey giy.", "Vapur ve uçak seferlerinde gecikme ya da iptal olabilir."]
+  };
+  var SEVERE_HAIL = "Dolu için aracını kapalı bir yere çek.";
+  // "15:00–21:00", "yarın 03:00–06:00": the last hour that applies ends an hour later.
+  function severeWhen(wx, a){
+    var today = wxToday(wx), d1 = a.from.slice(0,10), endMs = wxMs(wx, a.to) + 3600000, end = wxKey(wx, endMs);
+    var day = function(d){ return d === today ? "" : tx("yarın") + " "; };
+    var e = end.slice(11,13) + ":00";
+    return day(d1) + a.from.slice(11,16) + "–" + (end.slice(0,10) === d1 ? "" : day(end.slice(0,10))) + e;
+  }
+  function severePeak(a){
+    if (a.peak == null) return "";
+    if (a.k === "storm") return tx("rüzgâr saatte {0} km'ye kadar", a.peak);
+    if (a.k === "heat") return tx("hissedilen {0}'ye kadar", deg(a.peak));
+    if (a.k === "cold") return tx("hissedilen {0}'ye kadar düşüyor", deg(a.peak));
+    if (a.k === "rain") return a.peak > 0 ? tx("saatte {0} mm'ye kadar", a.peak) : "";
+    if (a.k === "ice") return tx("sıcaklık {0}", deg(a.peak));
+    return "";
+  }
+  var SEVERE_HTML = "";
+  function renderSevere(live){
+    var el = $("severe"), wx = live && S.live && S.live.wx, list = wx ? severe(wx, Date.now()) : [];
+    if (!list.length) { el.hidden = true; SEVERE_HTML = ""; return; }
+    var warn = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4.5"/><path d="M12 17.2h.01"/></svg>';
+    var tr = wx.timezone === "Europe/Istanbul";
+    var html = list.map(function(a, n){
+      var tips = SEVERE_TIPS[a.k].slice();
+      if (a.k === "thunder" && a.lv === 2) tips.push(SEVERE_HAIL);
+      var peak = severePeak(a);
+      return '<div class="sv sv' + a.lv + '" data-sv="' + a.k + '">' +
+        '<div class="sv-top">' + warn + '<b>' + esc(tx(SEVERE_TEXT[a.k][a.lv - 1])) + '</b><span class="sv-lv">' + esc(tx(a.lv === 2 ? "Tehlikeli" : "Dikkat")) + '</span></div>' +
+        '<p class="sv-when">' + esc(severeWhen(wx, a)) + (peak ? ' · ' + esc(peak) : '') + '</p>' +
+        '<details' + (n === 0 && a.lv === 2 ? ' open' : '') + '><summary>' + esc(tx("Ne yapmalı?")) + '</summary><ul>' +
+        tips.map(function(t){ return '<li>' + esc(tx(t)) + '</li>'; }).join("") + '</ul></details></div>';
+    }).join("") +
+      '<p class="sv-note">' + (tr
+        ? tx("Bu, Ne Giysem’in tahmine dayalı uyarısıdır; resmî uyarı değildir. Resmî uyarılar: {0} · Acil durumda {1}.",
+            '<a href="https://www.mgm.gov.tr/meteouyari/turkiye.aspx" target="_blank" rel="noopener">MGM</a>', '<b>112</b>')
+        : esc(tx("Bu, Ne Giysem’in tahmine dayalı uyarısıdır; resmî uyarı değildir. Resmî uyarılar için yerel meteoroloji servisine bak."))) + '</p>';
+    if (html !== SEVERE_HTML) {
+      // Keep the open/closed state of each tip list across redraws.
+      var open = {}; el.querySelectorAll(".sv").forEach(function(sv){ var d = sv.querySelector("details"); if (d) open[sv.dataset.sv] = d.open; });
+      el.innerHTML = html; SEVERE_HTML = html;
+      el.querySelectorAll(".sv").forEach(function(sv){ var d = sv.querySelector("details"); if (d && sv.dataset.sv in open) d.open = open[sv.dataset.sv]; });
+    }
     el.hidden = false;
   }
 
@@ -2641,7 +2809,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (API) return API + "/api/forecast?" + q;
     return "https://api.open-meteo.com/v1/forecast?" + q +
       "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
-      "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
+      "&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
       "&daily=uv_index_max,sunset&timezone=auto&forecast_days=7";
   }
   function geocodeURL(q){ return "https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(q) + "&count=8&language=" + LANG + "&format=json"; }

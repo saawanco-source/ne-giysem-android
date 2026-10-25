@@ -40,7 +40,7 @@ object Updater {
         // The app's own server answers in the same shape (MET Norway data); without it, Open-Meteo directly (non-commercial).
         val url = if (Config.API.isNotEmpty()) Config.API + "/api/forecast?" + q else "https://api.open-meteo.com/v1/forecast?" + q +
             "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
-            "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
+            "&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
             "&daily=uv_index_max,sunset&timezone=auto&forecast_days=7"
         return when (val v = JSONTokener(getText(url)).nextValue()) {
             is JSONArray -> (0 until v.length()).mapNotNull { v.optJSONObject(it) }

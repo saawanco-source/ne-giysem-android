@@ -115,6 +115,17 @@ test("units, apparent temperature, gusts and back-fill follow the MET values", a
   assert.equal(body.current.temperature_2m, Math.round((a.air_temperature + (b.air_temperature - a.air_temperature) * f) * 10) / 10);
   const gust = a.wind_speed_of_gust + (b.wind_speed_of_gust - a.wind_speed_of_gust) * f;
   assert.equal(body.current.wind_gusts_10m, Math.round(gust * 3.6 * 10) / 10);
+
+  // Hourly gusts (for storm warnings): MET's gust at the middle of the hour, km/h; none is invented after MET stops giving one.
+  const g15 = (a.wind_speed_of_gust + b.wind_speed_of_gust) / 2; // 09:30Z, the middle of local 12:00
+  assert.equal(h.wind_gusts_10m[clientIndex(body, Date.parse("2026-10-24T09:00:00Z"))], Math.round(g15 * 3.6 * 10) / 10);
+  assert.ok(h.wind_gusts_10m.length === h.time.length && h.wind_gusts_10m.some((v) => v === null), "gusts end with MET's");
+  // Hourly precipitation (for heavy-rain warnings): the hour's own amount, a 6-hour block's spread evenly.
+  const p1 = stepAt(fx, Date.parse("2026-10-24T10:00:00Z")).next_1_hours;
+  if (p1) assert.equal(h.precipitation[clientIndex(body, Date.parse("2026-10-24T10:00:00Z"))], Math.round(p1.details.precipitation_amount * 10) / 10);
+  assert.equal(h.precipitation.length, h.time.length);
+  assert.equal(body.hourly_units.precipitation, "mm");
+  assert.equal(body.hourly_units.wind_gusts_10m, "km/h");
 });
 
 test("İstanbul symbols and the derived precipitation probability (no probability_of_precipitation)", async () => {

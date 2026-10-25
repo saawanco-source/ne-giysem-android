@@ -137,8 +137,8 @@ export function buildForecast(series, lat, lon, now = Date.now()) {
   for (let d = 0; d < DAYS; d++) dates.push(local(start + d * DAY).slice(0, 10));
 
   const hourly = {
-    time: [], temperature_2m: [], apparent_temperature: [], precipitation_probability: [], weather_code: [],
-    wind_speed_10m: [], wind_direction_10m: [], is_day: [],
+    time: [], temperature_2m: [], apparent_temperature: [], precipitation_probability: [], precipitation: [], weather_code: [],
+    wind_speed_10m: [], wind_gusts_10m: [], wind_direction_10m: [], is_day: [],
   };
   for (let k = 0; k < HOURS; k++) {
     const t = start + k * HOUR, w = instant(t), b = per[k];
@@ -146,8 +146,13 @@ export function buildForecast(series, lat, lon, now = Date.now()) {
     hourly.temperature_2m.push(r1(w.T));
     hourly.apparent_temperature.push(r1(apparentTemperature(w.T, w.rh, w.ws)));
     hourly.precipitation_probability.push(precipProbability(b && b.pop, b && b.p, b && b.s));
+    // mm in this hour (a 6- or 12-hour block's amount spread evenly); used for heavy-rain warnings.
+    hourly.precipitation.push(r1(hourAmount(b)));
     hourly.weather_code.push(codeOf(b, w));
     hourly.wind_speed_10m.push(r1(w.ws == null ? null : w.ws * KMH));
+    // Only where MET gives a gust (no guessing from the mean wind): storm warnings fall back to the mean wind.
+    const g = lerpStrict(steps, "g", t + HOUR / 2);
+    hourly.wind_gusts_10m.push(r1(g == null ? null : g * KMH));
     hourly.wind_direction_10m.push(int(w.wd));
     hourly.is_day.push(isDayAt(t + HOUR / 2, lat, lon, sunOf(t + HOUR / 2)));
   }
@@ -202,8 +207,8 @@ export function buildForecast(series, lat, lon, now = Date.now()) {
     },
     current,
     hourly_units: {
-      time: "iso8601", temperature_2m: "°C", apparent_temperature: "°C", precipitation_probability: "%",
-      weather_code: "wmo code", wind_speed_10m: "km/h", wind_direction_10m: "°", is_day: "",
+      time: "iso8601", temperature_2m: "°C", apparent_temperature: "°C", precipitation_probability: "%", precipitation: "mm",
+      weather_code: "wmo code", wind_speed_10m: "km/h", wind_gusts_10m: "km/h", wind_direction_10m: "°", is_day: "",
     },
     hourly,
     daily_units: { time: "iso8601", uv_index_max: "", sunset: "iso8601" },

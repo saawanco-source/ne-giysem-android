@@ -8,7 +8,7 @@ Google Play yayını ve web sitesi için hazırlanan dosyalar. Durum: 24 Ekim 20
 
 | Dosya | Ne için |
 |---|---|
-| `../web/gizlilik.html` | Türkçe gizlilik politikası + KVKK aydınlatma metni + reklam/çerez, ortaklık linki, silme, çocuklar. Play’deki gizlilik URL’si: `https://{{ALAN_ADI}}/gizlilik.html` |
+| `../web/gizlilik.html` | Türkçe gizlilik politikası + KVKK aydınlatma metni + reklam/çerez, ortaklık linki, silme, çocuklar. Play’deki gizlilik URL’si: `https://ne-giysem.pages.dev/gizlilik.html` |
 | `../web/privacy.html` | Aynı metnin İngilizcesi (GDPR’a uygun ifadeler). Çelişkide Türkçe esas. |
 | `play/checklist.md` | Play Console’da yayınlama adımları (hesap → kapalı test → üretim), kaynak linkleriyle. **Buradan başla.** |
 | `play/listing-tr.md`, `play/listing-en.md` | Uygulama adı, kısa/tam açıklama, sürüm notları ve karakter sayıları. |
@@ -29,7 +29,7 @@ Bütün dosyalarda bul-değiştir ile doldur (gerçek kişisel bilgi şu an hiç
 
 - `{{GELİŞTİRİCİ_ADI}}` — veri sorumlusu olarak adın soyadın (ya da Play’deki geliştirici adın)
 - `{{İLETİŞİM_E_POSTASI}}` — herkese açık iletişim / KVKK başvuru adresi
-- `{{ALAN_ADI}}` — alan adı, ör. `negiysem.com` (başında `https://` yok)
+- `ne-giysem.pages.dev` — sitenin şu anki adresi (Cloudflare Pages). Kendi alan adı alınırsa bu adres her yerde onunla değiştirilir.
 
 ## Yayından önce karar verilecekler / hukukçuya sorulacaklar
 

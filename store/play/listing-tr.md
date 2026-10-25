@@ -79,8 +79,8 @@ Hesap yok: verilerin cihazında durur, tek dokunuşla silinir.
 ## Diğer mağaza kaydı alanları
 
 - **Kategori:** Uygulama → **Hava Durumu** (alternatif: Yaşam Tarzı). Etiketler: Play’in listesinden en fazla 5 tane, örneğin hava durumu, moda, yaşam tarzı.
-- **E-posta (herkese açık):** `{{İLETİŞİM_E_POSTASI}}` · **Web sitesi:** `https://{{ALAN_ADI}}` (AdMob’un app-ads.txt kontrolü bu alan adına bakar) · Telefon: boş bırakılabilir.
-- **Gizlilik politikası URL’si** (Uygulama içeriği bölümünde): `https://{{ALAN_ADI}}/gizlilik.html`
+- **E-posta (herkese açık):** `{{İLETİŞİM_E_POSTASI}}` · **Web sitesi:** `https://ne-giysem.pages.dev` (AdMob’un app-ads.txt kontrolü bu alan adına bakar) · Telefon: boş bırakılabilir.
+- **Gizlilik politikası URL’si** (Uygulama içeriği bölümünde): `https://ne-giysem.pages.dev/gizlilik.html`
 - **Grafikler:** simge `web/icons/maskable-512.png` (512×512, tam kare; `icon-512.png` köşeleri yuvarlatılmış ve saydam olduğu için uygun değil), öne çıkan grafik `graphics/feature-graphic.png`, telefon ekran görüntüleri `screenshots/out/*.png` (Play en az 2, en fazla 8 kabul eder).
 - **Yazarken uyulanlar:** “en iyi”, “1 numara”, “ücretsiz” gibi sıralama/fiyat ifadeleri, emoji, BÜYÜK HARF ve anahtar kelime tekrarı yok. Reklam ve ortaklık linkleri açıkça yazıldı. Bağış linkinden söz edilmedi (Play uygulamasında yok).
 - **Yayından önce:** İlk sürümde olmayan bir özellik (ör. profiller, Dolabım, İngilizce arayüz, haftalık görünüm) kalırsa o satırı sil; mağaza kaydı uygulamada olmayan bir şeyi vaat etmemeli.

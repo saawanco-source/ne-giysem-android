@@ -36,8 +36,8 @@ Google Play “Rahatsız edici reklamlar” kuralları ve AdMob politikaları i�
 - [ ] Geçiş (interstitial) reklamı yok; eklenirse en geç 15 saniyede kapatılabilir olmalı ve uygulama açılışında/çıkışında gösterilmemeli.
 - [ ] Bildirimlerde, kilit ekranında veya uygulama dışında reklam yok.
 - [ ] AdMob → Engelleme kontrolleri → Maksimum reklam içeriği derecelendirmesi **G** ya da **PG**.
-- [ ] **app-ads.txt:** AdMob’un verdiği satırı `https://{{ALAN_ADI}}/app-ads.txt` adresine koy; Play mağaza kaydındaki “Web sitesi” alanı `https://{{ALAN_ADI}}` olmalı (AdMob dosyayı bu alan adının kökünde arar).
-- [ ] **ads.txt** (web sitesi, AdSense): AdSense’in verdiği satırı `https://{{ALAN_ADI}}/ads.txt` adresine koy.
+- [ ] **app-ads.txt:** AdMob’un verdiği satırı `https://ne-giysem.pages.dev/app-ads.txt` adresine koy; Play mağaza kaydındaki “Web sitesi” alanı `https://ne-giysem.pages.dev` olmalı (AdMob dosyayı bu alan adının kökünde arar).
+- [ ] **ads.txt** (web sitesi, AdSense): AdSense’in verdiği satırı `https://ne-giysem.pages.dev/ads.txt` adresine koy.
 
 ## 4. Rıza (açık konu)
 

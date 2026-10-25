@@ -3,6 +3,12 @@ name: APK oluştur
 on:
   push:
     branches: [main]
+    # Pages that only the website serves (privacy texts) and store/docs notes don't change the APK.
+    paths-ignore:
+      - "web/gizlilik.html"
+      - "web/privacy.html"
+      - "store/**"
+      - "**/*.md"
   workflow_dispatch:
     inputs:
       deneme_imza:

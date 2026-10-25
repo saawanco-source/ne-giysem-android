@@ -16,8 +16,8 @@ Uygulama: **Ne Giysem?** · paket adı `com.negiysem.app` · ücretsiz · reklam
 - [x] **Yayın imzası (kod tarafı).** Bulut derlemesi, GitHub secret’ları varken yükleme anahtarıyla imzalı `NeGiysem.aab` (Play’e yüklenecek) ve `NeGiysem.apk` üretiyor; yokken eskisi gibi debug APK. Anahtar Claude tarafından oluşturuldu, depoda yok. → `RELEASE.md`
 - [ ] **Secret’ları ekle ve anahtarı yedekle** (sen yapacaksın): `RELEASE.md` §2–3. Yükleme anahtarıyla imzalı ilk APK eski sürümün üstüne kurulmaz, bir kez kaldır (§4).
 - [x] **versionCode** her bulut derlemesinde çalıştırma numarası (`GITHUB_RUN_NUMBER`), yani her seferinde büyüyor. İş akışı dosyasının adını değiştirme.
-- [ ] **`Config.API`** (`app/src/main/java/com/negiysem/app/Config.kt`): kendi sunucunun adresi (ör. `https://{{ALAN_ADI}}`). Boşken widget MET Norway ve Photon’a doğrudan gider (yalnızca geliştirme için) ve reklam şeridi hiç açılmaz. Yayından önce doldur; reklam için `ADMOB_APP_ID` ve `ADMOB_BANNER_ID` secret’ları da gerekir.
-- [ ] **Uygulama içinde gizlilik linki.** Play, gizlilik politikasının hem Play Console’daki alanda hem de **uygulamanın içinde** bulunmasını istiyor. Sayfanın altına `https://{{ALAN_ADI}}/gizlilik.html` bağlantısı ekle (tam adres: `gizlilik.html` APK’ya kopyalanmıyor, link tarayıcıda açılır). → <https://support.google.com/googleplay/android-developer/answer/10144311>
+- [ ] **`Config.API`** (`app/src/main/java/com/negiysem/app/Config.kt`): kendi sunucunun adresi (ör. `https://ne-giysem.pages.dev`). Boşken widget MET Norway ve Photon’a doğrudan gider (yalnızca geliştirme için) ve reklam şeridi hiç açılmaz. Yayından önce doldur; reklam için `ADMOB_APP_ID` ve `ADMOB_BANNER_ID` secret’ları da gerekir.
+- [ ] **Uygulama içinde gizlilik linki.** Play, gizlilik politikasının hem Play Console’daki alanda hem de **uygulamanın içinde** bulunmasını istiyor. Sayfanın altına `https://ne-giysem.pages.dev/gizlilik.html` bağlantısı ekle (tam adres: `gizlilik.html` APK’ya kopyalanmıyor, link tarayıcıda açılır). → <https://support.google.com/googleplay/android-developer/answer/10144311>
 - [ ] **Android’de bağış ve AdSense yok.** Web sayfası `window.NeGiysemAndroid` varken bağış bağlantısını ve AdSense kodunu göstermemeli; uygulamada yalnızca AdMob. Geliştiriciye bağış için Play dışı ödeme yoluna yönlendirmek ödeme politikasıyla çakışabilir. → <https://support.google.com/googleplay/android-developer/answer/9858738>
 - [ ] **Kaynak yazısı.** Sayfanın altındaki “Hava verisi Open-Meteo.com, konum adı BigDataCloud” metnini yeni kaynaklara göre değiştir: “Hava verisi © MET Norway (CC BY 4.0), harita verisi © OpenStreetMap katkıcıları”.
 - [ ] **Reklam yerleşimi** `ads-declaration.md` §3’teki listeye uygun (düğmelere yapışık banner yok, widget’ta reklam yok, “Reklam” etiketi var).
@@ -44,7 +44,7 @@ Uygulama: **Ne Giysem?** · paket adı `com.negiysem.app` · ücretsiz · reklam
 
 ## 3. Uygulama içeriği (Politika ve programlar → Uygulama içeriği)
 
-- [ ] **Gizlilik politikası:** `https://{{ALAN_ADI}}/gizlilik.html` — herkese açık, PDF değil, coğrafi engelsiz olmalı. Önce siteyi yayımla ve adresi tarayıcıda aç.
+- [ ] **Gizlilik politikası:** `https://ne-giysem.pages.dev/gizlilik.html` — herkese açık, PDF değil, coğrafi engelsiz olmalı. Önce siteyi yayımla ve adresi tarayıcıda aç.
 - [ ] **Uygulama erişimi:** “Tüm işlevler özel erişim gerektirmeden kullanılabilir” → `app-access.md`
 - [ ] **Reklamlar:** “Evet” → `ads-declaration.md` · <https://support.google.com/googleplay/android-developer/answer/9859455>
 - [ ] **İçerik derecelendirmesi (IARC):** → `content-rating.md` · <https://support.google.com/googleplay/android-developer/answer/188189>
@@ -61,7 +61,7 @@ Uygulama: **Ne Giysem?** · paket adı `com.negiysem.app` · ücretsiz · reklam
 - [ ] **Uygulama simgesi:** `web/icons/maskable-512.png` (512×512, 32 bit PNG, tam kare). `icon-512.png` kullanma: köşeleri önceden yuvarlatılmış ve köşeleri saydam; Play köşeleri kendisi yuvarlar ve gölgeyi kendisi ekler. → <https://developer.android.com/distribute/google-play/resources/icon-design-specifications>
 - [ ] **Öne çıkan grafik:** `graphics/feature-graphic.png` (Türkçe), İngilizce kayıt için `graphics/feature-graphic-en.png` (1024×500, 24 bit PNG, saydamlık yok).
 - [ ] **Telefon ekran görüntüleri:** `screenshots/out/*.png` (1082×1924, 9:16; Play: 2–8 adet, kenarlar 320–3840 px, uzun kenar kısa kenarın en fazla 2 katı; öne çıkarılabilmek için en az 4 adet ≥1080 px). Yayından hemen önce `node store/play/screenshots/make-screenshots.js` ile yeniden üret ve gözle kontrol et.
-- [ ] Kategori **Hava Durumu**, iletişim e-postası `{{İLETİŞİM_E_POSTASI}}`, web sitesi `https://{{ALAN_ADI}}`.
+- [ ] Kategori **Hava Durumu**, iletişim e-postası `{{İLETİŞİM_E_POSTASI}}`, web sitesi `https://ne-giysem.pages.dev`.
 - [ ] Web sitesinin köküne **app-ads.txt** (AdMob) ve **ads.txt** (AdSense) koy. → <https://support.google.com/admob/answer/9363762>
 
 ## 5. Uygulama imzalama ve paket biçimi

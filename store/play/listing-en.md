@@ -78,7 +78,7 @@ No account: your data stays on your device and is deleted with one tap.
 
 ## Other listing fields
 
-- **Category, contact details, privacy policy, graphics:** same as the Turkish listing (`listing-tr.md`). Privacy policy URL stays `https://{{ALAN_ADI}}/gizlilik.html` (the page links to `privacy.html`).
+- **Category, contact details, privacy policy, graphics:** same as the Turkish listing (`listing-tr.md`). Privacy policy URL stays `https://ne-giysem.pages.dev/gizlilik.html` (the page links to `privacy.html`).
 - **Graphics:** use `graphics/feature-graphic-en.png` as the English feature graphic. Until the English UI ships, either keep the Turkish screenshots for English too or produce English ones with `SHOT_LANG=en` (TODO in `screenshots/make-screenshots.js`).
 - **Written to Play’s metadata rules:** no “best”, “#1”, “free” or other ranking/price claims, no emoji, no ALL CAPS, no keyword stuffing. Ads and affiliate links are disclosed. Donations are not mentioned (there is no donation link in the Play app).
 - **Before publishing:** delete any line about a feature that is not in the first release (e.g. profiles, wardrobe, English UI, weekly view); the listing must not promise anything the app does not do.

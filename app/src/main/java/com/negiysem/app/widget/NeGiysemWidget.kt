@@ -324,8 +324,8 @@ private fun Body(d: WidgetData) {
 
 /**
  * The time of day, pinned to the bottom-right corner on its own layer: a TextClock, so it keeps ticking without
- * the app running. It fills its frame and draws at its bottom-right, whatever size Glance gives the frame; the
- * layouts keep that corner free (their bottom row is at least as tall as the clock, and their widths leave room).
+ * the app running. It wraps its text (see res/layout/widget_clock.xml); the layouts keep that corner free (their
+ * bottom row is at least as tall as the clock, and their widths leave room for its widest time).
  */
 @Composable
 private fun CornerClock(p: Palette, f: Fit) {

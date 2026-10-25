@@ -126,10 +126,18 @@ class WidgetLookTest {
         val host = FrameLayout(ctx)
         val v = views.apply(ctx, host)
         host.addView(v, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        // TextClock fills in the time only once attached to a window; give it one for the picture.
-        walk(host, 0, 0) { view, _, _ -> if (view is TextClock) view.text = "20:44" }
-        host.measure(View.MeasureSpec.makeMeasureSpec(wPx, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(hPx, View.MeasureSpec.EXACTLY))
+        // Like a home screen: the widget is laid out first, and only then does the TextClock (once attached) fill in
+        // the time. A new layout happens only if a view asks for one, so a clock that doesn't ask stays too narrow.
+        // Narrow digits first ("11:11"), then wide ones: the minute ticking over must not cut the time.
+        val exactly = { px: Int -> View.MeasureSpec.makeMeasureSpec(px, View.MeasureSpec.EXACTLY) }
+        walk(host, 0, 0) { view, _, _ -> if (view is TextClock) view.text = "11:11" }
+        host.measure(exactly(wPx), exactly(hPx))
         host.layout(0, 0, wPx, hPx)
+        walk(host, 0, 0) { view, _, _ -> if (view is TextClock) view.text = "20:44" }
+        if (host.isLayoutRequested) {
+            host.measure(exactly(wPx), exactly(hPx))
+            host.layout(0, 0, wPx, hPx)
+        }
 
         val bmp = Bitmap.createBitmap(wPx, hPx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
@@ -144,6 +152,10 @@ class WidgetLookTest {
                     // match_parent with gravity end|bottom: the digits sit at the frame's bottom-right.
                     val text = view.text.toString()
                     val tw = view.paint.measureText(text)
+                    val room = view.width - view.totalPaddingLeft - view.totalPaddingRight
+                    if (tw > room + 1 || (view.layout?.getEllipsisCount(0) ?: 0) > 0) {
+                        problems += "saat sığmıyor: '$text' ${tw.roundToInt()} px, yer $room px"
+                    }
                     val fm = view.paint.fontMetrics
                     val right = x + view.width - view.totalPaddingRight
                     val bottom = y + view.height - view.totalPaddingBottom

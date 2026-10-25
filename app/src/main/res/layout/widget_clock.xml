@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The widget's digital clock. TextClock ticks on its own on the home screen, so the app never wakes up for it.
-     Follows the phone's 24-hour setting; colour and size are set from the widget. It fills the frame Glance puts
-     it in and draws at that frame's bottom-right, so it sits in the corner whether the frame wraps or fills. -->
+     Follows the phone's 24-hour setting; colour and size are set from the widget.
+     wrap_content on purpose: the time is filled in only after the home screen first lays the widget out, and a
+     TextView whose width is not wrap_content does not ask for a new layout when its text grows, so it would
+     stay as narrow as the empty clock and cut the time to "21:…". ellipsize none: never "…" on a clock. -->
 <TextClock xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_clock"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:format24Hour="HH:mm"
     android:format12Hour="h:mm"
     android:gravity="end|bottom"
     android:includeFontPadding="false"
     android:maxLines="1"
-    android:singleLine="true"
+    android:ellipsize="none"
     android:textColor="#FF14161F"
     android:textSize="16sp"
     android:textStyle="bold" />

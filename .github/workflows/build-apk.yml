@@ -148,12 +148,18 @@ jobs:
               -dname "CN=Ne Giysem deneme (gecici)" -storepass "$pw" -keypass "$pw" -noprompt
             alias=deneme; keypw="$pw"; mode=throwaway
           elif [ -n "$NG_KEYSTORE_BASE64" ]; then
-            printf '%s' "$NG_KEYSTORE_BASE64" | base64 -d -i > "$ks" || { echo "::error title=İmza::NG_KEYSTORE_BASE64 çözülemedi: .b64 dosyasının tamamı yapıştırıldı mı?"; exit 1; }
+            # Only the shape of the value is reported (length, how it starts and ends), never its content.
+            # Line breaks, spaces and a Windows BOM from the paste are dropped before decoding.
+            b64=$(printf '%s' "$NG_KEYSTORE_BASE64" | tr -cd 'A-Za-z0-9+/=')
+            dropped=$(( $(printf '%s' "$NG_KEYSTORE_BASE64" | wc -c) - ${#b64} ))
+            shape="uzunluk ${#b64} (beklenen 5776), MII ile başlıyor: $(case "$b64" in MII*) echo evet;; *) echo hayır;; esac), = ile bitiyor: $(case "$b64" in *=) echo evet;; *) echo hayır;; esac), atılan boşluk/diğer bayt: $dropped"
+            printf '%s' "$b64" | base64 -d > "$ks" 2>/dev/null || { echo "::error title=İmza::NG_KEYSTORE_BASE64 çözülemedi ($shape). negiysem-upload.p12.b64 dosyasının tamamını yeniden yapıştır."; exit 1; }
+            echo "::notice title=İmza::NG_KEYSTORE_BASE64 çözüldü ($shape)."
             pw="$NG_KEYSTORE_PASSWORD"
             [ -n "$pw" ] || { echo "::error title=İmza::NG_KEYSTORE_PASSWORD secret'ı eksik."; exit 1; }
             alias="${NG_KEY_ALIAS:-negiysem-upload}"; keypw="${NG_KEY_PASSWORD:-$pw}"; mode=release
             keytool -list -keystore "$ks" -storepass "$pw" -alias "$alias" > /dev/null 2>&1 \
-              || { echo "::error title=İmza::Anahtar açılamadı: NG_KEYSTORE_PASSWORD ya da NG_KEY_ALIAS yanlış."; exit 1; }
+              || { if [ "${#b64}" -ne 5776 ]; then echo "::error title=İmza::Anahtar dosyası eksik ya da farklı görünüyor ($shape). NG_KEYSTORE_BASE64'e negiysem-upload.p12.b64 dosyasının tamamını yeniden yapıştır."; else echo "::error title=İmza::Anahtar açılamadı: NG_KEYSTORE_PASSWORD ya da NG_KEY_ALIAS yanlış (NG_KEY_ALIAS = negiysem-upload)."; fi; exit 1; }
           else
             echo "::notice title=İmza::Yükleme anahtarı secret'ları yok: her zamanki gibi debug APK üretiliyor (RELEASE.md)."
             echo "mode=debug" >> "$GITHUB_OUTPUT"

@@ -164,7 +164,11 @@ private data class WidgetData(
                         Warning(a.optInt("lv", 1).coerceIn(1, 2), a.optString("title"), a.optString("short"), a.optString("when"), a.optLong("until"))
                             .takeIf { it.title.isNotBlank() && it.live }
                     }
-                )
+                ).let { d ->
+                    // The warning's pill already says "Fırtına"; the outfit's own pill for it would only repeat it.
+                    val w = d.warning ?: return@let d
+                    d.copy(pills = d.pills.filter { p -> p != w.short && !w.title.startsWith(p) })
+                }
             }.getOrDefault(empty(lang))
         }
     }

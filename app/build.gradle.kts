@@ -27,6 +27,8 @@ android {
         // the banner stays off until ADMOB_BANNER_ID is given too (and Config.API is set).
         manifestPlaceholders["admobAppId"] = System.getenv("ADMOB_APP_ID")?.takeIf { it.isNotBlank() } ?: "ca-app-pub-3940256099942544~3347511713"
         resValue("string", "admob_banner_id", System.getenv("ADMOB_BANNER_ID") ?: "")
+        // Widget look test on an emulator (CI: "Widget görünümü"); see src/androidTest.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -80,6 +82,9 @@ dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("com.google.android.gms:play-services-ads:25.5.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
+
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
 
 // The app screen is the web app in ../web (the same files the website serves).

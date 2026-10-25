@@ -1,13 +1,18 @@
 package com.negiysem.app.widget
 
 import android.content.Context
+import android.graphics.Paint
+import android.graphics.Typeface
+import android.os.Build
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.text.TextUtils
+import android.text.style.TextAppearanceSpan
 import android.util.TypedValue
 import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
@@ -62,18 +67,6 @@ class NeGiysemWidget : GlanceAppWidget() {
         val PLAN = stringPreferencesKey("plan")
         /** The app's language ("tr" / "en") for the widget's own words when there is no snapshot yet. */
         val LANG = stringPreferencesKey("lang")
-        // Sizes Android lays the widget out for; the layout picked for each keeps its content inside the box.
-        // Each height also comes 320 dp wide (a 4-column widget on most phones): the clock gets bigger there.
-        private val SMALL = DpSize(110.dp, 110.dp)
-        private val SMALL_WIDE = DpSize(160.dp, 110.dp)
-        private val WIDE = DpSize(250.dp, 110.dp)
-        private val WIDE_L = DpSize(320.dp, 110.dp)
-        private val WIDE_MID = DpSize(250.dp, 160.dp)
-        private val WIDE_MID_L = DpSize(320.dp, 160.dp)
-        private val TALL = DpSize(250.dp, 250.dp)
-        private val TALL_L = DpSize(320.dp, 250.dp)
-        private val TALL_XL = DpSize(250.dp, 310.dp)
-        private val TALL_XL_L = DpSize(320.dp, 310.dp)
 
         /** Sends a fresh snapshot to every widget on the home screen. */
         suspend fun pushAll(context: Context, json: String) {
@@ -87,7 +80,8 @@ class NeGiysemWidget : GlanceAppWidget() {
         }
     }
 
-    override val sizeMode = SizeMode.Responsive(setOf(SMALL, SMALL_WIDE, WIDE, WIDE_L, WIDE_MID, WIDE_MID_L, TALL, TALL_L, TALL_XL, TALL_XL_L))
+    // Laid out for the widget's real size: text is measured and made as large as that size allows (WidgetFit).
+    override val sizeMode = SizeMode.Exact
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -199,15 +193,15 @@ private fun palette(d: WidgetData): Palette {
 
 private fun deg(v: Double): String = if (v.isNaN()) "—" else Outfit.deg(v)
 
-private fun style(color: Color, size: Int, bold: Boolean = true) =
+private fun style(color: Color, size: Float, bold: Boolean = true) =
     TextStyle(color = ColorProvider(color), fontSize = size.sp, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
 
 @Composable
-private fun Sticker(g: Garment, size: Dp) {
+private fun Sticker(g: Garment, size: Float) {
     Image(
         provider = ImageProvider(STICKERS[g.g] ?: R.drawable.g_tshirt),
         contentDescription = g.label,
-        modifier = GlanceModifier.size(size)
+        modifier = GlanceModifier.size(size.dp)
     )
 }
 
@@ -226,34 +220,62 @@ private fun RefreshIcon(p: Palette, d: WidgetData) {
     }
 }
 
-/** The clock's text size and its distance from the widget's right and bottom edges (the layout's own padding). */
-private class ClockSpec(val sp: Int, val end: Dp, val bottom: Dp) {
-    /** Room the layouts keep free for it in their bottom row: "00:00" in bold is about 2.7 em wide. */
-    val width: Dp get() = (sp * 2.75f + 4f).dp
-    val height: Dp get() = (sp * 1.2f).dp
-}
-
-/** Keeps the clock's corner free in a bottom row (and makes the row at least as tall as the clock). */
-@Composable
-private fun ClockRoom(c: ClockSpec) = Spacer(GlanceModifier.width(c.width).height(c.height))
-
 /**
- * The time of day, pinned to the bottom-right corner on its own layer: a TextClock, so it keeps ticking without
- * the app running. The TextClock fills its frame and draws at its bottom-right, whatever size Glance gives the frame.
+ * Measures text the way the home screen will draw it: the phone's own font (Glance's bold is the device default
+ * family at weight 700), its font size setting, and TextView's line height with font padding.
  */
-@Composable
-private fun CornerClock(p: Palette, c: ClockSpec) {
-    val views = RemoteViews(LocalContext.current.packageName, R.layout.widget_clock).apply {
-        setTextColor(R.id.widget_clock, p.ink.toArgb())
-        setTextViewTextSize(R.id.widget_clock, TypedValue.COMPLEX_UNIT_SP, c.sp.toFloat())
+private class AndroidMeter(context: Context) : TextMeter {
+    private val dm = context.resources.displayMetrics
+    private val family: Typeface = runCatching {
+        Typeface.create(TextAppearanceSpan(context, android.R.style.TextAppearance_DeviceDefault).family, Typeface.NORMAL)
+    }.getOrNull() ?: Typeface.DEFAULT
+    private val boldFace = if (Build.VERSION.SDK_INT >= 28) Typeface.create(family, 700, false) else Typeface.create(family, Typeface.BOLD)
+    private val normalFace = if (Build.VERSION.SDK_INT >= 28) Typeface.create(family, 400, false) else family
+
+    private fun paint(sp: Float, face: Typeface) = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, dm)
+        typeface = face
     }
-    Box(
-        modifier = GlanceModifier.fillMaxSize().padding(end = c.end, bottom = c.bottom),
-        contentAlignment = Alignment.BottomEnd
-    ) {
-        AndroidRemoteViews(views)
+
+    override fun width(text: String, sp: Float, bold: Boolean) =
+        paint(sp, if (bold) boldFace else normalFace).measureText(text) / dm.density
+
+    override fun block(text: String, sp: Float, bold: Boolean, maxWidth: Float, maxLines: Int): Pair<Float, Int> {
+        val t = text.ifEmpty { " " }
+        val layout = StaticLayout.Builder
+            .obtain(t, 0, t.length, paint(sp, if (bold) boldFace else normalFace), maxOf(1, (maxWidth * dm.density).toInt()))
+            .setIncludePad(true)
+            .setMaxLines(maxLines)
+            .setEllipsize(TextUtils.TruncateAt.END)
+            .build()
+        return layout.height / dm.density to layout.lineCount
+    }
+
+    // The clock is a TextClock with textStyle="bold" and no font padding (res/layout/widget_clock.xml).
+    override fun clockWidth(sp: Float) =
+        CLOCK_SAMPLES.maxOf { paint(sp, Typeface.DEFAULT_BOLD).measureText(it) } / dm.density
+
+    override fun clockHeight(sp: Float): Float {
+        val fm = paint(sp, Typeface.DEFAULT_BOLD).fontMetrics
+        return (fm.descent - fm.ascent) / dm.density
+    }
+
+    private companion object {
+        val CLOCK_SAMPLES = listOf("00:00", "22:22", "18:58", "12:59", "20:44")
     }
 }
+
+private fun placeLine(d: WidgetData) = if (d.ok) d.place + " · " + Outfit.levelName(d.level, d.lang) else "Ne Giysem?"
+
+private fun subLine(d: WidgetData) = when {
+    !d.ok -> d.w("Bugünün kıyafeti bir bakışta")
+    staleText(d) != null -> staleText(d)!!
+    d.next.isNotEmpty() -> d.w("Sıradaki: ") + d.next
+    else -> d.w("Hissedilen ") + deg(d.feels) + " · " + d.cond
+}
+
+private fun takeLine(d: WidgetData) =
+    if (d.take.isEmpty()) "" else d.w("Yanına al: ") + d.take.take(3).joinToString(", ") { it.label }
 
 /** "Son güncelleme 08:10" when the snapshot is more than two hours old (the phone may have put the app to sleep). */
 private fun staleText(d: WidgetData): String? {
@@ -261,10 +283,28 @@ private fun staleText(d: WidgetData): String? {
     return d.w("Son güncelleme") + " " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(d.updated))
 }
 
+/** The sizes for this widget: [width] × [height] dp, measured with the phone's font. */
+internal fun fitFor(context: Context, json: String?, lang: String, width: Float, height: Float): Fit =
+    fitFor(context, WidgetData.from(json, lang), width, height)
+
+private fun fitFor(context: Context, d: WidgetData, width: Float, height: Float): Fit = WidgetFit.fit(
+    FitInput(
+        width = width, height = height, temp = deg(d.temp), place = placeLine(d), sub = subLine(d),
+        small = staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?",
+        headline = d.headline, takeLine = takeLine(d), takeShort = d.take.firstOrNull()?.let { "+ " + it.label } ?: "",
+        pills = d.pills, labels = d.wear.take(4).map { it.label },
+    ),
+    AndroidMeter(context)
+)
+
 @Composable
 private fun Body(d: WidgetData) {
     val p = palette(d)
     val size = LocalSize.current
+    // A little room for the home screen's rounding of the size it reports.
+    val w = size.width.value.takeIf { it.isFinite() && it > 0f }?.minus(2f) ?: 248f
+    val h = size.height.value.takeIf { it.isFinite() && it > 0f }?.minus(2f) ?: 108f
+    val f = fitFor(LocalContext.current, d, w, h)
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
@@ -272,138 +312,134 @@ private fun Body(d: WidgetData) {
             .cornerRadius(26.dp)
             .clickable(actionStartActivity<MainActivity>())
     ) {
-        val large = size.width >= 320.dp
-        val roomy = size.height >= 310.dp
-        val clock = when {
-            size.width < 200.dp -> ClockSpec(if (size.width >= 160.dp) 18 else 16, 10.dp, 10.dp)
-            size.height < 160.dp -> ClockSpec(if (large) 26 else 20, 14.dp, 8.dp)
-            size.height < 250.dp -> ClockSpec(if (large) 34 else 26, 14.dp, 12.dp)
-            roomy -> ClockSpec(if (large) 32 else 30, 16.dp, 16.dp)
-            else -> ClockSpec(if (large) 28 else 26, 14.dp, 14.dp)
+        when (f.kind) {
+            FitKind.SMALL -> SmallLayout(d, p, f)
+            FitKind.WIDE -> WideLayout(d, p, f)
+            FitKind.TALL -> TallLayout(d, p, f)
         }
-        when {
-            size.width < 200.dp -> SmallLayout(d, p, clock, twoStickers = size.width >= 160.dp)
-            size.height < 160.dp -> WideLayout(d, p, clock, compact = true, large = large)
-            size.height < 250.dp -> WideLayout(d, p, clock, compact = false, large = large)
-            else -> TallLayout(d, p, clock, roomy = roomy)
-        }
-        CornerClock(p, clock)
+        CornerClock(p, f)
+    }
+}
+
+/**
+ * The time of day, pinned to the bottom-right corner on its own layer: a TextClock, so it keeps ticking without
+ * the app running. It fills its frame and draws at its bottom-right, whatever size Glance gives the frame; the
+ * layouts keep that corner free (their bottom row is at least as tall as the clock, and their widths leave room).
+ */
+@Composable
+private fun CornerClock(p: Palette, f: Fit) {
+    val views = RemoteViews(LocalContext.current.packageName, R.layout.widget_clock).apply {
+        setTextColor(R.id.widget_clock, p.ink.toArgb())
+        setTextViewTextSize(R.id.widget_clock, TypedValue.COMPLEX_UNIT_SP, f.clock)
+    }
+    Box(
+        modifier = GlanceModifier.fillMaxSize().padding(end = f.padH.dp, bottom = f.padV.dp),
+        contentAlignment = Alignment.BottomEnd
+    ) {
+        AndroidRemoteViews(views)
+    }
+}
+
+/** Makes a bottom row at least as tall as the clock beside it. */
+@Composable
+private fun ClockHeight(f: Fit) = Spacer(GlanceModifier.width(0.dp).height(f.clockH.dp))
+
+@Composable
+private fun Stickers(d: WidgetData, f: Fit) {
+    d.wear.take(f.stickers).forEachIndexed { i, g ->
+        if (i > 0) Spacer(GlanceModifier.width(WidgetFit.STICKER_GAP.dp))
+        Sticker(g, f.sticker)
     }
 }
 
 @Composable
-private fun SmallLayout(d: WidgetData, p: Palette, clock: ClockSpec, twoStickers: Boolean) {
-    Column(modifier = GlanceModifier.fillMaxSize().padding(10.dp)) {
+private fun SmallLayout(d: WidgetData, p: Palette, f: Fit) {
+    Column(modifier = GlanceModifier.fillMaxSize().padding(f.padH.dp)) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(deg(d.temp), style = style(p.ink, 28), modifier = GlanceModifier.defaultWeight(), maxLines = 1)
+            Text(deg(d.temp), style = style(p.ink, f.temp), modifier = GlanceModifier.width(f.textW.dp), maxLines = 1)
             RefreshIcon(p, d)
         }
-        Text(staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?", style = style(p.sub, 12), maxLines = 1)
+        Text(staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?", style = style(p.sub, f.sub), maxLines = 1)
         Spacer(GlanceModifier.defaultWeight())
-        // The narrowest size keeps one sticker so the clock fits beside it.
-        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-            d.wear.take(if (twoStickers) 2 else 1).forEachIndexed { i, g ->
-                if (i > 0) Spacer(GlanceModifier.width(2.dp))
-                Sticker(g, 40.dp)
-            }
-            Spacer(GlanceModifier.defaultWeight())
-            ClockRoom(clock)
+        Row(verticalAlignment = Alignment.Bottom) {
+            Stickers(d, f)
+            ClockHeight(f)
         }
     }
 }
 
+/** Temperature, place and level, the second line, and the refresh button; the text column has a fixed width. */
 @Composable
-private fun Header(d: WidgetData, p: Palette, tempSize: Int) {
+private fun Header(d: WidgetData, p: Palette, f: Fit) {
     Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(deg(d.temp), style = style(p.ink, tempSize), maxLines = 1)
-        Spacer(GlanceModifier.width(10.dp))
-        Column(modifier = GlanceModifier.defaultWeight()) {
-            Text(
-                if (d.ok) d.place + " · " + Outfit.levelName(d.level, d.lang) else "Ne Giysem?",
-                style = style(p.ink, 13), maxLines = 1
-            )
-            Text(
-                when {
-                    !d.ok -> d.w("Bugünün kıyafeti bir bakışta")
-                    staleText(d) != null -> staleText(d)!!
-                    d.next.isNotEmpty() -> d.w("Sıradaki: ") + d.next
-                    else -> d.w("Hissedilen ") + deg(d.feels) + " · " + d.cond
-                },
-                style = style(p.sub, 12, bold = d.next.isNotEmpty() || staleText(d) != null), maxLines = 1
-            )
+        Text(deg(d.temp), style = style(p.ink, f.temp), maxLines = 1)
+        Spacer(GlanceModifier.width(WidgetFit.HEADER_GAP.dp))
+        Column(modifier = GlanceModifier.width(f.textW.dp)) {
+            Text(placeLine(d), style = style(p.ink, f.place), maxLines = 1)
+            Text(subLine(d), style = style(p.sub, f.sub, bold = d.next.isNotEmpty() || staleText(d) != null), maxLines = 1)
         }
         RefreshIcon(p, d)
     }
 }
 
 @Composable
-private fun WideLayout(d: WidgetData, p: Palette, clock: ClockSpec, compact: Boolean, large: Boolean) {
-    Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = 14.dp, vertical = if (compact) 8.dp else 12.dp)) {
-        Header(d, p, if (compact) 28 else 36)
-        Spacer(GlanceModifier.height(if (compact) 2.dp else 6.dp))
-        val take = d.take.take(2).joinToString(", ") { it.label }
-        // Taller: "take along" gets its own line under a one-line headline, so the stickers and the clock share the bottom row.
-        Text(d.headline, style = style(p.ink, if (compact) 14 else 16), maxLines = if (compact || take.isNotEmpty()) 1 else 2)
-        if (!compact && take.isNotEmpty()) {
+private fun WideLayout(d: WidgetData, p: Palette, f: Fit) {
+    Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = f.padH.dp, vertical = f.padV.dp)) {
+        Header(d, p, f)
+        Spacer(GlanceModifier.height((4f * f.scale).dp))
+        Text(d.headline, style = style(p.ink, f.head), maxLines = f.headLines)
+        if (f.takeMode == TakeMode.OWN_LINE) {
             Spacer(GlanceModifier.height(2.dp))
-            Text(d.w("Yanına al: ") + take, style = style(p.sub, 12), maxLines = 1)
+            Text(takeLine(d), style = style(p.sub, f.take), maxLines = f.takeLines)
         }
         Spacer(GlanceModifier.defaultWeight())
-        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            // Room for the clock: three stickers beside the "take along" note, and three in the taller 250 dp layout.
-            val count = if (compact) (if (take.isNotEmpty()) 3 else 4) else (if (large) 4 else 3)
-            d.wear.take(count).forEachIndexed { i, g ->
-                if (i > 0) Spacer(GlanceModifier.width(2.dp))
-                Sticker(g, if (compact) 34.dp else 40.dp)
-            }
-            if (compact && take.isNotEmpty()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Stickers(d, f)
+            if (f.takeMode == TakeMode.INLINE) {
                 Spacer(GlanceModifier.width(6.dp))
-                Text("+ " + d.take.first().label, style = style(p.ink, 12), maxLines = 1, modifier = GlanceModifier.defaultWeight())
-            } else {
-                Spacer(GlanceModifier.defaultWeight())
+                Text("+ " + d.take.first().label, style = style(p.ink, f.take), maxLines = 1, modifier = GlanceModifier.width(f.takeW.dp))
             }
-            Spacer(GlanceModifier.width(6.dp))
-            ClockRoom(clock)
+            ClockHeight(f)
         }
     }
 }
 
 @Composable
-private fun TallLayout(d: WidgetData, p: Palette, clock: ClockSpec, roomy: Boolean) {
-    Column(modifier = GlanceModifier.fillMaxSize().padding(if (roomy) 16.dp else 14.dp)) {
-        Header(d, p, if (roomy) 44 else 38)
-        Spacer(GlanceModifier.height(if (roomy) 10.dp else 6.dp))
-        if (d.pills.isNotEmpty()) {
+private fun TallLayout(d: WidgetData, p: Palette, f: Fit) {
+    Column(modifier = GlanceModifier.fillMaxSize().padding(f.padH.dp)) {
+        Header(d, p, f)
+        Spacer(GlanceModifier.height((6f * f.scale).dp))
+        if (f.pills > 0) {
             Row {
-                d.pills.take(2).forEachIndexed { i, s ->
+                d.pills.take(f.pills).forEachIndexed { i, s ->
                     if (i > 0) Spacer(GlanceModifier.width(4.dp))
                     Text(
                         s,
-                        modifier = GlanceModifier.background(p.ink).cornerRadius(999.dp).padding(horizontal = 9.dp, vertical = 3.dp),
-                        style = style(p.bg, 11), maxLines = 1
+                        modifier = GlanceModifier.background(p.ink).cornerRadius(999.dp)
+                            .padding(horizontal = WidgetFit.PILL_PAD_H.dp, vertical = WidgetFit.PILL_PAD_V.dp),
+                        style = style(p.bg, f.pill), maxLines = 1
                     )
                 }
             }
             Spacer(GlanceModifier.height(6.dp))
         }
-        Text(d.headline, style = style(p.ink, if (roomy) 20 else 18), maxLines = if (roomy) 3 else 2)
+        Text(d.headline, style = style(p.ink, f.head), maxLines = f.headLines)
         Spacer(GlanceModifier.defaultWeight())
         Row(modifier = GlanceModifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            d.wear.take(4).forEachIndexed { i, g ->
-                if (i > 0) Spacer(GlanceModifier.width(4.dp))
+            d.wear.take(f.stickers).forEachIndexed { i, g ->
+                if (i > 0) Spacer(GlanceModifier.width(WidgetFit.TALL_STICKER_GAP.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Sticker(g, if (roomy) 58.dp else 48.dp)
-                    Text(g.label, style = style(p.ink, 11), maxLines = 1)
+                    Sticker(g, f.sticker)
+                    Text(g.label, style = style(p.ink, f.label), maxLines = 1)
                 }
             }
         }
-        Spacer(GlanceModifier.height(8.dp))
-        // The clock shows the time now; an old snapshot is already flagged in the header ("Son güncelleme").
-        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            val takeText = if (d.take.isNotEmpty()) d.w("Yanına al: ") + d.take.take(3).joinToString(", ") { it.label } else ""
-            Text(takeText, style = style(p.sub, 12), maxLines = if (roomy) 2 else 1, modifier = GlanceModifier.defaultWeight())
-            Spacer(GlanceModifier.width(8.dp))
-            ClockRoom(clock)
+        Spacer(GlanceModifier.height(WidgetFit.CLOCK_GAP.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (f.takeMode != TakeMode.NONE) {
+                Text(takeLine(d), style = style(p.sub, f.take), maxLines = f.takeLines, modifier = GlanceModifier.width(f.takeW.dp))
+            }
+            ClockHeight(f)
         }
     }
 }

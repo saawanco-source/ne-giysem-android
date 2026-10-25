@@ -323,7 +323,13 @@ jobs:
             echo "$wb" | grep -q "android.hardware.type.watch" || problem "saat yüzü android.hardware.type.watch istemiyor"
             wt=$("$BT/aapt2" dump xmltree --file AndroidManifest.xml "$wapk")
             echo "$wt" | grep -q 'android:hasCode(0x[0-9a-f]*)=false' && echo "   hasCode=false" || problem "saat yüzünde hasCode=false yok"
-            echo "$wt" | grep -A1 '"com.google.wear.watchface.format.version"' | grep -q '"2"' && echo "   WFF sürümü: 2" || problem "WFF sürüm özelliği 2 değil"
+            # The <property> whose name is the format version, read whole (attribute order varies).
+            wfv=$(echo "$wt" | awk 'function flush(){ if (n ~ /watchface\.format\.version/) print v; n=""; v="" }
+              /E: /{ flush(); inp = ($0 ~ /E: property/); next } inp && /android:name/{ n=$0 } inp && /android:value/{ v=$0 } END{ flush() }')
+            # aapt2 prints it as a number (=2) or as text (="2").
+            wfv=$(echo "$wfv" | sed -n 's/.*android:value([^)]*)="\{0,1\}\([^" ]*\).*/\1/p' | head -1)
+            echo "   WFF sürümü: ${wfv:-yok}"
+            [ "$wfv" = 2 ] || problem "WFF sürüm özelliği 2 değil (${wfv:-yok})"
             unzip -Z1 "$wapk" | grep -q '\.dex$' && problem "saat yüzü APK'sında kod (.dex) var" || echo "   kod yok (.dex yok)"
             # Release builds may shorten resource paths, so look the resource up by name.
             "$BT/aapt2" dump resources "$wapk" | grep -q 'raw/watchface' && echo "   raw/watchface paketlendi" || problem "watchface.xml paketlenmemiş"

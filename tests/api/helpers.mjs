@@ -30,7 +30,7 @@ export function installFetch(handler) {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {
     const headers = new Headers(init.headers || {});
-    calls.push({ url: String(url), headers });
+    calls.push({ url: String(url), headers, method: init.method || "GET", body: init.body });
     return handler(String(url), { ...init, headers });
   };
   return calls;
@@ -43,8 +43,8 @@ export function jsonResponse(body, status = 200, headers = {}) {
 }
 
 /** Calls a Pages Function module the way Pages does and waits for its waitUntil work. */
-export async function call(mod, url, { method = "GET", env = {}, cf } = {}) {
-  const request = new Request(url, { method });
+export async function call(mod, url, { method = "GET", env = {}, cf, headers } = {}) {
+  const request = new Request(url, { method, headers });
   if (cf !== undefined) Object.defineProperty(request, "cf", { value: cf });
   const pending = [];
   const context = { request, env, params: {}, waitUntil: (p) => pending.push(p), next: () => { throw new Error("next"); }, data: {} };

@@ -118,9 +118,11 @@ function serve(dir = APP_DIR) {
 function makeNet() {
   return {
     offline: false,
-    delay: { forecast: 0, photon: 0, omgeo: 0, bdc: 0 },        // ms or fn(url) -> ms
-    fail: { forecast: null, photon: null, omgeo: null, bdc: null }, // null | http status | "abort" | fn(url)->same
-    calls: { forecast: [], photon: [], omgeo: [], bdc: [], fonts: [] },
+    delay: { forecast: 0, photon: 0, omgeo: 0, bdc: 0, route: 0 },        // ms or fn(url) -> ms
+    fail: { forecast: null, photon: null, omgeo: null, bdc: null, route: null }, // null | http status | "abort" | fn(url)->same
+    calls: { forecast: [], photon: [], omgeo: [], bdc: [], fonts: [], route: [] },
+    // /api/route (Google transit routes through the app's server): on or off, and the answer for a URL.
+    routeOn: false, route: () => ({ routes: [], agencies: [], source: "Google Maps" }),
     log: [],
   };
 }
@@ -130,6 +132,7 @@ function kindOf(url) {
   if (url.startsWith(API_ORIGIN + "/api/forecast")) return "forecast";
   if (url.startsWith(API_ORIGIN + "/api/search")) return "photon";
   if (url.startsWith(API_ORIGIN + "/api/reverse") || url.startsWith(API_ORIGIN + "/api/ip")) return "bdc";
+  if (url.startsWith(API_ORIGIN + "/api/route")) return "route";
   if (url.includes("api.open-meteo.com/v1/forecast")) return "forecast";
   if (url.includes("photon.komoot.io")) return "photon";
   if (url.includes("geocoding-api.open-meteo.com")) return "omgeo";
@@ -167,6 +170,10 @@ async function handleRoute(net, route) {
     const la = u.searchParams.get("latitude").split(",").map(Number), lo = u.searchParams.get("longitude").split(",").map(Number);
     const arr = la.map((x, i) => Object.assign(fc(tempFor(x, lo[i])), { latitude: x, longitude: lo[i] }));
     body = arr.length > 1 ? arr : arr[0];
+  } else if (k === "route") {
+    if (u.searchParams.get("probe") === "1") body = { on: !!net.routeOn };
+    else if (!net.routeOn) return route.fulfill({ status: 503, contentType: "application/json", headers: cors, body: JSON.stringify({ error: "routes_off" }) });
+    else body = net.route(u);
   } else if (k === "photon") body = photonJSON(u.searchParams.get("q") || "");
   else if (k === "omgeo") body = omGeoJSON(u.searchParams.get("name") || "");
   else if (k === "bdc") {

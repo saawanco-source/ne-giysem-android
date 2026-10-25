@@ -166,6 +166,19 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .arr{opacity:.45;font-weight:700}
 .tsum{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
 .why{font-size:13.5px;font-weight:700}
+.gr{display:flex;flex-direction:column;gap:7px;margin-top:4px;padding:10px 12px;border-radius:16px;box-shadow:inset 0 0 0 1.5px var(--line)}
+.gr-h{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px}
+.gr-src,.gr-ag{font-size:12px;color:var(--ink2)}
+.gr-src{font-weight:700;white-space:nowrap}
+.gr-ag{margin:0}
+.gr-ag a{color:inherit}
+.gl{display:inline-block;min-width:1.6em;text-align:center;padding:1px 6px;border-radius:6px;background:var(--pill-bg);color:var(--pill-ink);font-weight:800;font-size:12px}
+.gr-more summary{cursor:pointer;font-size:13px;font-weight:700}
+.gr-more ul{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--ink2)}
+.gr-on{display:flex;flex-direction:column;gap:4px;padding-top:10px;border-top:1px solid var(--line)}
+.gr-off{margin:6px 0 0;font-size:12.5px;color:var(--ink2)}
+.gr-on a{color:inherit;font-weight:700}
+.gr-off .lnk{border:0;background:none;padding:4px 0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
 .empty{font-size:14px;color:var(--ink2);margin:4px 0 0}
 
 /* routine editor */
@@ -687,7 +700,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   function deviceLang(){ return /^tr/i.test(String(navigator.language || "")) ? "tr" : "en"; }
   var S = {lang:deviceLang(), langSet:false, places:[], sel:"auto", hours:6, feel:"normal", act:"city", manual:{temp:17, sky:"partly", wind:"breezy"}, mode:"manual", live:null,
            routes:[], trips:[], dayMode:true, dayWx:null, choice:{date:"", picks:{}}, fix:null,
-           rainOff:"", pack:{place:"", days:3, start:0, ticks:{}},
+           rainOff:"", pack:{place:"", days:3, start:0, ticks:{}}, gRoutes:false,
            // People the app dresses: each with an age group, cold sensitivity and the pieces missing from their wardrobe.
            // The active person's sensitivity lives in S.feel while they are chosen.
            profiles:[{id:"me", name:"Ben", who:"me", feel:"normal", missing:[]}], prof:"me"};
@@ -742,6 +755,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (d.fix && num(d.fix.lat) && num(d.fix.lon) && num(d.fix.at)) S.fix = d.fix;
     // the day the rain warning was closed, and the packing list (place, days, start, ticked items per trip)
     if (typeof d.rainOff === "string" && /^\d{4}-\d{1,2}-\d{1,2}$/.test(d.rainOff)) S.rainOff = d.rainOff;
+    if (d.gRoutes === true) S.gRoutes = true;
     var pk = d.pack;
     if (pk && typeof pk === "object" && !Array.isArray(pk)) {
       if (typeof pk.place === "string") S.pack.place = pk.place.slice(0, 80);
@@ -763,7 +777,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     // The language is stored only once the person has picked one; until then it follows the device.
     try { localStorage.setItem(KEY, JSON.stringify({lang:S.langSet ? S.lang : undefined, places:S.places, sel:S.sel, hours:S.hours, feel:S.feel, act:S.act, manual:S.manual, mode:S.mode, live:S.live,
       routes:S.routes, trips:S.trips, dayMode:S.dayMode, dayWx:S.dayWx, choice:S.choice, fix:S.fix, rainOff:S.rainOff, pack:S.pack,
-      profiles:S.profiles, prof:S.prof})); } catch (e) {}
+      profiles:S.profiles, prof:S.prof, gRoutes:S.gRoutes || undefined})); } catch (e) {}
     // Android app: share the chosen place, preferences, language and routine with the home-screen widget
     if (window.NeGiysemAndroid) {
       var pl = S.live && S.live.place ? {name:S.live.place.name, lat:S.live.place.lat, lon:S.live.place.lon} : null;
@@ -1045,6 +1059,21 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Soba ya da şofben yanan yeri havalandır: karbonmonoksit zehirlenmesine dikkat.": "Air any room with a stove or gas heater on: beware of carbon monoxide.",
     "Görüş kısa: yolda dikkatli ol, açık renkli ya da yansıtıcı bir şey giy.": "Visibility is low: take care on the road and wear something light or reflective.",
     "Vapur ve uçak seferlerinde gecikme ya da iptal olabilir.": "Ferries and flights may be delayed or cancelled.",
+    "Toplu taşımada en uygunu": "Best public transport route", "Rotalar aranıyor…": "Looking for routes…",
+    "Şu an çok fazla istek var; biraz sonra yeniden denenecek.": "Too many requests right now; it will try again shortly.",
+    "Rotalar şu an alınamadı; biraz sonra yeniden denenecek.": "Couldn't get routes right now; it will try again shortly.",
+    "Bu yolculuk için toplu taşıma rotası bulunamadı.": "No public transport route found for this trip.",
+    "Yürüyerek": "On foot", "Çıkış {0}": "Leave at {0}", "varış {0}": "arrive {0}", "Diğer seçenekler ({0})": "Other options ({0})",
+    "İşleten: ": "Operated by ", "Sefer saatleri ve rotalar: Google Maps": "Timetables and routes: Google Maps",
+    "En hızlısı, dışarıda da en az bu rotada kalırsın.": "The fastest, and the one with the least time outdoors.",
+    "En hızlı varan rota.": "The route that gets you there first.",
+    "{0} dk daha geç varır ama {1}.": "Arrives {0} min later, but {1}.", "Önerilen: {0}.": "Suggested: {0}.",
+    "daha az yürürsün": "you walk less", "yön: {0}": "towards {0}", "{0} durak": "{0} stops",
+    "Toplu taşımada en uygun rotayı bul": "Find the best public transport route",
+    "Yolculuklarının başlangıç ve varış noktaları ile saatleri rota için Google Maps’e gönderilir. Havaya göre en az etkileneceğin ve vaktinde varacağın rotayı seçer.": "Your trips' start and end points and times are sent to Google Maps for routes. It picks the route that keeps you out of the weather most while getting you there on time.",
+    "Google Maps rota önerilerini kapat": "Turn off Google Maps route suggestions",
+    "Açarak {0} ve {1}’nı kabul edersin.": "By turning it on you agree to the {0} and the {1}.",
+    "Google Maps Ek Hizmet Şartları": "Google Maps Additional Terms of Service", "Google Gizlilik Politikası": "Google Privacy Policy",
     "Hava uyarıları": "Weather warnings", "Telefonuma bildir": "Notify me", "Bildirimler açık": "Notifications on",
     "Bu uyarıları bildirim olarak al": "Get these warnings as notifications",
     "Fırtına, sel, yoğun kar, aşırı sıcak gibi tehlikeli havalar için telefonuna bildirim gelir; gece yalnızca yakın olanlar. Kapatmak için dokun.": "You'll get a notification for dangerous weather such as storms, floods, heavy snow or extreme heat; at night only for what's close. Tap to turn off.",
@@ -1946,7 +1975,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     box.innerHTML = intro + day.items.map(function(it){
       var t = it.trip, a = placeById(t.from), b = placeById(t.to);
       var head = '<div class="trip-h"><time>' + esc(t.time) + '</time><span>' + esc(a ? nm(a.name) : "?") + ' → ' + esc(b ? nm(b.name) : "?") + '</span>' + (it.offset ? '<span class="when">' + esc(day.dayName) + '</span>' : '') + '</div>';
-      if (it.missing) return '<div class="trip">' + head + '<p class="empty">' + esc(tx("Bu yolculuk için henüz rota yok.")) + '</p><div><button type="button" class="mini-btn" data-open-routine>' + esc(tx("Rota ekle")) + '</button></div></div>';
+      var gr = grBlock(it);
+      if (it.missing) return '<div class="trip">' + head + (gr || '<p class="empty">' + esc(tx("Bu yolculuk için henüz rota yok.")) + '</p><div><button type="button" class="mini-btn" data-open-routine>' + esc(tx("Rota ekle")) + '</button></div>') + '</div>';
       // "önerilen" only when one route is really better, not for a tie.
       var clear = it.evals.every(function(e){ return e === it.best || e.score - it.best.score > 0.5; });
       var chips = it.evals.length > 1 ? '<div class="routes">' + it.evals.map(function(e, ri){
@@ -1961,8 +1991,110 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       }).join('<span class="arr">›</span>');
       var sum = hmOf(ex.start) + '–' + hmOf(ex.end) + ' · ' + tx("toplam {0} dk", ex.total) + ' · ' + tx("dışarıda {0} dk", ex.outMin) + (ex.walkMin ? ' · ' + tx("yürüyüş {0} dk", ex.walkMin) : '');
       var why = whyText(it);
-      return '<div class="trip">' + head + chips + '<div class="steps">' + steps + '</div><div class="tsum">' + sum + '</div>' + (why ? '<div class="why">' + why + '</div>' : '') + '</div>';
-    }).join("");
+      return '<div class="trip">' + head + chips + '<div class="steps">' + steps + '</div><div class="tsum">' + sum + '</div>' + (why ? '<div class="why">' + why + '</div>' : '') + gr + '</div>';
+    }).join("") + grControls(day);
+    grProbe();
+  }
+
+  /* ---- the best public-transport route right now (Google Maps, through the app's server /api/route) ----
+     Only after the person turns it on (their trips' start and end points and times go to Google), only for trips in the
+     next day, and kept only while the page is open (Google's terms allow no storing). The choice: of the routes that
+     arrive at most 10 minutes after the earliest one, the one with the best score() — the same weighing of time,
+     rain, cold and heat outdoors as the person's own routes. The departure is timed so that the wait at the first stop
+     is two minutes. */
+  var GR = {probe:null, probing:false, byKey:{}};
+  var GR_SLACK = 10 * 60000, GR_TTL = 15 * 60000;
+  function grProbe(){
+    if (!API || GR.probe !== null || GR.probing || !S.trips.length) return;
+    GR.probing = true;
+    fetch(API + "/api/route?probe=1").then(function(r){ return r.ok ? r.json() : {}; }).then(function(j){ GR.probe = !!(j && j.on); }, function(){ GR.probe = false; })
+      .then(function(){ GR.probing = false; if (GR.probe) render({keepEditor:true}); });
+  }
+  function grKey(it){
+    var a = placeById(it.trip.from), b = placeById(it.trip.to);
+    return a && b ? [it.trip.id, it.start, (+a.lat).toFixed(4), (+a.lon).toFixed(4), (+b.lat).toFixed(4), (+b.lon).toFixed(4), LANG].join("|") : "";
+  }
+  function grWanted(it){ var now = Date.now(); return GR.probe === true && S.gRoutes && it.start > now - 5 * 60000 && it.start < now + 26 * 3600000; }
+  function grFetch(it){
+    var key = grKey(it); if (!key) return null;
+    var e = GR.byKey[key];
+    if (e && (e.state === "loading" || Date.now() - e.at < GR_TTL)) return e;
+    var a = placeById(it.trip.from), b = placeById(it.trip.to);
+    e = GR.byKey[key] = {state:"loading", at:Date.now()};
+    var url = API + "/api/route?from=" + (+a.lat).toFixed(5) + "," + (+a.lon).toFixed(5) + "&to=" + (+b.lat).toFixed(5) + "," + (+b.lon).toFixed(5) +
+      "&depart=" + encodeURIComponent(new Date(it.start).toISOString()) + "&lang=" + LANG;
+    fetch(url).then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {r:r, j:j}; }); }).then(function(x){
+      if (x.r.ok && x.j && Array.isArray(x.j.routes)) { e.state = "ok"; e.data = x.j; }
+      else { e.state = x.r.status === 429 ? "busy" : "err"; if (x.r.status === 503) GR.probe = false; }
+    }, function(){ e.state = "err"; }).then(function(){ e.at = Date.now(); render({keepEditor:true}); });
+    return e;
+  }
+  function grName(r){
+    var rides = r.steps.filter(function(s){ return s.dep; });
+    if (!rides.length) return tx("Yürüyerek");
+    return rides.map(function(s){ return s.line || s.vehicle || tx((MODES[s.m] || MODES.bus).label); }).join(" › ");
+  }
+  function grEvals(it, data){
+    return data.routes.map(function(r, i){
+      var k = 0, walk0 = 0, first = r.firstDep ? Date.parse(r.firstDep) : NaN;
+      while (k < r.steps.length && r.steps[k].m === "walk") { walk0 += r.steps[k].sec || r.steps[k].min * 60; k++; }
+      var timed = isFinite(first), leave = timed ? first - walk0 * 1000 - 120000 : it.start, steps = [];
+      r.steps.forEach(function(st, j){
+        if (j === k && timed) steps.push({m:"wait", min:2});
+        steps.push({m:MODES[st.m] ? st.m : "bus", min:st.min, line:st.line, g:st});
+      });
+      var route = {id:"g" + i, name:grName(r), steps:steps}, ex = exposure(it.trip, route, leave);
+      return {route:route, ex:ex, score:score(ex), g:r};
+    });
+  }
+  function grReason(best, fast, all){
+    if (best === fast) {
+      var leastOut = all.every(function(e){ return e === best || e.ex.outMin >= best.ex.outMin; });
+      return tx(all.length > 1 && leastOut ? "En hızlısı, dışarıda da en az bu rotada kalırsın." : "En hızlı varan rota.");
+    }
+    var b = best.ex, f = fast.ex, extra = Math.round((b.end - f.end) / 60000);
+    var reason = tx(rainMin(b) < rainMin(f) ? "yağmurda daha az kalırsın" : coldMin(b) < coldMin(f) ? "soğukta daha az kalırsın" :
+      b.outMin < f.outMin ? "dışarıda daha az kalırsın" : b.walkMin < f.walkMin ? "daha az yürürsün" : "havaya daha uygun");
+    return extra > 0 ? tx("{0} dk daha geç varır ama {1}.", extra, reason) : tx("Önerilen: {0}.", reason);
+  }
+  function grStep(s){
+    var m = MODES[s.st.m] || MODES.bus, ml = tx(m.label), g = s.st.g || {};
+    var extra = s.out && s.felt != null ? ' <b>' + deg(s.felt) + '</b>' + (s.w && s.w.p >= 30 ? ' <span class="wet">' + pct(Math.round(s.w.p)) + '</span>' : '') : '';
+    var badge = g.dep && g.line ? '<span class="gl"' + (/^#[0-9a-f]{6}$/i.test(g.color || "") && /^#[0-9a-f]{6}$/i.test(g.textColor || "") ? ' style="background:' + g.color + ';color:' + g.textColor + '"' : '') + '>' + esc(g.line) + '</span>' : '';
+    var title = g.dep ? [g.vehicle || ml, g.name, g.from && g.to ? g.from + " → " + g.to : "", g.headsign ? tx("yön: {0}", g.headsign) : "", g.stops ? tx("{0} durak", g.stops) : ""].filter(Boolean).join(" · ") : ml;
+    return '<span class="step' + (s.out ? ' out' : '') + '" title="' + esc(title) + '">' + mIcon(s.st.m) + badge + '<span class="sr">' + esc(title) + ' </span>' + tx("{0} dk", s.min) + extra + '</span>';
+  }
+  function grBlock(it){
+    if (!grWanted(it)) return "";
+    var e = grFetch(it); if (!e) return "";
+    var h = '<div class="gr"><div class="gr-h"><b>' + esc(tx("Toplu taşımada en uygunu")) + '</b><span class="gr-src">Google Maps</span></div>';
+    if (e.state === "loading") return h + '<p class="empty">' + esc(tx("Rotalar aranıyor…")) + '</p></div>';
+    if (e.state !== "ok") return h + '<p class="empty">' + esc(tx(e.state === "busy" ? "Şu an çok fazla istek var; biraz sonra yeniden denenecek." : "Rotalar şu an alınamadı; biraz sonra yeniden denenecek.")) + '</p></div>';
+    if (!e.data.routes.length) return h + '<p class="empty">' + esc(tx("Bu yolculuk için toplu taşıma rotası bulunamadı.")) + '</p></div>';
+    var all = grEvals(it, e.data);
+    var fast = all.slice().sort(function(a, b){ return a.ex.end - b.ex.end; })[0];
+    var best = all.filter(function(x){ return x.ex.end <= fast.ex.end + GR_SLACK; }).sort(function(a, b){ return a.score - b.score; })[0];
+    var ex = best.ex;
+    var sum = tx("Çıkış {0}", hmOf(ex.start)) + ' · ' + tx("varış {0}", hmOf(ex.end)) + ' · ' + tx("toplam {0} dk", ex.total) + ' · ' + tx("dışarıda {0} dk", ex.outMin) +
+      (best.g.fare ? ' · ' + esc(best.g.fare) : '');
+    var others = all.filter(function(x){ return x !== best; }).sort(function(a, b){ return a.ex.end - b.ex.end; });
+    var more = others.length ? '<details class="gr-more"><summary>' + esc(tx("Diğer seçenekler ({0})", others.length)) + '</summary><ul>' + others.map(function(o){
+      return '<li><b>' + esc(o.route.name) + '</b> · ' + hmOf(o.ex.start) + '–' + hmOf(o.ex.end) + ' · ' + tx("toplam {0} dk", o.ex.total) + ' · ' + tx("dışarıda {0} dk", o.ex.outMin) + '</li>';
+    }).join("") + '</ul></details>' : '';
+    var ag = (e.data.agencies || []).map(function(a){
+      return /^https:\/\//.test(a.url || "") ? '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + esc(a.name) + '</a>' : esc(a.name);
+    }).join(", ");
+    return h + '<div class="steps">' + best.ex.steps.map(grStep).join('<span class="arr">›</span>') + '</div><div class="tsum">' + sum + '</div>' +
+      '<div class="why">' + esc(grReason(best, fast, all)) + '</div>' + more +
+      '<p class="gr-ag">' + (ag ? esc(tx("İşleten: ")) + ag + ' · ' : '') + esc(tx("Sefer saatleri ve rotalar: Google Maps")) + '</p></div>';
+  }
+  function grControls(day){
+    if (GR.probe !== true || !day || !day.items.some(function(it){ return !!grKey(it); })) return "";
+    if (!S.gRoutes) return '<div class="gr-on"><button type="button" class="mini-btn" data-gr="on">' + esc(tx("Toplu taşımada en uygun rotayı bul")) + '</button>' +
+      '<p class="empty">' + esc(tx("Yolculuklarının başlangıç ve varış noktaları ile saatleri rota için Google Maps’e gönderilir. Havaya göre en az etkileneceğin ve vaktinde varacağın rotayı seçer.")) + ' ' +
+      tx("Açarak {0} ve {1}’nı kabul edersin.", '<a href="https://maps.google.com/help/terms_maps.html" target="_blank" rel="noopener">' + esc(tx("Google Maps Ek Hizmet Şartları")) + '</a>',
+        '<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">' + esc(tx("Google Gizlilik Politikası")) + '</a>') + '</p></div>';
+    return '<p class="gr-off"><button type="button" class="lnk" data-gr="off">' + esc(tx("Google Maps rota önerilerini kapat")) + '</button></p>';
   }
 
   /* ================= this week, packing list, rain warning, share picture ================= */
@@ -3416,6 +3548,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   $("saveHere").addEventListener("click", saveHere);
 
   $("alertsBtn").addEventListener("click", function(){ setAlerts(alertsState() !== "on"); });
+  document.addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-gr]"); if (!b) return;
+    S.gRoutes = b.dataset.gr === "on"; if (!S.gRoutes) GR.byKey = {};
+    save(); render({keepEditor:true});
+  });
   document.addEventListener("click", function(e){ if (e.target.closest && e.target.closest("[data-alerts-on]")) setAlerts(true); });
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) window.ngAlertsChanged(); });
 
@@ -3437,7 +3574,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     S.profiles = [{id:"me", name:"Ben", who:"me", feel:"normal", missing:[]}]; S.prof = "me";
     S.manual = {temp:17, sky:"partly", wind:"breezy"}; S.mode = "manual"; S.live = null;
     S.routes = []; S.trips = []; S.dayMode = true; S.dayWx = null; S.choice = {date:"", picks:{}}; S.fix = null;
-    S.rainOff = ""; S.pack = {place:"", days:3, start:0, ticks:{}};
+    S.rainOff = ""; S.pack = {place:"", days:3, start:0, ticks:{}}; S.gRoutes = false; GR.byKey = {};
     S.lang = deviceLang(); S.langSet = false; // back to the device's language
     if (S.lang !== LANG) { LANG = S.lang; applyLang(); }
     SEARCH.cache = {}; lastWearSig = "";

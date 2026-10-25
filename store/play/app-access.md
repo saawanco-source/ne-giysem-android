@@ -24,7 +24,7 @@ or choose "Elle ayarla" (Set manually) to set the weather by hand.
 
 Ads: Google AdMob banners. Links labelled "Satın al / ortaklık linki" are affiliate
 links to Trendyol / Amazon.com.tr and open in the browser.
-Contact: {{İLETİŞİM_E_POSTASI}}
+Contact: saawanco@gmail.com
 ```
 
 Not: Uygulamada giriş ya da ödeme gerektiren bir bölüm eklenirse bu cevap değişir; o zaman Google’a çalışan bir test hesabı verilmelidir.

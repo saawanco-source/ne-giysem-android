@@ -23,12 +23,12 @@ Google Play yayını ve web sitesi için hazırlanan dosyalar. Durum: 24 Ekim 20
 
 Simge için `web/icons/maskable-512.png` kullan (512×512, tam kare). `icon-512.png` köşeleri yuvarlatılmış ve saydam olduğu için Play’in simge kuralına uymuyor.
 
-## Doldurulacak yer tutucular
+## Doldurulan bilgiler
 
-Bütün dosyalarda bul-değiştir ile doldur (gerçek kişisel bilgi şu an hiçbir dosyada yok):
+Gizlilik sayfalarında ve mağaza notlarında kullanılanlar:
 
-- `{{GELİŞTİRİCİ_ADI}}` — veri sorumlusu olarak adın soyadın (ya da Play’deki geliştirici adın)
-- `{{İLETİŞİM_E_POSTASI}}` — herkese açık iletişim / KVKK başvuru adresi
+- Geliştirici adı: `saawanco` (veri sorumlusu olarak gizlilik sayfasında)
+- İletişim e-postası: `saawanco@gmail.com` (herkese açık; KVKK başvuruları da buraya)
 - `ne-giysem.pages.dev` — sitenin şu anki adresi (Cloudflare Pages). Kendi alan adı alınırsa bu adres her yerde onunla değiştirilir.
 
 ## Yayından önce karar verilecekler / hukukçuya sorulacaklar

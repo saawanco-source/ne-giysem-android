@@ -1,6 +1,6 @@
 # İçerik derecelendirmesi (IARC anketi) — cevaplar
 
-Play Console → Politika ve programlar → Uygulama içeriği → **İçerik derecelendirmesi** → Başlat. E-posta: `{{İLETİŞİM_E_POSTASI}}` (IARC yazışmaları buraya gelir).
+Play Console → Politika ve programlar → Uygulama içeriği → **İçerik derecelendirmesi** → Başlat. E-posta: `saawanco@gmail.com` (IARC yazışmaları buraya gelir).
 
 Kaynak: <https://support.google.com/googleplay/android-developer/answer/188189> · <https://support.google.com/googleplay/android-developer/answer/9898843>
 

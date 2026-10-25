@@ -34,7 +34,7 @@ Uygulama: **Ne Giysem?** · paket adı `com.negiysem.app` · ücretsiz · reklam
 - [ ] **25 ABD doları** tek seferlik kayıt ücreti (ön ödemeli kart kabul edilmiyor).
 - [ ] **Kimlik doğrulama:** resmî kimlik belgesi ve yasal adına kayıtlı kart istenebilir. Bilgiler geçersiz bulunursa ücret iade edilmez.
 - [ ] **Android cihaz doğrulaması:** yeni kişisel hesaplar bir Android telefonda **Play Console uygulaması** ile cihaz erişimini doğrular.
-- [ ] Herkese açık geliştirici adı ve iletişim e-postası: `{{GELİŞTİRİCİ_ADI}}`, `{{İLETİŞİM_E_POSTASI}}`.
+- [ ] Herkese açık geliştirici adı ve iletişim e-postası: `saawanco`, `saawanco@gmail.com`.
 
 ## 2. Uygulamayı oluştur
 
@@ -61,7 +61,7 @@ Uygulama: **Ne Giysem?** · paket adı `com.negiysem.app` · ücretsiz · reklam
 - [ ] **Uygulama simgesi:** `web/icons/maskable-512.png` (512×512, 32 bit PNG, tam kare). `icon-512.png` kullanma: köşeleri önceden yuvarlatılmış ve köşeleri saydam; Play köşeleri kendisi yuvarlar ve gölgeyi kendisi ekler. → <https://developer.android.com/distribute/google-play/resources/icon-design-specifications>
 - [ ] **Öne çıkan grafik:** `graphics/feature-graphic.png` (Türkçe), İngilizce kayıt için `graphics/feature-graphic-en.png` (1024×500, 24 bit PNG, saydamlık yok).
 - [ ] **Telefon ekran görüntüleri:** `screenshots/out/*.png` (1082×1924, 9:16; Play: 2–8 adet, kenarlar 320–3840 px, uzun kenar kısa kenarın en fazla 2 katı; öne çıkarılabilmek için en az 4 adet ≥1080 px). Yayından hemen önce `node store/play/screenshots/make-screenshots.js` ile yeniden üret ve gözle kontrol et.
-- [ ] Kategori **Hava Durumu**, iletişim e-postası `{{İLETİŞİM_E_POSTASI}}`, web sitesi `https://ne-giysem.pages.dev`.
+- [ ] Kategori **Hava Durumu**, iletişim e-postası `saawanco@gmail.com`, web sitesi `https://ne-giysem.pages.dev`.
 - [ ] Web sitesinin köküne **app-ads.txt** (AdMob) ve **ads.txt** (AdSense) koy. → <https://support.google.com/admob/answer/9363762>
 
 ## 5. Uygulama imzalama ve paket biçimi

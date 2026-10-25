@@ -1,3 +1,4 @@
+import com.negiysem.app.data.Alerts
 import com.negiysem.app.data.Day
 import com.negiysem.app.data.Outfit
 import org.json.JSONArray
@@ -43,6 +44,17 @@ fun main(args: Array<String>) {
             }
         } catch (e: Throwable) {
             r.put("err", "EXC " + e.javaClass.simpleName + ": " + e.message + " @ " + e.stackTrace.take(3).joinToString(" < "))
+        }
+        try {
+            val wx = c.optJSONObject("wx")!!
+            val at = c.optLong("at")
+            val lang = c.optString("lang", "tr")
+            r.put("alerts", JSONArray().apply {
+                Alerts.find(wx, at).forEach { a -> val f = Alerts.info(wx, a, at, lang)
+                    put(listOf(a.k, a.lv, a.from, a.to, a.peak ?: "", f.title, f.level, f.whenText, f.tips.joinToString(" | ")).joinToString(" ~ ")) }
+            })
+        } catch (e: Throwable) {
+            r.put("alerts", "EXC " + e.javaClass.simpleName + ": " + e.message)
         }
         if (i > 0) out.append(",\n")
         out.append(r.toString())

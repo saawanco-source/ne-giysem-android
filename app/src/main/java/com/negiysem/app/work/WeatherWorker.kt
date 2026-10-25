@@ -10,6 +10,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.negiysem.app.data.Store
 import com.negiysem.app.data.Updater
 import com.negiysem.app.widget.NeGiysemWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -31,9 +32,11 @@ object Scheduler {
 
     private val online = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
-    /** Background refresh only makes sense while a widget is on the home screen. */
     suspend fun hasWidgets(context: Context): Boolean =
         runCatching { GlanceAppWidgetManager(context).getGlanceIds(NeGiysemWidget::class.java).isNotEmpty() }.getOrDefault(false)
+
+    /** Background refresh is needed while a widget is on the home screen or weather warnings are turned on. */
+    suspend fun needed(context: Context): Boolean = Store(context).alertsOn || hasWidgets(context)
 
     /**
      * Keeps the widget fresh: every 30 minutes, with or without a connection (without one it moves on to the current

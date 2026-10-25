@@ -11,8 +11,10 @@ const NOW = Date.now();
 function genWx(opts) {
   const off = opts.offset, days = opts.days || 8;
   const placeNow = NOW + off * 1000, mid = Math.floor(placeNow / 864e5) * 864e5;
-  const base = opts.base != null ? opts.base : U(-15, 35), amp = U(0, 8), trend = U(-6, 6), regime = P(["dry", "dry", "maybe", "wet", "wet"]), windR = P(["calm", "breezy", "windy"]);
-  const H = { time: [], temperature_2m: [], apparent_temperature: [], precipitation_probability: [], weather_code: [], wind_speed_10m: [], wind_direction_10m: [], is_day: [] };
+  // "storm" and "deluge" (and bases down to -28 / up to 44) are there so the severe-weather warnings fire in many cases.
+  const base = opts.base != null ? opts.base : (C(0.15) ? P([U(-28, -12), U(34, 44)]) : U(-15, 35)), amp = U(0, 8), trend = U(-6, 6);
+  const regime = P(["dry", "dry", "maybe", "wet", "wet", "deluge"]), windR = P(["calm", "breezy", "windy", "windy", "storm"]);
+  const H = { time: [], temperature_2m: [], apparent_temperature: [], precipitation_probability: [], precipitation: [], weather_code: [], wind_speed_10m: [], wind_gusts_10m: [], wind_direction_10m: [], is_day: [] };
   for (let h = 0; h < days * 24; h++) {
     const hod = h % 24;
     const app = r1(base + amp * Math.cos(2 * Math.PI * (hod - 15) / 24) + trend * h / 24 + U(-1, 1));
@@ -20,11 +22,13 @@ function genWx(opts) {
     let p, code;
     if (regime === "dry") { p = I(0, 20); code = C(0.05) ? P([45, 48]) : P([0, 1, 2, 3]); }
     else if (regime === "maybe") { p = I(15, 50); code = C(0.15) ? P([51, 61, 80]) : P([2, 3]); }
-    else { p = I(35, 100); code = C(0.7) ? (app < 1 ? P([71, 73, 75, 77, 85, 86]) : P([51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 56, 66])) : P([3, 45]); }
-    const wind = r1(windR === "calm" ? U(0, 15) : windR === "breezy" ? U(10, 27) : U(22, 55));
+    else { p = I(35, 100); code = C(0.7) ? (app < 1 ? P([71, 73, 75, 77, 85, 86]) : P([51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99, 56, 57, 66, 67])) : P([3, 45, 48]); }
+    const mm = code >= 51 && code !== 45 && code !== 48 ? r1(regime === "deluge" ? U(0, 30) : U(0, 8)) : C(0.1) ? r1(U(0, 0.5)) : 0;
+    const wind = r1(windR === "calm" ? U(0, 15) : windR === "breezy" ? U(10, 27) : windR === "windy" ? U(22, 55) : U(40, 85));
+    const gust = r1(wind * U(1.1, 1.9));
     H.time.push(new Date(mid + h * 36e5).toISOString().slice(0, 16));
-    H.temperature_2m.push(t); H.apparent_temperature.push(app); H.precipitation_probability.push(p); H.weather_code.push(code);
-    H.wind_speed_10m.push(wind); H.wind_direction_10m.push(I(0, 359)); H.is_day.push(hod >= 7 && hod <= 18 ? 1 : 0);
+    H.temperature_2m.push(t); H.apparent_temperature.push(app); H.precipitation_probability.push(p); H.precipitation.push(mm); H.weather_code.push(code);
+    H.wind_speed_10m.push(wind); H.wind_gusts_10m.push(gust); H.wind_direction_10m.push(I(0, 359)); H.is_day.push(hod >= 7 && hod <= 18 ? 1 : 0);
   }
   const ci = Math.floor((placeNow - mid) / 36e5);
   const cur = { time: new Date(mid + ci * 36e5).toISOString().slice(0, 16), interval: 900,
@@ -48,6 +52,14 @@ function genWx(opts) {
     if (e.includes("shortApp")) H.apparent_temperature = H.apparent_temperature.slice(0, ci + 2);
     if (e.includes("curNullApp") && wx.current) wx.current.apparent_temperature = null;
     if (e.includes("noIsDay")) delete H.is_day;
+    if (e.includes("noGusts")) delete H.wind_gusts_10m;
+    if (e.includes("nullGusts")) for (let k = 0; k < 8; k++) H.wind_gusts_10m[ci + I(0, 20)] = null;
+    if (e.includes("noPrecip")) delete H.precipitation;
+    if (e.includes("nullPrecip")) for (let k = 0; k < 8; k++) H.precipitation[ci + I(0, 20)] = null;
+    if (e.includes("nullCode")) for (let k = 0; k < 6; k++) H.weather_code[ci + I(0, 20)] = null;
+    if (e.includes("nullTemp")) for (let k = 0; k < 6; k++) H.temperature_2m[ci + I(0, 20)] = null;
+    if (e.includes("shortHourly")) Object.keys(H).forEach((k) => { H[k] = H[k].slice(0, ci + I(1, 10)); });
+    if (e.includes("future")) { const sh = I(1, 30); Object.keys(H).forEach((k) => { H[k] = H[k].slice(sh); }); }
   }
   return wx;
 }
@@ -81,7 +93,8 @@ function genRoutine() {
   return { dayMode: !C(0.05), places, routes, trips };
 }
 
-const EDGES = ["nullApp", "nullProb", "nullWind", "noCurrent", "noDaily", "noProbArr", "shortApp", "curNullApp", "noIsDay"];
+const EDGES = ["nullApp", "nullProb", "nullWind", "noCurrent", "noDaily", "noProbArr", "shortApp", "curNullApp", "noIsDay",
+  "noGusts", "nullGusts", "noPrecip", "nullPrecip", "nullCode", "nullTemp", "shortHourly", "future"];
 const cases = [];
 for (let i = 0; i < N; i++) {
   const offset = C(0.85) ? 10800 : P([0, 3600, 19800, -18000, 32400]);
@@ -90,7 +103,7 @@ for (let i = 0; i < N; i++) {
   const ALL = ["tshirt","longsleeve","thermal","sweatshirt","hirka","kazak","ceket","ruzgarlik","yagmurluk","mont","kaban","sisme","parka","jean","pantolon","sort","tayt","sneaker","spor","bot","yuruyus","sandalet","bere","atki","eldiven","sapka","gozluk","semsiye","krem"];
   const missing = C(0.33) ? ALL.filter(() => C(0.25)) : [];
   // lang: the app's language, half the cases in each (headline, labels, pills and the "next" line must match in both)
-  const c = { id: "c" + i, lang: P(["tr", "en"]), who: P(["me", "me", "child", "elder"]), missing, hours: P([3, 6, 12]), feel: P(["cold", "normal", "warm"]), act: P(["city", "field", "sport"]), agoMin: C(0.8) ? 0 : P([30, 50, 120]),
+  const c = { id: "c" + i, at: NOW, lang: P(["tr", "en"]), who: P(["me", "me", "child", "elder"]), missing, hours: P([3, 6, 12]), feel: P(["cold", "normal", "warm"]), act: P(["city", "field", "sport"]), agoMin: C(0.8) ? 0 : P([30, 50, 120]),
     wx: genWx({ offset, edge, days: 8 }) };
   if (edge) c.edge = edge[0];
   if (C(0.45)) {

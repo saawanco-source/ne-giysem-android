@@ -38,6 +38,11 @@ for (const c of cases) {
       if (c.routine && rt.dayMode !== false && (rt.trips || []).length) r.next = nextLine(day, S);
     }
   } catch (e) { r.err = "EXC " + e.message; }
+  // Severe-weather warnings (the widget's strip and the notification): kinds, hours, peaks and their words, on the case's clock.
+  try {
+    r.alerts = E.severe(c.wx, c.at).map(a => { const f = E.severeInfo(c.wx, a, c.at);
+      return [a.k, a.lv, a.from, a.to, a.peak, f.title, f.level, f.when, f.tips.join(" | ")].join(" ~ "); });
+  } catch (e) { r.alerts = "EXC " + e.message; }
   res.push(r);
 }
 fs.writeFileSync(process.argv[3], JSON.stringify(res));

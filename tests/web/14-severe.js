@@ -34,7 +34,56 @@ const pageOk = (s, label) => {
   check(label + ": no page or console errors", !s.errors.length && !cons.length, s.errors.concat(cons));
 };
 
+// In the Android app: the "Hava uyarıları" switch and the card's link turn notifications on through the app.
+const BRIDGE = () => {
+  window.__alerts = { state: "off", calls: [] };
+  window.NeGiysemAndroid = { saveState() {}, setTheme() {}, reset() {}, hasLocation: () => true,
+    alertsState: () => window.__alerts.state,
+    setAlerts: (on) => { window.__alerts.calls.push(on); window.__alerts.state = on ? "on" : "off"; } };
+};
+
 H.run({
+  async dictionary() {
+    // Two English entries for the same Turkish text would silently change one of them (it happened to "Buzlanma").
+    const src = require("fs").readFileSync(require("path").join(__dirname, "..", "..", "web", "index.html"), "utf8");
+    const a = src.indexOf("var EN = {"); let d = 0, j = src.indexOf("{", a);
+    for (; j < src.length; j++) { if (src[j] === "{") d++; else if (src[j] === "}" && !--d) break; }
+    const re = /"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"/g, seen = {}, dup = []; let m;
+    const body = src.slice(src.indexOf("{", a), j + 1);
+    while ((m = re.exec(body))) { if (m[1] in seen && seen[m[1]] !== m[2]) dup.push(m[1]); seen[m[1]] = m[2]; }
+    check("English dictionary: no Turkish text with two different translations", !dup.length && Object.keys(seen).length > 300, dup);
+  },
+  async inApp(t) {
+    const { wx } = stormy();
+    const s = await t.open({ seed: seed(wx) });
+    await s.context.addInitScript(BRIDGE);
+    await s.goto(); await sleep(400);
+    const row = () => s.page.evaluate(() => ({ hidden: document.getElementById("alertsRow").hidden, btn: document.getElementById("alertsBtn").textContent,
+      pressed: document.getElementById("alertsBtn").getAttribute("aria-pressed"), hint: document.getElementById("alertsHint").textContent,
+      link: !!document.querySelector("#severe [data-alerts-on]"), calls: window.__alerts.calls }));
+    let r = await row();
+    check("in the app: the switch is shown, off", !r.hidden && r.pressed === "false" && r.btn === "Telefonuma bildir" && /uygulama kapalıyken/.test(r.hint), r);
+    check("in the app: the warning card offers notifications", r.link, r);
+    await s.page.click("#severe [data-alerts-on]"); await sleep(150);
+    r = await row();
+    check("the card's link turns them on through the app, then goes away", r.calls.join() === "true" && r.pressed === "true" && r.btn === "Bildirimler açık" && !r.link, r);
+    await s.page.click("#alertsBtn"); await sleep(150);
+    r = await row();
+    check("the switch turns them off again", r.calls.join() === "true,false" && r.pressed === "false" && r.link, r);
+    await s.page.evaluate(() => { window.__alerts.state = "blocked"; window.ngAlertsChanged(); });
+    r = await row();
+    check("blocked by Android: says so and points to the settings", /Android’de bu uygulamanın bildirimleri kapalı/.test(r.hint) && !r.link, r);
+    pageOk(s, "inApp");
+    await s.close();
+  },
+  async webOnly(t) {
+    const { wx } = stormy();
+    const s = await t.open({ seed: seed(wx) });
+    await s.goto(); await sleep(300);
+    const r = await s.page.evaluate(() => ({ hidden: document.getElementById("alertsRow").hidden, link: !!document.querySelector("#severe [data-alerts-on]") }));
+    check("on the web: no notification switch or link", r.hidden && !r.link, r);
+    await s.close();
+  },
   async turkish(t) {
     const { wx, at } = stormy();
     const s = await t.open({ seed: seed(wx) });

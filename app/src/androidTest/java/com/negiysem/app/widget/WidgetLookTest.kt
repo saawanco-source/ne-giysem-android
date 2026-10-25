@@ -45,13 +45,19 @@ class WidgetLookTest {
     private fun plan(
         lang: String, level: Int, temp: Double, feels: Double, cond: String, place: String, headline: String,
         wear: JSONArray, take: JSONArray, pills: List<String> = emptyList(), next: String = "", day: Boolean = true,
-        ageHours: Int = 0,
+        ageHours: Int = 0, alert: JSONObject? = null,
     ) = JSONObject()
         .put("lang", lang).put("level", level).put("temp", temp).put("feels", feels).put("cond", cond)
         .put("isDay", day).put("place", place).put("headline", headline).put("wear", wear).put("take", take)
         .put("pills", JSONArray(pills)).put("next", next)
         .put("updated", System.currentTimeMillis() - ageHours * 3_600_000L)
+        .apply { if (alert != null) put("alert", alert) }
         .toString()
+
+    /** A weather warning as Updater puts it in the snapshot (Alerts), lasting a few more hours. */
+    private fun warning(lv: Int, title: String, short: String, whenText: String) = JSONObject()
+        .put("k", "x").put("lv", lv).put("title", title).put("short", short).put("when", whenText)
+        .put("until", System.currentTimeMillis() + 4 * 3_600_000L).put("more", 0)
 
     private val cases = listOf(
         Case(
@@ -66,20 +72,31 @@ class WidgetLookTest {
                 "Kat kat giy: termal, kazak, parka. Rüzgâr çok sert, eldiven ve atkıyı unutma.",
                 garments("thermal" to "Termal içlik", "kazak" to "Kazak", "parka" to "Parka", "pantolon" to "Kalın pantolon", "bot" to "Bot"),
                 garments("eldiven" to "Eldiven", "atki" to "Atkı", "bere" to "Bere"),
-                listOf("Rüzgâr 45 km/sa", "Kar 14:00'te"), next = "08:15 Bakırköy → Etiler", ageHours = 3
+                listOf("Rüzgâr 45 km/sa", "Kar 14:00'te"), next = "08:15 Bakırköy → Etiler", ageHours = 3,
+                alert = warning(2, "Dolu ve gök gürültülü sağanak", "Dolu", "23:00–yarın 02:00")
+            ), "tr"
+        ),
+        Case(
+            "uyari", plan(
+                "tr", 5, 19.0, 17.0, "Kapalı", "Beşiktaş", "Kapüşonlu yağmurluğunu giy; rüzgarda şemsiye uçar.",
+                garments("longsleeve" to "Uzun kollu", "yagmurluk" to "Yağmurluk", "jean" to "Jean", "bot" to "Bot"),
+                garments("su" to "Su"), listOf("Fırtına", "Yağmur %90"),
+                alert = warning(2, "Fırtına", "Fırtına", "14:00–18:00")
             ), "tr"
         ),
         Case(
             "en", plan(
                 "en", 2, 4.0, 1.0, "Light rain", "Manchester", "Coat and scarf time; take an umbrella, rain from 14:00.",
                 garments("kazak" to "Jumper", "kaban" to "Coat", "pantolon" to "Thick trousers", "bot" to "Boots"),
-                garments("semsiye" to "Umbrella", "atki" to "Scarf"), listOf("Rain at 14:00")
+                garments("semsiye" to "Umbrella", "atki" to "Scarf"), listOf("Rain at 14:00"),
+                alert = warning(1, "Heavy rain", "Downpour", "14:00–17:00")
             ), "en"
         ),
         Case(
             "gece", plan(
                 "tr", 6, 24.0, 25.0, "Açık", "Kadıköy", "Bugün tişört havası.",
-                garments("tshirt" to "Tişört", "jean" to "Jean", "sneaker" to "Sneaker"), JSONArray(), listOf("UV 7"), day = false
+                garments("tshirt" to "Tişört", "jean" to "Jean", "sneaker" to "Sneaker"), JSONArray(), listOf("UV 7"), day = false,
+                alert = warning(1, "Yoğun sis", "Sis", "02:00–07:00")
             ), "tr"
         ),
         Case("bos", null, "tr"),
@@ -178,21 +195,22 @@ class WidgetLookTest {
                         right = maxOf(right, layout.getLineRight(i))
                         if (layout.getEllipsisCount(i) > 0) notes += "kısaltıldı $label"
                     }
-                    // Readable on the background: WCAG AA 4.5:1 (pills have their own dark background).
-                    if (view.background == null) {
-                        val ratio = contrast(over(view.currentTextColor, bg), bg)
-                        if (ratio < 4.5) problems += "okunaksız $label (kontrast %.1f)".format(ratio)
-                    }
                     val top = y + view.totalPaddingTop
                     val room = view.height - view.totalPaddingTop - view.totalPaddingBottom
                     if (layout.height > room + 2) problems += "kırpıldı $label (${layout.height} > $room px)"
                     if (layout.getEllipsisCount(0) == 0 && layout.getLineRight(0) > view.width - view.totalPaddingLeft - view.totalPaddingRight + 2) {
                         problems += "taştı $label"
                     }
-                    items += label to Rect(
+                    val rect = Rect(
                         (x + view.totalPaddingLeft + left).toInt(), top,
                         (x + view.totalPaddingLeft + right).toInt(), top + minOf(layout.height, room)
                     )
+                    items += label to rect
+                    // Readable on what is behind it (the widget, a pill, the warning's pill): WCAG AA 4.5:1.
+                    // Behind = the commonest colour in the text's box (the letters cover far less than half of it).
+                    val behind = commonest(bmp, rect) ?: bg
+                    val ratio = contrast(over(view.currentTextColor, behind), behind)
+                    if (ratio < 4.5) problems += "okunaksız $label (kontrast %.1f)".format(ratio)
                 }
                 // Stickers and icons only: Glance also uses pictures for backgrounds and the (transparent) tap ripple.
                 is ImageView -> if (view.drawable is VectorDrawable || view.drawable is BitmapDrawable) {
@@ -210,6 +228,18 @@ class WidgetLookTest {
                 problems += "üst üste: ${items[a].first} ve ${items[b].first} (${r.width()}×${r.height()} px)"
             }
         }
+    }
+
+    /** The colour most pixels in [r] have (every second pixel looked at); null for an empty box. */
+    private fun commonest(bmp: Bitmap, r: Rect): Int? {
+        val box = Rect(r)
+        if (!box.intersect(0, 0, bmp.width, bmp.height) || box.isEmpty) return null
+        val counts = HashMap<Int, Int>()
+        for (yy in box.top until box.bottom step 2) for (xx in box.left until box.right step 2) {
+            val c = bmp.getPixel(xx, yy)
+            counts[c] = (counts[c] ?: 0) + 1
+        }
+        return counts.maxByOrNull { it.value }?.key
     }
 
     /** [fg] (possibly see-through) laid over the opaque [bg]. */

@@ -10,6 +10,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Base64
 import android.view.View
 import android.view.WindowInsets
@@ -38,6 +39,7 @@ import androidx.core.content.FileProvider
 import androidx.webkit.WebViewAssetLoader
 import com.negiysem.app.data.Store
 import com.negiysem.app.widget.NeGiysemWidget
+import com.negiysem.app.work.AlertNotifier
 import com.negiysem.app.work.Scheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -164,9 +166,9 @@ class MainActivity : Activity() {
 
         startAds()
 
-        // The 30-minute background refresh is only for the home-screen widget.
+        // The 30-minute background refresh is for the home-screen widget and the weather warnings.
         scope.launch {
-            if (Scheduler.hasWidgets(applicationContext)) {
+            if (Scheduler.needed(applicationContext)) {
                 Scheduler.schedule(applicationContext)
                 // Opening the app also brings an old widget up to date.
                 if (com.negiysem.app.data.Store(applicationContext).isStale()) Scheduler.now(applicationContext)
@@ -185,6 +187,50 @@ class MainActivity : Activity() {
             pendingGeo?.let { (origin, cb) -> cb.invoke(origin, granted, false) }
             pendingGeo = null
         }
+        if (requestCode == REQ_NOTIFY) alertsChanged()
+    }
+
+    /**
+     * "on": warnings come as notifications; "off": turned off in the app; "blocked": turned on in the app but Android
+     * doesn't let the app post (the permission was refused, or notifications are off in the phone's settings).
+     */
+    private fun alertsState(): String = when {
+        !Store(applicationContext).alertsOn -> "off"
+        !AlertNotifier.allowed(applicationContext) -> "blocked"
+        else -> "on"
+    }
+
+    /** Turns the warnings on or off; on asks Android's permission (13+) or, once refused, opens the app's notification settings. */
+    private fun setAlerts(on: Boolean) {
+        val ctx = applicationContext
+        val store = Store(ctx)
+        if (!on) {
+            store.setAlerts(false)
+            AlertNotifier.clear(ctx)
+            scope.launch { if (!Scheduler.needed(ctx)) Scheduler.cancel(ctx) }
+            alertsChanged()
+            return
+        }
+        store.setAlerts(true)
+        Scheduler.schedule(ctx)
+        val needsPermission = Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        when {
+            needsPermission && (!store.alertsAsked || shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) -> {
+                store.markAlertsAsked()
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_NOTIFY)
+            }
+            !AlertNotifier.allowed(ctx) -> runCatching {
+                startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+            }
+            else -> alertsChanged()
+        }
+    }
+
+    /** Tells the page, and checks the forecast for warnings at once when they can now be sent. */
+    private fun alertsChanged() {
+        if (alertsState() == "on") Scheduler.now(applicationContext, replace = true)
+        if (!webGone) web.evaluateJavascript("window.ngAlertsChanged && window.ngAlertsChanged()", null)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -286,6 +332,7 @@ class MainActivity : Activity() {
             val ctx = applicationContext
             Store(ctx).clear()
             Scheduler.cancel(ctx)
+            AlertNotifier.clear(ctx)
             CoroutineScope(Dispatchers.IO).launch {
                 runCatching { NeGiysemWidget.pushAll(ctx, "") }
                 if (Scheduler.hasWidgets(ctx)) Scheduler.schedule(ctx) // stays empty: the refresh skips a wiped store
@@ -330,6 +377,15 @@ class MainActivity : Activity() {
             runOnUiThread { UserMessagingPlatform.showPrivacyOptionsForm(this@MainActivity) { _ -> } }
         }
 
+        @JavascriptInterface
+        fun alertsState(): String = this@MainActivity.alertsState()
+
+        @JavascriptInterface
+        fun setAlerts(on: Boolean) {
+            Store(applicationContext).setAlerts(on) // the page reads the new state right after this call
+            runOnUiThread { this@MainActivity.setAlerts(on) }
+        }
+
         /** Lets the page tell whether asking for the position would show Android's permission dialog. */
         @JavascriptInterface
         fun hasLocation(): Boolean = this@MainActivity.hasLocation()
@@ -367,6 +423,7 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQ_LOCATION = 7
+        private const val REQ_NOTIFY = 8
     }
 }
 

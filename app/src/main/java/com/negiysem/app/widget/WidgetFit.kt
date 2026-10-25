@@ -46,6 +46,12 @@ class FitInput(
     val pills: List<String>,
     /** Labels of the stickers, in order (at most four are shown). */
     val labels: List<String>,
+    /**
+     * A weather warning's pill, longest wording first ("Fırtına · 14:00–18:00", "Fırtına"); empty when there is none.
+     * The small layout uses only [alertShort] wordings.
+     */
+    val alert: List<String> = emptyList(),
+    val alertShort: List<String> = emptyList(),
 )
 
 enum class FitKind { SMALL, WIDE, TALL }
@@ -77,11 +83,16 @@ data class Fit(
     val clock: Float,
     val clockW: Float,
     val clockH: Float,
+    /** The warning pill: its wording ("" none), text size, the width its text gets and the warning sign's size. */
+    val alert: String = "",
+    val alertSp: Float = 0f,
+    val alertW: Float = 0f,
+    val alertIcon: Float = 0f,
 ) {
     override fun toString() =
         "$kind s=%.2f temp=%.1f head=%.1f×%d take=%s sticker=%.0f×%d pills=%d clock=%.1f (%.0f×%.0f)".format(
             scale, temp, head, headLines, takeMode, sticker, stickers, pills, clock, clockW, clockH
-        )
+        ) + if (alert.isEmpty()) "" else " uyarı='$alert'"
 }
 
 object WidgetFit {
@@ -95,6 +106,8 @@ object WidgetFit {
     const val CLOCK_GAP = 8f
     const val PILL_PAD_H = 9f
     const val PILL_PAD_V = 3f
+    /** Between the warning sign and the warning's words. */
+    const val ICON_GAP = 4f
 
     private const val MIN_S = 0.55f
     private const val MAX_S = 3f
@@ -168,16 +181,39 @@ object WidgetFit {
 
     private const val TEXT_SHARE = 0.42f
 
-    private class Header(val height: Float, val tempW: Float, val textW: Float)
+    /** A warning pill: the sign, then the wording that fits ([textW] is the room its text gets). */
+    class Pill(val text: String, val textW: Float, val w: Float, val h: Float, val icon: Float, val sp: Float)
+
+    /** The longest of [words] that fits in [maxW] at [sp]; null when none does. */
+    private fun pill(m: TextMeter, words: List<String>, sp: Float, maxW: Float): Pill? {
+        val icon = sp * m.fontScale * 1.05f
+        val h = max(m.lineHeight(sp, true) * SAFE, icon) + 2 * PILL_PAD_V
+        for (t in words) {
+            val tw = m.width(t, sp, true) * SAFE
+            val w = icon + ICON_GAP + tw + 2 * PILL_PAD_H
+            if (w <= maxW) return Pill(t, tw, w, h, icon, sp)
+        }
+        return null
+    }
+
+    private fun Fit.with(p: Pill?) = if (p == null) this else copy(alert = p.text, alertSp = p.sp, alertW = p.textW, alertIcon = p.icon)
+
+    private class Header(val height: Float, val tempW: Float, val textW: Float, val pill: Pill? = null)
 
     /**
      * Temperature, then the two text lines (single lines, cut with … when long).
      * The text lines keep at least [TEXT_SHARE] of the width, so a big temperature can't squeeze the place name away.
+     * With [warn], a warning takes the second line's place, as a pill.
      */
-    private fun header(i: FitInput, m: TextMeter, w: Float, temp: Float, place: Float, sub: Float): Header? {
+    private fun header(i: FitInput, m: TextMeter, w: Float, temp: Float, place: Float, sub: Float, warn: Boolean = false): Header? {
         val tempW = m.width(i.temp, temp, true) * SAFE
         val textW = w - tempW - HEADER_GAP
         if (textW < max(56f, TEXT_SHARE * w)) return null
+        if (warn && i.alert.isNotEmpty()) {
+            val p = pill(m, i.alert, sub, textW) ?: return null
+            val h = max(m.lineHeight(temp, true) * SAFE, m.lineHeight(place, true) * SAFE + 2f + p.h)
+            return Header(h, tempW, textW, p)
+        }
         val h = max(m.lineHeight(temp, true) * SAFE, (m.lineHeight(place, true) + m.lineHeight(sub, true)) * SAFE)
         return Header(h, tempW, textW)
     }
@@ -205,7 +241,9 @@ object WidgetFit {
             val cw = m.clockWidth(clock) * SAFE
             val ch = m.clockHeight(clock) * SAFE
             val row1 = m.lineHeight(temp, true) * SAFE
-            val row2 = m.lineHeight(line, true) * SAFE
+            // A warning takes the level name's place, as a pill.
+            val warn = if (i.alertShort.isEmpty()) null else pill(m, i.alertShort, line, w) ?: if (force) null else return null
+            val row2 = warn?.let { it.h + 2f } ?: (m.lineHeight(line, true) * SAFE)
             val row3 = max(sticker, ch)
             val fits = tempW <= w &&
                 n * sticker + (n - 1) * STICKER_GAP + CLOCK_GAP + cw <= w &&
@@ -214,7 +252,7 @@ object WidgetFit {
             return Fit(
                 FitKind.SMALL, s, pad, pad, temp, 0f, line, w, 0f, 0, 0f, TakeMode.NONE, 0, 0f,
                 0f, 0, 0f, sticker, n, clock, cw, ch
-            )
+            ).with(warn)
         }
         return choose(m, variants, SMALL_CLOCK, { s, n, c -> build(s, n, c) }, { build(MIN_S, 1, SMALL_CLOCK * MIN_S, force = true)!! })
     }
@@ -237,7 +275,7 @@ object WidgetFit {
             val head = 16f * s
             val take = 12f * s
             val sticker = 40f * s
-            val hd = header(i, m, w, temp, place, sub) ?: if (force) Header(40f, 0f, w - 60f) else return null
+            val hd = header(i, m, w, temp, place, sub, warn = true) ?: if (force) Header(40f, 0f, w - 60f) else return null
             val (headH, headLines) = (if (cut) m.lineHeight(head, true) * SAFE to 1 else whole(m, i.headline, head, w, 3))
                 ?: if (force) (m.lineHeight(head, true) * SAFE to 1) else return null
             var takeH = 0f
@@ -266,7 +304,7 @@ object WidgetFit {
             return Fit(
                 FitKind.WIDE, s, padH, padV, temp, place, sub, hd.textW, head, maxOf(headLines, 1), take, mode,
                 maxOf(takeLines, 1), max(takeW, 0f), 0f, 0, 0f, sticker, n, clock, cw, ch
-            )
+            ).with(hd.pill)
         }
         return choose(
             m, variants.map { Triple(it.first, it.second, false) }, WIDE_CLOCK,
@@ -298,11 +336,22 @@ object WidgetFit {
             var ok = true
             val hd = header(i, m, w, temp, place, sub) ?: if (force) Header(40f, 0f, w - 60f) else return null
             var pillsH = 0f
-            if (k > 0) {
+            var warn: Pill? = null
+            if (k > 0 || i.alert.isNotEmpty()) {
                 val pillsW = i.pills.take(k).sumOf { (m.width(it, pill, true) * SAFE + 2 * PILL_PAD_H).toDouble() }.toFloat() +
-                    (k - 1) * 4f
+                    (k - 1).coerceAtLeast(0) * 4f
                 if (pillsW > w) ok = false
-                pillsH = m.lineHeight(pill, true) * SAFE + 2 * PILL_PAD_V + 6f
+                pillsH = m.lineHeight(pill, true) * SAFE + 2 * PILL_PAD_V
+                // A warning comes first in the row, in the longest wording that fits the row on its own:
+                // it matters more than the other pills, which get what is left.
+                if (i.alert.isNotEmpty()) {
+                    warn = pill(m, i.alert, pill, w)
+                    if (warn == null) { if (!force) return null } else {
+                        pillsH = max(pillsH, warn.h)
+                        if (k > 0 && warn.w + 4f + pillsW > w) ok = false
+                    }
+                }
+                pillsH += 6f
             }
             val (headH, headLines) = whole(m, i.headline, head, w, if (cut) 2 else 4)
                 ?: if (cut || force) (m.lineHeight(head, true) * 2 * SAFE to 2) else return null
@@ -327,7 +376,7 @@ object WidgetFit {
                 FitKind.TALL, s, pad, pad, temp, place, sub, hd.textW, head, maxOf(headLines, 1), take,
                 if (i.takeLine.isEmpty()) TakeMode.NONE else TakeMode.OWN_LINE, takeLines, max(takeW, 0f),
                 pill, k, label, sticker, n, clock, cw, ch
-            )
+            ).with(warn)
         }
         return choose(
             m, variants.map { Triple(it.first, it.second, false) }, TALL_CLOCK,

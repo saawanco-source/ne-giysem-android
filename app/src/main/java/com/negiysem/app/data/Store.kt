@@ -37,6 +37,17 @@ class Store(context: Context) {
     /** Changes on every wipe, so a refresh that started before it never writes the deleted data back. */
     val generation: Int get() = prefs.getInt("gen", 0)
 
+    /** The person turned severe-weather notifications on in the app (Android's own permission is checked separately). */
+    val alertsOn: Boolean get() = prefs.getBoolean("alerts", false)
+    /** Android's notification permission was asked at least once (after a refusal only the phone's settings can grant it). */
+    val alertsAsked: Boolean get() = prefs.getBoolean("alertsAsked", false)
+    /** Warnings already sent: {kind: {"lv", "until"}}, so one storm is announced once (again only if it gets worse). */
+    val alerted: String? get() = prefs.getString("alerted", null)
+
+    fun setAlerts(on: Boolean) { prefs.edit().putBoolean("alerts", on).apply() }
+    fun markAlertsAsked() { prefs.edit().putBoolean("alertsAsked", true).apply() }
+    fun saveAlerted(json: String) { prefs.edit().putString("alerted", json).apply() }
+
     fun isStale(maxAgeMs: Long = 15 * 60_000L) = System.currentTimeMillis() - updatedAt > maxAgeMs
 
     /**
@@ -104,7 +115,7 @@ class Store(context: Context) {
         /** The compact snapshot the widget draws; its texts are in [lang], which the widget's own words follow too. */
         fun widgetSnapshot(
             plan: Outfit.Plan, input: Outfit.Input, place: String, next: String? = null, lang: String = "tr",
-            updated: Long = System.currentTimeMillis(),
+            updated: Long = System.currentTimeMillis(), alert: JSONObject? = null,
         ): String {
             val o = JSONObject()
             if (!next.isNullOrBlank()) o.put("next", next)
@@ -120,6 +131,7 @@ class Store(context: Context) {
             o.put("wear", JSONArray().apply { plan.wear.forEach { put(JSONObject().put("g", it.g).put("label", it.label)) } })
             o.put("take", JSONArray().apply { plan.take.forEach { put(JSONObject().put("g", it.g).put("label", it.label)) } })
             o.put("pills", JSONArray().apply { plan.pills.forEach { put(it) } })
+            if (alert != null) o.put("alert", alert)
             return o.toString()
         }
     }

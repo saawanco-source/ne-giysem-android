@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
@@ -113,10 +114,16 @@ private object Words {
 
 private data class Garment(val g: String, val label: String)
 
+/** The most dangerous weather warning (Alerts): "Fırtına", "02:00–05:00", short "Fırtına"; shown until [until]. */
+private data class Warning(val lv: Int, val title: String, val short: String, val whenText: String, val until: Long) {
+    val live get() = System.currentTimeMillis() < until
+}
+
 private data class WidgetData(
     val ok: Boolean, val level: Int, val headline: String, val temp: Double, val feels: Double,
     val cond: String, val isDay: Boolean, val place: String, val updated: Long,
-    val wear: List<Garment>, val take: List<Garment>, val pills: List<String>, val next: String = "", val lang: String = "tr"
+    val wear: List<Garment>, val take: List<Garment>, val pills: List<String>, val next: String = "", val lang: String = "tr",
+    val warning: Warning? = null,
 ) {
     fun w(s: String) = Words.of(s, lang)
 
@@ -152,7 +159,11 @@ private data class WidgetData(
                     take = list("take"),
                     pills = if (pillsArr == null) emptyList() else (0 until pillsArr.length()).map { pillsArr.optString(it) },
                     next = o.optString("next", ""),
-                    lang = sLang
+                    lang = sLang,
+                    warning = o.optJSONObject("alert")?.let { a ->
+                        Warning(a.optInt("lv", 1).coerceIn(1, 2), a.optString("title"), a.optString("short"), a.optString("when"), a.optLong("until"))
+                            .takeIf { it.title.isNotBlank() && it.live }
+                    }
                 )
             }.getOrDefault(empty(lang))
         }
@@ -284,15 +295,43 @@ private fun staleText(d: WidgetData): String? {
 internal fun fitFor(context: Context, json: String?, lang: String, width: Float, height: Float): Fit =
     fitFor(context, WidgetData.from(json, lang), width, height)
 
-private fun fitFor(context: Context, d: WidgetData, width: Float, height: Float): Fit = WidgetFit.fit(
-    FitInput(
-        width = width, height = height, temp = deg(d.temp), place = placeLine(d), sub = subLine(d),
-        small = staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?",
-        headline = d.headline, takeLine = takeLine(d), takeShort = d.take.firstOrNull()?.let { "+ " + it.label } ?: "",
-        pills = d.pills, labels = d.wear.take(4).map { it.label },
-    ),
-    AndroidMeter(context)
-)
+private fun fitFor(context: Context, d: WidgetData, width: Float, height: Float): Fit {
+    val w = d.warning
+    return WidgetFit.fit(
+        FitInput(
+            width = width, height = height, temp = deg(d.temp), place = placeLine(d), sub = subLine(d),
+            small = staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?",
+            headline = d.headline, takeLine = takeLine(d), takeShort = d.take.firstOrNull()?.let { "+ " + it.label } ?: "",
+            pills = d.pills, labels = d.wear.take(4).map { it.label },
+            alert = if (w == null) emptyList() else listOf(w.title + " · " + w.whenText, w.short + " · " + w.whenText, w.title, w.short)
+                .filter { it.isNotBlank() && !it.startsWith(" · ") && !it.endsWith(" · ") }.distinct(),
+            alertShort = if (w == null) emptyList() else listOf(w.title, w.short).filter { it.isNotBlank() }.distinct(),
+        ),
+        AndroidMeter(context)
+    )
+}
+
+/** The warning pill's colours, as on the app screen: yellow for "Dikkat", orange for "Tehlikeli", dark text. */
+private fun warnBg(lv: Int) = Color(if (lv == 2) 0xFFFF8A5B else 0xFFFFE27A)
+private fun warnInk(lv: Int) = Color(if (lv == 2) 0xFF2A0C00 else 0xFF2A2100)
+
+/** The warning sign and words on their own coloured pill. */
+@Composable
+private fun WarningPill(d: WidgetData, f: Fit) {
+    val lv = d.warning?.lv ?: 1
+    Row(
+        modifier = GlanceModifier.background(warnBg(lv)).cornerRadius(999.dp)
+            .padding(horizontal = WidgetFit.PILL_PAD_H.dp, vertical = WidgetFit.PILL_PAD_V.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            provider = ImageProvider(R.drawable.ic_warn), contentDescription = null,
+            colorFilter = ColorFilter.tint(ColorProvider(warnInk(lv))), modifier = GlanceModifier.size(f.alertIcon.dp)
+        )
+        Spacer(GlanceModifier.width(WidgetFit.ICON_GAP.dp))
+        Text(f.alert, style = style(warnInk(lv), f.alertSp), maxLines = 1, modifier = GlanceModifier.width(f.alertW.dp))
+    }
+}
 
 @Composable
 private fun Body(d: WidgetData) {
@@ -357,7 +396,12 @@ private fun SmallLayout(d: WidgetData, p: Palette, f: Fit) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(deg(d.temp), style = style(p.ink, f.temp), modifier = GlanceModifier.width(f.textW.dp), maxLines = 1)
         }
-        Text(staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?", style = style(p.sub, f.sub), maxLines = 1)
+        if (f.alert.isNotEmpty()) {
+            Spacer(GlanceModifier.height(2.dp))
+            WarningPill(d, f)
+        } else {
+            Text(staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?", style = style(p.sub, f.sub), maxLines = 1)
+        }
         Spacer(GlanceModifier.defaultWeight())
         Row(verticalAlignment = Alignment.Bottom) {
             Stickers(d, f)
@@ -374,7 +418,12 @@ private fun Header(d: WidgetData, p: Palette, f: Fit) {
         Spacer(GlanceModifier.width(WidgetFit.HEADER_GAP.dp))
         Column(modifier = GlanceModifier.width(f.textW.dp)) {
             Text(placeLine(d), style = style(p.ink, f.place), maxLines = 1)
-            Text(subLine(d), style = style(p.sub, f.sub, bold = d.next.isNotEmpty() || staleText(d) != null), maxLines = 1)
+            if (f.kind == FitKind.WIDE && f.alert.isNotEmpty()) {
+                Spacer(GlanceModifier.height(2.dp))
+                WarningPill(d, f)
+            } else {
+                Text(subLine(d), style = style(p.sub, f.sub, bold = d.next.isNotEmpty() || staleText(d) != null), maxLines = 1)
+            }
         }
     }
 }
@@ -406,10 +455,11 @@ private fun TallLayout(d: WidgetData, p: Palette, f: Fit) {
     Column(modifier = GlanceModifier.fillMaxSize().padding(f.padH.dp)) {
         Header(d, p, f)
         Spacer(GlanceModifier.height((6f * f.scale).dp))
-        if (f.pills > 0) {
-            Row {
+        if (f.pills > 0 || f.alert.isNotEmpty()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (f.alert.isNotEmpty()) WarningPill(d, f)
                 d.pills.take(f.pills).forEachIndexed { i, s ->
-                    if (i > 0) Spacer(GlanceModifier.width(4.dp))
+                    if (i > 0 || f.alert.isNotEmpty()) Spacer(GlanceModifier.width(4.dp))
                     Text(
                         s,
                         modifier = GlanceModifier.background(p.ink).cornerRadius(999.dp)

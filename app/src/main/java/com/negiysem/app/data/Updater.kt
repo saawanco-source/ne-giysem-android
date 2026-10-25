@@ -3,6 +3,7 @@ package com.negiysem.app.data
 import android.content.Context
 import com.negiysem.app.Config
 import com.negiysem.app.widget.NeGiysemWidget
+import com.negiysem.app.work.AlertNotifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -72,6 +73,9 @@ object Updater {
         if (Store(context).generation != gen) return failure == null // data was deleted while this refresh ran
         store.saveWidget(snapshot, cached.optLong("at"))
         NeGiysemWidget.pushAll(context, snapshot)
+        cached.optJSONObject("main")?.let { main ->
+            runCatching { AlertNotifier.check(context, main, Outfit.ownName(store.placeName ?: cached.optString("name", "Konumun"), store.lang)) }
+        }
         return failure == null
     }
 
@@ -124,6 +128,18 @@ object Updater {
         val day = routine?.let { Day.compute(it, byPlace, lang = lang) }
         val plan = Outfit.plan(day?.input ?: input, store.feel, store.act, store.who, store.missing, lang)
         val name = store.placeName ?: cached.optString("name", "Konumun")
-        return Store.widgetSnapshot(plan, input, Outfit.ownName(name, lang), day?.next, lang, at)
+        return Store.widgetSnapshot(plan, input, Outfit.ownName(name, lang), day?.next, lang, at, alertFor(main, lang))
+    }
+
+    /**
+     * The most dangerous warning for the widget: its words, when it ends (the widget drops it then) and how many others
+     * there are. The widget is redrawn every half hour, so "yarın" and the hours stay right.
+     */
+    private fun alertFor(main: JSONObject, lang: String, now: Long = System.currentTimeMillis()): JSONObject? {
+        val all = Alerts.find(main, now)
+        val a = all.firstOrNull() ?: return null
+        return JSONObject().put("k", a.k).put("lv", a.lv)
+            .put("title", Alerts.info(main, a, now, lang).title).put("short", Alerts.short(a, lang))
+            .put("when", Alerts.whenText(main, a, now, lang)).put("until", Alerts.untilMs(main, a)).put("more", all.size - 1)
     }
 }

@@ -4,7 +4,7 @@ const js = JSON.parse(fs.readFileSync(process.argv[2], "utf8")), kt = JSON.parse
 const cases = process.argv[4] ? JSON.parse(fs.readFileSync(process.argv[4], "utf8")) : null;
 const byId = {}; kt.forEach(r => byId[r.id] = r);
 // next: the widget's "next trip" line (day names, "Tomorrow", "outside N min") in the case's language
-const F = ["err", "useDay", "level", "head", "wear", "take", "pills", "next"];
+const F = ["err", "useDay", "level", "head", "wear", "take", "pills", "next", "alerts"];
 let mism = 0, n = 0; const kinds = {}, ex = {};
 js.forEach((a, i) => {
   const b = byId[a.id]; n++;
@@ -19,4 +19,7 @@ js.forEach((a, i) => {
 });
 console.log("cases", n, "mismatches", mism);
 Object.keys(kinds).sort((x, y) => kinds[y] - kinds[x]).forEach(k => { console.log("\n==", k, kinds[k]); ex[k].slice(0, 3).forEach(e => console.log(JSON.stringify(e))); });
-const errs = kt.filter(r => r.err && r.err.startsWith("EXC")); console.log("\nKotlin exceptions:", errs.length); errs.slice(0, 5).forEach(e => console.log(e.id, e.err));
+// How many cases had warnings at all, so a generator change that stops producing them is noticed.
+const withAlerts = js.filter(r => Array.isArray(r.alerts) && r.alerts.length).length;
+console.log("cases with warnings", withAlerts, "kinds", JSON.stringify(js.reduce((m, r) => { (Array.isArray(r.alerts) ? r.alerts : []).forEach(a => { const k = a.split(" ~ ").slice(0, 2).join(":"); m[k] = (m[k] || 0) + 1; }); return m; }, {})));
+const errs = kt.filter(r => (r.err && r.err.startsWith("EXC")) || (typeof r.alerts === "string")); console.log("\nKotlin exceptions:", errs.length); errs.slice(0, 5).forEach(e => console.log(e.id, e.err || e.alerts));

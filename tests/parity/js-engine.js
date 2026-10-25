@@ -7,7 +7,7 @@ function load(htmlPath) {
   const helpers = cut("  /* ================= helpers ================= */", "  function kindOf(c, day){");
   const engine = cut("  var G = {tshirt", "  /* ================= render ================= */");
   const src = '"use strict";\nvar S;\n' + helpers + "\n" + engine + "\n" +
-    "return {setS:function(s){S=s; LANG = s && s.lang === \"en\" ? \"en\" : \"tr\";}, plan:plan, liveInput:liveInput, dayPlan:dayPlan, tx:tx, nm:nm, severe:severe};";
+    "return {setS:function(s){S=s; LANG = s && s.lang === \"en\" ? \"en\" : \"tr\";}, plan:plan, liveInput:liveInput, dayPlan:dayPlan, tx:tx, nm:nm, severe:severe, severeInfo:severeInfo};";
   return new Function(src)();
 }
 module.exports = { load };

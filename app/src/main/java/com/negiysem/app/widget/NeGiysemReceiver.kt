@@ -24,6 +24,7 @@ class NeGiysemReceiver : GlanceAppWidgetReceiver() {
 
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
-        Scheduler.cancel(context)
+        // The last widget is gone: the background refresh stays only for weather warnings.
+        if (!Store(context).alertsOn) Scheduler.cancel(context)
     }
 }

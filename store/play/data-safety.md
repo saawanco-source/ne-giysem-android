@@ -74,5 +74,6 @@ Her bulut derlemesindeki “Dosyaları denetle” adımı bu listeyi APK’dan v
 | `ACCESS_FINE_LOCATION` | Uygulama | Kesin konum (isteğe bağlı) |
 | `com.google.android.gms.permission.AD_ID` | Google Mobile Ads SDK | Cihaz veya diğer kimlikler; Reklam kimliği beyanı “Evet” |
 | `ACCESS_ADSERVICES_AD_ID`, `ACCESS_ADSERVICES_ATTRIBUTION`, `ACCESS_ADSERVICES_TOPICS` | Google Mobile Ads SDK (Android’in Privacy Sandbox reklam arayüzleri) | Yeni veri türü yok; reklam/analiz amaçlı satırlarla kapsanır |
-| `WAKE_LOCK`, `FOREGROUND_SERVICE` | WorkManager (widget’ın arka plan yenilemesi) | — |
+| `WAKE_LOCK`, `FOREGROUND_SERVICE` | WorkManager (widget’ın ve hava uyarılarının arka plan yenilemesi) | — |
+| `POST_NOTIFICATIONS` | Uygulama (hava uyarısı bildirimleri; yalnızca kişi “Sana göre → Hava uyarıları”nı açınca sorulur) | — (veri toplanmaz; uyarı telefonda hesaplanır) |
 | `com.negiysem.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | AndroidX Core (uygulamanın kendi iç izni) | — |

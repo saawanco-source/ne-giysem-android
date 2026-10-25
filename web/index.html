@@ -135,7 +135,8 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
   .board{position:sticky;top:calc(20px + env(safe-area-inset-top,0px));align-self:start}
 }
 .hero{grid-area:hero;min-width:0}
-.board{grid-area:board;min-width:0}
+.board-cell{grid-area:board;min-width:0}
+.board{min-width:0}
 .day{grid-area:day;min-width:0}
 .me{grid-area:me;min-width:0}
 .trip-card{grid-area:trip;min-width:0}
@@ -450,6 +451,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       </div>
     </section>
 
+    <!-- The cell spans the right column beside the left-hand cards only: sticky stops at its end, so the
+         outfit never slides over "Rutinim", which spans both columns below. -->
+    <div class="board-cell">
     <section class="board" aria-label="Bugünün kombini" data-i18n-attr="aria-label">
       <div class="stickers" id="wear"></div>
       <div class="take" id="take" hidden></div>
@@ -459,6 +463,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         <dl id="slotList"></dl>
       </details>
     </section>
+    </div>
 
     <section class="trip-card card" id="tripCard" hidden aria-label="Günüm" data-i18n-attr="aria-label">
       <div class="tc-head">

@@ -173,22 +173,35 @@ private val STICKERS = mapOf(
     "tshirt" to R.drawable.g_tshirt, "yagmurluk" to R.drawable.g_yagmurluk, "yuruyus" to R.drawable.g_yuruyus
 )
 
-private class Palette(val bg: Color, val ink: Color, val sub: Color, val night: Boolean)
+/**
+ * [base] is the widget's bottom layer: the phone's colour palette (Android 12+, see values-v31/colors.xml), resolved
+ * by the home screen so it follows a palette change at once. [overlay] is the level colour on top of it, partly
+ * see-through, so the level keeps its own colour but takes on the palette's tint (like Windows' Mica, without blur).
+ * [bg] is roughly the colour that results; it colours text on dark pills.
+ */
+private class Palette(val base: ColorProvider, val overlay: Color, val bg: Color, val ink: Color, val sub: Color, val night: Boolean)
+
+/** Share of the level colour over the palette by day (night keeps the old 24 % over a dark base). */
+private const val DAY_LEVEL = 0.6f
+private const val NIGHT_LEVEL = 0.24f
 
 private fun palette(d: WidgetData): Palette {
-    val c = Outfit.LEVEL_COLORS[d.level]
-    val lv = Color(c)
+    val lv = Color(Outfit.LEVEL_COLORS[d.level])
     val night = d.ok && !d.isDay
-    if (!night) return Palette(lv, Color(0xFF14161F), Color(0xB014161F), false)
+    // Before Android 12 there's no palette to blend with: the level colour alone by day, as before.
+    val hasPalette = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    if (!night) {
+        val share = if (hasPalette) DAY_LEVEL else 1f
+        return Palette(ColorProvider(R.color.widget_base_day), lv.copy(alpha = share), lv, Color(0xFF14161F), Color(0xB014161F), false)
+    }
     val base = Color(0xFF0B0D16)
-    val t = 0.24f
     val mixed = Color(
-        red = lv.red * t + base.red * (1 - t),
-        green = lv.green * t + base.green * (1 - t),
-        blue = lv.blue * t + base.blue * (1 - t),
+        red = lv.red * NIGHT_LEVEL + base.red * (1 - NIGHT_LEVEL),
+        green = lv.green * NIGHT_LEVEL + base.green * (1 - NIGHT_LEVEL),
+        blue = lv.blue * NIGHT_LEVEL + base.blue * (1 - NIGHT_LEVEL),
         alpha = 1f
     )
-    return Palette(mixed, Color(0xFFF6F4EE), Color(0xB8F6F4EE), true)
+    return Palette(ColorProvider(R.color.widget_base_night), lv.copy(alpha = NIGHT_LEVEL), mixed, Color(0xFFF6F4EE), Color(0xB8F6F4EE), true)
 }
 
 private fun deg(v: Double): String = if (v.isNaN()) "—" else Outfit.deg(v)
@@ -309,16 +322,18 @@ private fun Body(d: WidgetData) {
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(p.bg)
+            .background(p.base)
             .cornerRadius(26.dp)
             .clickable(actionStartActivity<MainActivity>())
     ) {
-        when (f.kind) {
-            FitKind.SMALL -> SmallLayout(d, p, f)
-            FitKind.WIDE -> WideLayout(d, p, f)
-            FitKind.TALL -> TallLayout(d, p, f)
+        Box(modifier = GlanceModifier.fillMaxSize().background(p.overlay)) {
+            when (f.kind) {
+                FitKind.SMALL -> SmallLayout(d, p, f)
+                FitKind.WIDE -> WideLayout(d, p, f)
+                FitKind.TALL -> TallLayout(d, p, f)
+            }
+            CornerClock(p, f)
         }
-        CornerClock(p, f)
     }
 }
 

@@ -3,4 +3,8 @@
     <color name="launcher_bg">#FFD65E</color>
     <color name="ink">#14161F</color>
     <color name="night_bg">#15171F</color>
+    <!-- Widget base layer under the level colour. Before Android 12 there is no colour palette: plain white by day
+         (the level colour on top is opaque then) and the old dark navy by night. values-v31: the phone's palette. -->
+    <color name="widget_base_day">#FFFFFFFF</color>
+    <color name="widget_base_night">#FF0B0D16</color>
 </resources>

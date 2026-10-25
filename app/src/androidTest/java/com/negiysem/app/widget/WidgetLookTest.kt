@@ -144,6 +144,9 @@ class WidgetLookTest {
         canvas.drawColor(0xFF5B6675.toInt())
         host.draw(canvas)
 
+        // The widget's own background (palette under the level colour), from a blank spot in its left margin.
+        val bg = bmp.getPixel((wPx * 0.02f).toInt().coerceAtLeast(2), hPx / 2)
+        notes += "zemin #%06X".format(bg and 0xFFFFFF)
         val items = mutableListOf<Pair<String, Rect>>()
         walk(host, 0, 0) { view, x, y ->
             if (view.width == 0 || view.height == 0) return@walk
@@ -175,6 +178,11 @@ class WidgetLookTest {
                         right = maxOf(right, layout.getLineRight(i))
                         if (layout.getEllipsisCount(i) > 0) notes += "kısaltıldı $label"
                     }
+                    // Readable on the background: WCAG AA 4.5:1 (pills have their own dark background).
+                    if (view.background == null) {
+                        val ratio = contrast(over(view.currentTextColor, bg), bg)
+                        if (ratio < 4.5) problems += "okunaksız $label (kontrast %.1f)".format(ratio)
+                    }
                     val top = y + view.totalPaddingTop
                     val room = view.height - view.totalPaddingTop - view.totalPaddingBottom
                     if (layout.height > room + 2) problems += "kırpıldı $label (${layout.height} > $room px)"
@@ -202,6 +210,24 @@ class WidgetLookTest {
                 problems += "üst üste: ${items[a].first} ve ${items[b].first} (${r.width()}×${r.height()} px)"
             }
         }
+    }
+
+    /** [fg] (possibly see-through) laid over the opaque [bg]. */
+    private fun over(fg: Int, bg: Int): Int {
+        val a = (fg ushr 24) / 255f
+        fun ch(shift: Int) = ((((fg shr shift) and 0xFF) * a + ((bg shr shift) and 0xFF) * (1 - a))).roundToInt()
+        return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
+    }
+
+    private fun luminance(c: Int): Double {
+        fun lin(v: Int): Double { val s = v / 255.0; return if (s <= 0.03928) s / 12.92 else Math.pow((s + 0.055) / 1.055, 2.4) }
+        return 0.2126 * lin((c shr 16) and 0xFF) + 0.7152 * lin((c shr 8) and 0xFF) + 0.0722 * lin(c and 0xFF)
+    }
+
+    private fun contrast(a: Int, b: Int): Double {
+        val la = luminance(a)
+        val lb = luminance(b)
+        return (maxOf(la, lb) + 0.05) / (minOf(la, lb) + 0.05)
     }
 
     /** Every visible view with its position in the widget (not attached to a window, so isShown can't be used). */

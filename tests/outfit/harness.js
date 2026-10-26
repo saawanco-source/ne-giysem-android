@@ -19,11 +19,12 @@ function serve() {
   });
 }
 
-// Fixture: cur = current conditions; hour(h, i) = per-hour overrides (h = local hour of day, i = index from local midnight)
+// Fixture: cur = current conditions; hour(h, i) = per-hour overrides (h = local hour of day, i = index from local midnight;
+// mm = rain in that hour, none when left out)
 function fx(o) {
   const cur = Object.assign({app:15, t:null, code:2, wind:12, gust:20, dir:40, rh:60, precip:0, isDay:1}, o.cur || {});
   if (cur.t == null) cur.t = cur.app + 1;
-  const H = {time:[], temperature_2m:[], apparent_temperature:[], precipitation_probability:[], weather_code:[], wind_speed_10m:[], wind_direction_10m:[], is_day:[]};
+  const H = {time:[], temperature_2m:[], apparent_temperature:[], precipitation_probability:[], precipitation:[], weather_code:[], wind_speed_10m:[], wind_direction_10m:[], is_day:[]};
   const days = [];
   const d0 = Date.UTC(2026, 9, 24, 0, 0); // local midnight expressed as a UTC-like clock (strings are local)
   for (let i = 0; i < 168; i++) {
@@ -33,7 +34,7 @@ function fx(o) {
     const ov = Object.assign({app:cur.app, p:5, code:cur.code, wind:cur.wind, dir:cur.dir, isDay: h >= 7 && h < 18 ? 1 : 0}, o.hour ? (o.hour(h, i) || {}) : {});
     H.time.push(`${day}T${pad(h)}:00`);
     H.apparent_temperature.push(ov.app); H.temperature_2m.push(ov.t != null ? ov.t : +(ov.app + 1).toFixed(1));
-    H.precipitation_probability.push(ov.p); H.weather_code.push(ov.code); H.wind_speed_10m.push(ov.wind); H.wind_direction_10m.push(ov.dir); H.is_day.push(ov.isDay);
+    H.precipitation_probability.push(ov.p); H.precipitation.push(ov.mm == null ? null : ov.mm); H.weather_code.push(ov.code); H.wind_speed_10m.push(ov.wind); H.wind_direction_10m.push(ov.dir); H.is_day.push(ov.isDay);
   }
   return {latitude:40.99, longitude:29.03, utc_offset_seconds:10800, timezone:'Europe/Istanbul',
     current:{time:`${DATE}T09:00`, temperature_2m:cur.t, apparent_temperature:cur.app, relative_humidity_2m:cur.rh, precipitation:cur.precip,

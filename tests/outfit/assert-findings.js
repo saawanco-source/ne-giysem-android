@@ -36,6 +36,16 @@ check('questionable', 'No cap at 23:00', {fix:H.fx({cur:{app:27, code:0, isDay:0
   r => !lab(r.wear).includes('Şapka'));
 check('questionable', 'No raincoat with shorts at 30° (umbrella is enough)', {fix:wetFx(30, 80, 2, 70, {uv:8}), hour:13},
   r => !lab(r.wear).includes('Yağmurluk'));
+// How hard it rains (mm an hour) changes the rain gear: drizzle needs no raincoat, heavy rain more than an umbrella.
+const rainFx = (app, code, mm, extra = {}) => H.fx(Object.assign({cur:{app, code, precip:mm, wind:10, gust:18}, uv:2, hour: () => ({p:85, code, mm})}, extra));
+check('important', 'Drizzle (0.3 mm/h, 12°): umbrella in the bag, no raincoat or boots, the pill says drizzle', {fix:rainFx(12, 61, 0.3)},
+  r => !lab(r.wear).includes('Yağmurluk') && !lab(r.wear).includes('Su geçirmez ayakkabı') && lab(r.take).includes('Şemsiye') && r.pills.some(p => /Çisel/.test(p)));
+check('important', 'Ordinary rain (2 mm/h, 12°): raincoat or waterproof outer layer, umbrella and waterproof shoes as before', {fix:rainFx(12, 63, 2)},
+  r => lab(r.take).includes('Şemsiye') && lab(r.wear).includes('Su geçirmez ayakkabı') && r.pills.some(p => /Yağmur/.test(p)));
+check('important', 'Heavy rain (9 mm/h) at 28°: a light raincoat is worn and the headline says an umbrella alone won\'t do', {fix:rainFx(28, 63, 9), hour:13},
+  r => lab(r.wear).includes('İnce yağmurluk') && /Kuvvetli yağmur/.test(r.head) && /şemsiye tek başına yetmez/.test(r.head));
+check('minor', 'Thunder with little rain is not called drizzle', {fix:rainFx(18, 95, 0.3)},
+  r => !r.pills.some(p => /Çisel/.test(p)));
 check('questionable', 'No windbreaker / "close your collar" at 28° in a T-shirt', {fix:H.fx({cur:{app:28, code:2, wind:35, gust:55, dir:30}, uv:6, hour: () => ({wind:35, code:2, p:5})}), hour:13},
   r => !lab(r.take).includes('Rüzgarlık') && !r.tips.some(t => /yakanı kapat/.test(t)));
 

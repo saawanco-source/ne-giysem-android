@@ -981,11 +981,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "{Kapüşonlu yağmurluğunu} giy; rüzgarda şemsiye uçar.": "Wear your {hooded raincoat}; umbrellas fly away in this wind.",
     "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgarda şemsiye uçar.": "Wear a waterproof, {hooded} outer layer; umbrellas fly away in this wind.",
     "{Yağmurluğunu} giy, şemsiyeni al.": "Wear your {raincoat}, take your umbrella.",
+    "Kuvvetli yağmur: {yağmurluğunu} giy, şemsiye tek başına yetmez.": "Heavy rain: wear your {raincoat}, an umbrella alone won't do.",
+    "Kuvvetli yağmur: {şemsiyeni} al, dış katmanın su geçirmez olsun.": "Heavy rain: take your {umbrella} and wear a waterproof outer layer.",
     "{Şemsiyeni} al; {0}": "Take your {umbrella}; {0}",
     "{0} yanına al, {1} soğuyor.": "Take your {0}, it gets cold {1}.",
     "{0} yanına al, {1} serinliyor.": "Take your {0}, it gets chilly {1}.",
     // pills, reasons and tips
-    "Yağmur yağıyor": "Raining", "Yağmur %{0}": "Rain {0}%", "Yağmur ihtimali %{0}": "Chance of rain {0}%", "Kar yağıyor": "Snowing", "Kar": "Snow",
+    "Yağmur yağıyor": "Raining", "Yağmur %{0}": "Rain {0}%", "Çiseliyor": "Drizzling", "Çiseleme %{0}": "Drizzle {0}%", "Yağmur ihtimali %{0}": "Chance of rain {0}%", "Kar yağıyor": "Snowing", "Kar": "Snow",
     "Buzlanma": "Icy", "UV yüksek": "High UV", "Sis": "Fog",
     "Arazide güneşe ve dallara karşı": "Out in the field, against sun and branches",
     "Arazide çalıya ve keneye karşı uzun ve dayanıklı olsun": "In the field, long and sturdy against brush and ticks",
@@ -998,6 +1000,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Dış katmanın su geçirmez olsun.": "Make your outer layer waterproof.", "{0}: su geçirmez ya da su itici olsun": "{0}: make it waterproof or water-repellent",
     "Islak zeminde su geçirmez olsun; kanvas ve süetten kaçın": "Waterproof for wet ground; avoid canvas and suede",
     "Yağmur ihtimali %{0}; çantada dursun": "Chance of rain {0}%; keep it in your bag",
+    "Hafif çiseleme; çantada dursun": "Light drizzle; keep it in your bag", "Hafif çiseleme; kapüşon yeter.": "Light drizzle; a hood will do.",
+    "Saatte {0} mm'ye kadar yağmur; şemsiye tek başına yetmez": "Up to {0} mm of rain an hour; an umbrella alone won't do",
     "Kar ve buzda kaymaz taban": "Non-slip soles for snow and ice", "Kar var; eller ilk üşüyen yer": "Snow ahead; hands get cold first",
     "Kar bekleniyor": "Snow expected", "{0}: su itici olsun": "{0}: make it water-repellent",
     "Donan yağmur: yerde buzlanma olabilir": "Freezing rain: the ground may be icy",
@@ -1430,6 +1434,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var maybe = !wet && !snowy && pMax >= 30;
     var icy = codes.some(function(c){ return c === 56 || c === 57 || c === 66 || c === 67; });
     var thunder = codes.some(function(c){ return c >= 95; });
+    // How hard it rains, in mm an hour: the wettest hour ahead (snow aside) or what is falling now. Drizzle (under
+    // 0.5 mm) needs no raincoat or boots; from 6 mm an umbrella alone won't do (the heavy-rain warning starts there too).
+    var mms = W.filter(function(h){ return fin(h.mm) && !isSnow(h.code); }).map(function(h){ return h.mm; });
+    if (!trip && !snowNow && fin(inp.now.precip) && inp.now.precip > 0) mms.push(inp.now.precip);
+    var mmMax = mms.length ? Math.max.apply(null, mms) : null;
+    var heavy = wet && mmMax != null && mmMax >= 6;
+    var drizzle = wet && !heavy && !thunder && mmMax != null && mmMax >= 0.1 && mmMax < 0.5 && !codes.some(function(c){ return c === 65 || c === 67 || c === 82; });
     var windy = windMax >= 28 || gust >= 45;
     var stormy = windMax >= 45 || gust >= 70;
     var hasOuter = wear.some(function(w){ return OUTER.indexOf(w.g) >= 0; });
@@ -1474,26 +1485,31 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     }
 
     if (wet) {
-      pills.unshift(rainNow ? tx("Yağmur yağıyor") : tx("Yağmur %{0}", pMax));
+      pills.unshift(drizzle ? (rainNow ? tx("Çiseliyor") : tx("Çiseleme %{0}", pMax)) : rainNow ? tx("Yağmur yağıyor") : tx("Yağmur %{0}", pMax));
       var rainWhy = rainNow ? tx("Şu an yağmur yağıyor") : tx(trip ? "Yolculuğunda yağmur ihtimali %{0}" : "Dışarıdayken yağmur ihtimali %{0}", pMax);
       if (sport) {
         // No umbrella while running: a water-repellent shell instead.
         if (!has("ruzgarlik")) wear.push({g:"ruzgarlik", label:tx("Su itici rüzgarlık")});
         why("ruzgarlik", tx("{0}; su itici olsun", rainWhy));
         headT = "Yağmur var: su itici {rüzgarlık} giy, kaymayan taban seç."; head = tx(headT);
+      } else if (drizzle) {
+        // Just drizzle: an umbrella in the bag, or a hood in the wind; no raincoat, no boots.
+        if (!windy) { addTake("semsiye"); why("semsiye", tx("Hafif çiseleme; çantada dursun")); }
+        else notes.push(tx("Hafif çiseleme; kapüşon yeter."));
       } else {
         var addedCoat = false, hot = L >= 6;
-        if (!hasOuter && !(hot && !windy)) {
+        if (!hasOuter && !(hot && !windy && !heavy)) {
           // Something waterproof is worn, not carried: a raincoat replaces the jacket to take along.
           var dropped = takesOuter();
           take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0; });
-          wear.push({g:"yagmurluk", label: hot ? tx("İnce yağmurluk") : gl("yagmurluk")}); addedCoat = true; why("yagmurluk", rainWhy);
+          wear.push({g:"yagmurluk", label: hot ? tx("İnce yağmurluk") : gl("yagmurluk")}); addedCoat = true;
+          why("yagmurluk", heavy ? tx("Saatte {0} mm'ye kadar yağmur; şemsiye tek başına yetmez", Math.round(mmMax)) : rainWhy);
           if (dropped && carry && OUTER.indexOf(carry) >= 0) {
             var mid = lowPool.filter(function(g){ return MID.indexOf(g) >= 0 && !has(g); })[0];
             if (mid) { addTake(mid, null, true); why(mid, carryWhy); }
           }
         } else if (hasOuter) {
-          notes.push(tx("Dış katmanın su geçirmez olsun."));
+          if (!heavy) notes.push(tx("Dış katmanın su geçirmez olsun."));
           why(outerNow(), tx("{0}: su geçirmez ya da su itici olsun", rainWhy));
         }
         if (P.act === "city" && !hot && wear.some(function(w){ return w.g === "sneaker" || w.g === "sandalet"; })) {
@@ -1503,7 +1519,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         if (windy) { headT = addedCoat ? "{Kapüşonlu yağmurluğunu} giy; rüzgarda şemsiye uçar." : "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgarda şemsiye uçar."; head = tx(headT); }
         else {
           addTake("semsiye", null, true); why("semsiye", rainWhy);
-          if (addedCoat) { headT = "{Yağmurluğunu} giy, şemsiyeni al."; head = tx(headT); }
+          if (heavy) { headT = addedCoat ? "Kuvvetli yağmur: {yağmurluğunu} giy, şemsiye tek başına yetmez." : "Kuvvetli yağmur: {şemsiyeni} al, dış katmanın su geçirmez olsun."; head = tx(headT); }
+          else if (addedCoat) { headT = "{Yağmurluğunu} giy, şemsiyeni al."; head = tx(headT); }
           else { var umbT = fill("{Şemsiyeni} al; {0}", [lcfT(strip(headT))]); head = en ? tx("{Şemsiyeni} al; {0}", lcf(strip(head))) : umbT; headT = umbT; }
         }
       }
@@ -1656,8 +1673,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var app = H.apparent_temperature ? H.apparent_temperature[i] : null, tt = H.temperature_2m ? H.temperature_2m[i] : null;
     if (!fin(app)) app = fin(tt) ? tt : null;
     if (app == null) return null;
+    var mm = H.precipitation ? H.precipitation[i] : null;
     return {time:H.time[i], app:app, t:fin(tt) ? tt : app, p:(H.precipitation_probability && H.precipitation_probability[i]) || 0,
-            code:H.weather_code[i], wind:(H.wind_speed_10m && H.wind_speed_10m[i]) || 0, day:H.is_day ? H.is_day[i] : 1};
+            code:H.weather_code[i], wind:(H.wind_speed_10m && H.wind_speed_10m[i]) || 0, day:H.is_day ? H.is_day[i] : 1, mm:fin(mm) ? mm : null};
   }
   // Walks a route step by step: the first half of the journey uses the start place's weather, the second half the destination's.
   function exposure(trip, route, start){
@@ -1670,7 +1688,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       if (mode.out) {
         var heat = st.m === "walk" ? (SLOPES[st.slope] || SLOPES.flat).heat : WAIT_HEAT;
         ex.outMin += min; if (st.m === "walk") ex.walkMin += min; if (st.m === "walk" && st.slope === "steep") ex.steep = true;
-        if (w) { info.felt = w.app + heat; ex.out.push({time:w.time, ms:mid, end:info.end, min:min, app:w.app + heat, raw:w.app, t:w.t, p:w.p, code:w.code, wind:st.m === "wait" ? w.wind : w.wind * 0.6, day:w.day, place:pid}); }
+        if (w) { info.felt = w.app + heat; ex.out.push({time:w.time, ms:mid, end:info.end, min:min, app:w.app + heat, raw:w.app, t:w.t, p:w.p, code:w.code, wind:st.m === "wait" ? w.wind : w.wind * 0.6, day:w.day, mm:w.mm, place:pid}); }
       } else {
         ex.rideMin += min;
         if (w && (w.p >= 60 || isRain(w.code))) ex.rainRide = true;
@@ -1721,7 +1739,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var w0 = S.dayWx.byPlace[first.place], di = -1;
     if (w0 && w0.daily && w0.daily.time) di = w0.daily.time.indexOf(String(first.time).slice(0,10));
     var inp = {kind:"day", now:{t:first.t, app:first.app, code:first.code, isDay:first.day, wind:first.wind, gust:0, dir:null, rh:null, precip:0},
-               window:exps.map(function(e){ return {time:e.time, app:e.app, p:e.p, code:e.code, wind:e.wind, day:e.day}; }),
+               window:exps.map(function(e){ return {time:e.time, app:e.app, p:e.p, code:e.code, wind:e.wind, day:e.day, mm:e.mm}; }),
                uvMax: di >= 0 && w0.daily.uv_index_max ? w0.daily.uv_index_max[di] : null,
                uvDay: exps.some(function(e){ var h = +String(e.time).slice(11,13); return h >= 10 && h <= 16 && String(e.time).slice(0,10) === String(first.time).slice(0,10); }), sunset:null};
     var coldest = exps.slice().sort(function(a, b){ return a.app - b.app; })[0];
@@ -1761,7 +1779,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var m = S.manual, sky = SKY[m.sky] || SKY.partly, w = WIND[m.wind] || WIND.breezy, t = m.temp;
     var app = t - w.chill * (t < 20 ? 1 : 0.5);
     return {kind:"manual", now:{t:t, app:app, code:sky.code, isDay:1, wind:w.kmh, gust:w.gust, dir:null, rh:sky.rh, precip:sky.rain ? 1 : 0},
-            window:[{time:null, app:app, t:t, p:sky.p, code:sky.code, wind:w.kmh, day:1}], uvMax:sky.uv(t), uvDay:true, sunset:null};
+            window:[{time:null, app:app, t:t, p:sky.p, code:sky.code, wind:w.kmh, day:1, mm:null}], uvMax:sky.uv(t), uvDay:true, sunset:null};
   }
   function liveInput(){
     var lv = S.live; if (!lv || !lv.wx) return null;
@@ -1781,7 +1799,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (!fin(now.t)) now.t = now.app;
     var win = [];
     for (var k = 0; k <= S.hours && idx + k < H.time.length; k++) { var j = idx + k;
-      win.push({time:H.time[j], app:appAt(j), t:pk(H.temperature_2m, j), p:(H.precipitation_probability && H.precipitation_probability[j]) || 0, code:H.weather_code[j], wind:pk(H.wind_speed_10m, j), day:pk(H.is_day, j)}); }
+      win.push({time:H.time[j], app:appAt(j), t:pk(H.temperature_2m, j), p:(H.precipitation_probability && H.precipitation_probability[j]) || 0, code:H.weather_code[j], wind:pk(H.wind_speed_10m, j), day:pk(H.is_day, j), mm:fin(pk(H.precipitation, j)) ? pk(H.precipitation, j) : null}); }
     var today = nowKey.slice(0,10), di = (D.time || []).indexOf(today);
     var sunset = di >= 0 && D.sunset ? D.sunset[di] : null;
     return {kind:"live", now:now, window:win, uvMax: di >= 0 && D.uv_index_max ? D.uv_index_max[di] : null,
@@ -1818,10 +1836,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       if (A != null && A <= -10) hit("cold", A <= -20 ? 2 : 1, j, A);
       if ((c === 56 || c === 57 || c === 66 || c === 67) && (T == null || T <= 2)) hit("ice", 2, j, T);
       else if (T != null && T <= 0.5 && ((c >= 51 && c <= 67) || (c >= 80 && c <= 82) || snow)) hit("ice", 1, j, T);
+      // Only the amount counts, never the symbol: MET Norway calls 1 mm an hour "heavy rain" already.
       // A six-hour total counts only in hours that are wet themselves (so the warning doesn't start before the rain).
       var wet = P != null && P >= 1;
       if (!snow && ((P != null && P >= 15) || (wet && p6 >= 40))) hit("rain", 2, j, P);
-      else if (!snow && ((P != null && P >= 6) || (wet && p6 >= 20) || c === 65 || c === 82)) hit("rain", 1, j, P);
+      else if (!snow && ((P != null && P >= 6) || (wet && p6 >= 20))) hit("rain", 1, j, P);
       if (c === 96 || c === 99) hit("thunder", 2, j, null); else if (c === 95) hit("thunder", 1, j, null);
       var gust = Math.max(W || 0, G || 0);
       if ((G != null && G >= 95) || (W != null && W >= 70)) hit("storm", 2, j, gust);
@@ -2165,15 +2184,16 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var t = String(H.time[j]); if (t.slice(0,10) !== ds || (today && t.slice(0,13) < nowKey)) continue;
       var a = ix(H.apparent_temperature, j), tt = ix(H.temperature_2m, j), app = fin(a) ? a : fin(tt) ? tt : null;
       if (app == null) continue;
+      var mm = ix(H.precipitation, j);
       all.push({time:t, app:app, t:fin(tt) ? tt : app, p:ix(H.precipitation_probability, j) || 0, code:ix(H.weather_code, j),
-                wind:ix(H.wind_speed_10m, j) || 0, day:ix(H.is_day, j), hr:+t.slice(11,13)});
+                wind:ix(H.wind_speed_10m, j) || 0, day:ix(H.is_day, j), hr:+t.slice(11,13), mm:fin(mm) ? mm : null});
     }
     var win = all.filter(function(h){ return h.hr >= 8 && h.hr <= 20; }), evening = false;
     if (!win.length && today && all.length) { win = all; evening = true; }
     if (!win.length) return null;
     var f = win[0], di = Array.isArray(D.time) ? D.time.indexOf(ds) : -1, uv = di >= 0 ? ix(D.uv_index_max, di) : null;
     return {kind:"live", now:{t:f.t, app:f.app, code:f.code, isDay:evening && f.day === 0 ? 0 : 1, wind:f.wind, gust:0, dir:null, rh:null, precip:0},
-            window:win.map(function(h){ return {time:h.time, app:h.app, t:h.t, p:h.p, code:h.code, wind:h.wind, day:h.day}; }),
+            window:win.map(function(h){ return {time:h.time, app:h.app, t:h.t, p:h.p, code:h.code, wind:h.wind, day:h.day, mm:h.mm}; }),
             uvMax:fin(uv) ? uv : null, uvDay:win.some(function(h){ return h.hr >= 10 && h.hr <= 16; }), sunset:null, evening:evening};
   }
   // The sky that best describes a day: the roughest weather that lasts a while (two hours or a sixth of the day), else the most common.

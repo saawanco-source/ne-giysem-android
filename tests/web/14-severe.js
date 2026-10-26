@@ -91,9 +91,11 @@ H.run({
     const c = await cards(s);
     note(JSON.stringify(c.items.map((x) => [x.k, x.lv, x.when])));
     check("cards shown, most dangerous first", !c.hidden && c.items[0].k === "storm" && c.items[0].lv === "Tehlikeli", c.items.map((x) => x.k + ":" + x.lv));
-    check("storm: time span and peak gust", c.items[0].when.startsWith(at(2) + "–") && /saatte 98 km'ye kadar/.test(c.items[0].when), c.items[0].when);
+    // Late in the evening the hours ahead are tomorrow's: "yarın 02:00–05:00".
+    const starts = (when, k) => when.replace(/^yarın /, "").startsWith(at(k) + "–");
+    check("storm: time span and peak gust", starts(c.items[0].when, 2) && /saatte 98 km'ye kadar/.test(c.items[0].when), c.items[0].when);
     check("hail thunderstorm is dangerous and adds the hail tip", c.items.some((x) => x.k === "thunder" && x.lv === "Tehlikeli" && x.tips.some((tp) => /Dolu/.test(tp))), c.items);
-    check("heavy rain from its first wet hour", c.items.some((x) => x.k === "rain" && x.when.startsWith(at(5) + "–")), c.items.find((x) => x.k === "rain"));
+    check("heavy rain from its first wet hour", c.items.some((x) => x.k === "rain" && starts(x.when, 5)), c.items.find((x) => x.k === "rain"));
     check("first dangerous card opens its tips", c.items[0].open && c.items[0].tips.length >= 3 && c.items[0].what === "Ne yapmalı?", c.items[0]);
     check("says it isn't official, links MGM and 112", /resmî uyarı değildir/.test(c.note) && c.mgm && /112/.test(c.note), c.note);
     await s.shot("14-severe-tr");
@@ -120,6 +122,24 @@ H.run({
     const c = await cards(s);
     check("calm weather: no warning card", c.hidden && !c.items.length, c);
     pageOk(s, "calm");
+    await s.close();
+  },
+  // MET Norway labels 1 mm an hour "heavy rain" (code 65/82 here): an ordinary rainy day is no warning; 6 mm an hour is.
+  async ordinaryRain(t) {
+    const wx = fc(14), h = wx.hourly, i = hourIdx(wx, Date.now());
+    h.precipitation = h.time.map(() => 0);
+    for (let k = 1; k <= 8; k++) { h.weather_code[i + k] = k % 2 ? 65 : 82; h.precipitation[i + k] = 1.4; h.precipitation_probability[i + k] = 95; }
+    let s = await t.open({ seed: seed(wx) });
+    await s.goto(); await sleep(400);
+    let c = await cards(s);
+    check("1.4 mm an hour marked heavy by the symbol: no heavy-rain warning", !c.items.some((x) => x.k === "rain"), c.items.map((x) => x.k));
+    await s.close();
+    h.precipitation[i + 3] = 7;
+    s = await t.open({ seed: seed(wx) });
+    await s.goto(); await sleep(400);
+    c = await cards(s);
+    check("7 mm in an hour: heavy-rain warning with its amount", c.items.some((x) => x.k === "rain" && x.lv === "Dikkat" && /saatte 7 mm'ye kadar/.test(x.when)), c.items);
+    pageOk(s, "ordinary rain");
     await s.close();
   },
   async heatAndDesktop(t) {

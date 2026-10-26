@@ -114,11 +114,13 @@ object Outfit {
         "{Kapüşonlu yağmurluğunu} giy; rüzgarda şemsiye uçar." to "Wear your {hooded raincoat}; umbrellas fly away in this wind.",
         "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgarda şemsiye uçar." to "Wear a waterproof, {hooded} outer layer; umbrellas fly away in this wind.",
         "{Yağmurluğunu} giy, şemsiyeni al." to "Wear your {raincoat}, take your umbrella.",
+        "Kuvvetli yağmur: {yağmurluğunu} giy, şemsiye tek başına yetmez." to "Heavy rain: wear your {raincoat}, an umbrella alone won't do.",
+        "Kuvvetli yağmur: {şemsiyeni} al, dış katmanın su geçirmez olsun." to "Heavy rain: take your {umbrella} and wear a waterproof outer layer.",
         // labels set by the weather
         "Uzun pantolon" to "Long pants", "Su itici rüzgarlık" to "Water-repellent windbreaker", "İnce yağmurluk" to "Light raincoat",
         "Su geçirmez ayakkabı" to "Waterproof shoes", "Kaymaz bot" to "Non-slip boots",
         // pills
-        "Yağmur yağıyor" to "Raining", "Kar yağıyor" to "Snowing", "Kar" to "Snow", "Buzlanma" to "Icy", "Fırtına" to "Storm",
+        "Yağmur yağıyor" to "Raining", "Çiseliyor" to "Drizzling", "Kar yağıyor" to "Snowing", "Kar" to "Snow", "Buzlanma" to "Icy", "Fırtına" to "Storm",
         "UV yüksek" to "High UV", "Sis" to "Fog",
         // my day (Day.kt) and stored names
         "Bugün" to "Today", "Yarın" to "Tomorrow",
@@ -150,7 +152,8 @@ object Outfit {
     }
 
     data class Item(val g: String, val label: String, val need: Boolean = false)
-    data class Hour(val time: String, val app: Double, val p: Double, val code: Int, val wind: Double)
+    /** [mm]: rain in that hour (NaN when the forecast doesn't say). */
+    data class Hour(val time: String, val app: Double, val p: Double, val code: Int, val wind: Double, val mm: Double = Double.NaN)
     data class Now(
         val t: Double, val app: Double, val code: Int, val isDay: Boolean,
         val wind: Double, val gust: Double, val dir: Double?, val rh: Double?, val precip: Double
@@ -211,7 +214,7 @@ object Outfit {
         val temp: JSONArray? = hourly.optJSONArray("temperature_2m"); val app: JSONArray? = hourly.optJSONArray("apparent_temperature")
         val prob: JSONArray? = hourly.optJSONArray("precipitation_probability"); val code: JSONArray? = hourly.optJSONArray("weather_code")
         val wind: JSONArray? = hourly.optJSONArray("wind_speed_10m"); val dir: JSONArray? = hourly.optJSONArray("wind_direction_10m")
-        val day: JSONArray? = hourly.optJSONArray("is_day")
+        val day: JSONArray? = hourly.optJSONArray("is_day"); val rain: JSONArray? = hourly.optJSONArray("precipitation")
         val fresh = System.currentTimeMillis() - fetchedAt < 45 * 60_000L && cur != null && !cur.d("temperature_2m").isNaN()
         fun appAt(j: Int): Double { val a = app.d(j); return if (!a.isNaN()) a else temp.d(j) }
         val now0 = if (fresh && cur != null) Now(
@@ -232,7 +235,7 @@ object Outfit {
         while (k <= hours && idx + k < times.length()) {
             val j = idx + k
             window.add(Hour(times.optString(j), appAt(j), prob.d(j).let { if (it.isNaN()) 0.0 else it }, code?.optInt(j, 3) ?: 3,
-                wind.d(j).let { if (it.isNaN()) 0.0 else it }))
+                wind.d(j).let { if (it.isNaN()) 0.0 else it }, rain.d(j)))
             k++
         }
         val dTimes: JSONArray? = daily?.optJSONArray("time")
@@ -305,6 +308,13 @@ object Outfit {
         val maybe = !wet && !snowy && pMax >= 30
         val icy = codes.any { it == 56 || it == 57 || it == 66 || it == 67 }
         val thunder = codes.any { it >= 95 }
+        // How hard it rains, in mm an hour (as the app screen): the wettest hour ahead (snow aside) or what is falling now.
+        // Drizzle (under 0.5 mm) needs no raincoat or boots; from 6 mm an umbrella alone won't do.
+        val mms = w.filter { !it.mm.isNaN() && !isSnow(it.code) }.map { it.mm }.toMutableList()
+        if (!trip && !snowNow && inp.now.precip > 0) mms.add(inp.now.precip)
+        val mmMax = mms.maxOrNull()
+        val heavy = wet && mmMax != null && mmMax >= 6
+        val drizzle = wet && !heavy && !thunder && mmMax != null && mmMax >= 0.1 && mmMax < 0.5 && codes.none { it == 65 || it == 67 || it == 82 }
         val windy = windMax >= 28 || gust >= 45
         val hasOuter = wear.any { it.g in OUTER }
 
@@ -342,15 +352,19 @@ object Outfit {
         }
 
         if (wet) {
-            pills.add(0, if (rainNow) t("Yağmur yağıyor", lang) else if (en) "Rain $pMax%" else "Yağmur %$pMax")
+            pills.add(0, if (drizzle) { if (rainNow) t("Çiseliyor", lang) else if (en) "Drizzle $pMax%" else "Çiseleme %$pMax" }
+                else if (rainNow) t("Yağmur yağıyor", lang) else if (en) "Rain $pMax%" else "Yağmur %$pMax")
             if (sport) {
                 // No umbrella while running: a water-repellent shell instead.
                 if (!has("ruzgarlik")) wear.add(Item("ruzgarlik", t("Su itici rüzgarlık", lang)))
                 headT = "Yağmur var: su itici {rüzgarlık} giy, kaymayan taban seç."; head = t(headT, lang)
+            } else if (drizzle) {
+                // Just drizzle: an umbrella in the bag, or a hood in the wind; no raincoat, no boots.
+                if (!windy) addTake("semsiye")
             } else {
                 var addedCoat = false
                 val hot = level >= 6
-                if (!hasOuter && !(hot && !windy)) {
+                if (!hasOuter && !(hot && !windy && !heavy)) {
                     // Something waterproof is worn, not carried: a raincoat replaces the jacket to take along.
                     val dropped = takesOuter()
                     take = take.filter { it.g !in OUTER }.toMutableList()
@@ -363,7 +377,11 @@ object Outfit {
                     head = t(headT, lang)
                 } else {
                     addTake("semsiye", first = true)
-                    if (addedCoat) { headT = "{Yağmurluğunu} giy, şemsiyeni al."; head = t(headT, lang) }
+                    if (heavy) {
+                        headT = if (addedCoat) "Kuvvetli yağmur: {yağmurluğunu} giy, şemsiye tek başına yetmez." else "Kuvvetli yağmur: {şemsiyeni} al, dış katmanın su geçirmez olsun."
+                        head = t(headT, lang)
+                    }
+                    else if (addedCoat) { headT = "{Yağmurluğunu} giy, şemsiyeni al."; head = t(headT, lang) }
                     else {
                         val umbT = "{Şemsiyeni} al; " + lcf(strip(headT), false)
                         head = if (en) "Take your {umbrella}; " + lcf(strip(head), true) else umbT

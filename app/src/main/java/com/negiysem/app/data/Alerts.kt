@@ -129,7 +129,7 @@ object Alerts {
             else if (tt != null && tt <= 0.5 && (c in 51..67 || c in 80..82 || snow)) hit("ice", 1, j, tt)
             val wet = p != null && p >= 1
             if (!snow && ((p != null && p >= 15) || (wet && p6 >= 40))) hit("rain", 2, j, p)
-            else if (!snow && ((p != null && p >= 6) || (wet && p6 >= 20) || c == 65 || c == 82)) hit("rain", 1, j, p)
+            else if (!snow && ((p != null && p >= 6) || (wet && p6 >= 20))) hit("rain", 1, j, p)
             if (c == 96 || c == 99) hit("thunder", 2, j, null) else if (c == 95) hit("thunder", 1, j, null)
             val gust = maxOf(w ?: 0.0, g ?: 0.0)
             if ((g != null && g >= 95) || (w != null && w >= 70)) hit("storm", 2, j, gust)

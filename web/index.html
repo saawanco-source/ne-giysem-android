@@ -1174,6 +1174,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Konum izni verilmedi; son bilinen konumun kullanıldı ({0}).": "Location permission wasn't given; your last known location was used ({0}).",
     "Konum şu an bulunamadı; son bilinen konumun kullanıldı ({0}).": "Your location can't be found right now; your last known location was used ({0}).",
     "Konum izni olmadığı için yaklaşık konum kullanıldı. Daha isabetli sonuç için konum izni ver ya da yer ekle.": "Without location permission, an approximate location was used. For a more accurate result, allow location access or add a place.",
+    "Telefonunun konumu kapalı; son bilinen konumun kullanıldı ({0}).": "Your phone's location is off; your last known location was used ({0}).",
+    "Telefonunun konumu kapalı; yaklaşık konum kullanıldı.": "Your phone's location is off; an approximate location was used.",
+    "Telefonunun konumu kapalı; açıp tekrar dene.": "Your phone's location is off; turn it on and try again.",
+    "Konumu aç": "Turn on location", "İzin ver": "Allow",
     "Konum bulunamadı; yaklaşık konum kullanıldı.": "Couldn't find your location; an approximate location was used.",
     "Önizlemede konum internet bağlantına göre yaklaşık bulunur; semt için yer ekle.": "In the preview, your location is estimated from your internet connection; add a place for your neighborhood.",
     "Çevrimdışısın; son alınan hava gösteriliyor.": "You're offline; showing the last weather fetched.",
@@ -3107,6 +3111,23 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     save(); render();
     setStatus(tx("{0} kaydedildi; bu yer için konum izni hiç sorulmaz. “Ev” gibi bir ad verebilirsin.", nm(name)), {label:tx("Adını değiştir"), fn:openRoutine});
   }
+  var NATIVE_LOC = {seq:0, wait:{}};
+  // The app answers A.locate(id) here: {lat, lon, acc} or {error: geo_denied | geo_off | geo_timeout | geo_unavailable}.
+  window.ngLocation = function(id, r){
+    var w = NATIVE_LOC.wait[id]; if (!w) return;
+    delete NATIVE_LOC.wait[id]; clearTimeout(w.t);
+    if (r && isFinite(r.lat) && isFinite(r.lon)) w.res({latitude:+r.lat, longitude:+r.lon, accuracy:+r.acc || null});
+    else w.rej({code:(r && /^geo_/.test(r.error || "")) ? r.error : "geo_unavailable"});
+  };
+  // A button for a location problem the phone's settings can fix (Android app only); back from the settings, it tries again.
+  var GEO_RETRY = false;
+  function geoFix(code){
+    var A = window.NeGiysemAndroid;
+    if (code === "geo_off" && A && typeof A.openLocationSettings === "function") return {label:tx("Konumu aç"), fn:function(){ GEO_RETRY = true; A.openLocationSettings(); }};
+    if (code === "geo_denied" && A && typeof A.openAppSettings === "function" && !A.hasLocation()) return {label:tx("İzin ver"), fn:function(){ GEO_RETRY = true; A.openAppSettings(); }};
+    return null;
+  }
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden && GEO_RETRY) { GEO_RETRY = false; fetchLive(true, true); } });
   var WEB = {
     fetchJSON: function(url, ms){
       var ctl = ("AbortController" in window) ? new AbortController() : null;
@@ -3115,6 +3136,14 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         .then(function(j){ clearTimeout(timer); return j; }, function(e){ clearTimeout(timer); throw e; });
     },
     position: function(){
+      // Android app: the phone's own location service (the WebView's geolocation fails on many phones).
+      var A = window.NeGiysemAndroid;
+      if (A && typeof A.locate === "function") return new Promise(function(res, rej){
+        var id = "l" + (++NATIVE_LOC.seq);
+        // Long enough for Android's permission question to be answered.
+        NATIVE_LOC.wait[id] = {res:res, rej:rej, t:setTimeout(function(){ if (NATIVE_LOC.wait[id]) { delete NATIVE_LOC.wait[id]; rej({code:"geo_timeout"}); } }, 90000)};
+        try { A.locate(id); } catch (e) { clearTimeout(NATIVE_LOC.wait[id].t); delete NATIVE_LOC.wait[id]; rej({code:"geo_unavailable"}); }
+      });
       return new Promise(function(res, rej){
         if (!("geolocation" in navigator)) { rej({code:"geo_unsupported"}); return; }
         var done = false, guard = setTimeout(function(){ if (!done) { done = true; rej({code:"geo_timeout"}); } }, 15000);
@@ -3139,13 +3168,17 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         if (!/^geo_/.test(e.code || "")) throw e;
         if (S.fix) {
           var blocked = e.code === "geo_denied" && (await geoState()) === "denied";
-          return await fromFix(tx(blocked ? "Bu sitenin konum izni kapalı; izin vermek için tarayıcının site ayarlarını ya da telefon ayarlarını aç. Son bilinen konumun kullanıldı ({0})."
+          var r = await fromFix(tx(blocked ? "Bu sitenin konum izni kapalı; izin vermek için tarayıcının site ayarlarını ya da telefon ayarlarını aç. Son bilinen konumun kullanıldı ({0})."
+            : e.code === "geo_off" ? "Telefonunun konumu kapalı; son bilinen konumun kullanıldı ({0})."
             : e.code === "geo_denied" ? "Konum izni verilmedi; son bilinen konumun kullanıldı ({0})." : "Konum şu an bulunamadı; son bilinen konumun kullanıldı ({0}).", fixWhen(S.fix.at)));
+          if (geoFix(e.code)) r.action = geoFix(e.code);
+          return r;
         }
         var ip = await WEB.fetchJSON(ipURL(), 8000);
         if (!isFinite(ip.latitude) || !isFinite(ip.longitude)) throw {code:"geo_none"};
         return {place:{name: ip.city || ip.locality || ip.principalSubdivision || "Konumun", sub:"Yaklaşık konum", lat:+ip.latitude, lon:+ip.longitude},
-                note: tx(e.code === "geo_denied" ? "Konum izni olmadığı için yaklaşık konum kullanıldı. Daha isabetli sonuç için konum izni ver ya da yer ekle." : "Konum bulunamadı; yaklaşık konum kullanıldı.")};
+                note: tx(e.code === "geo_denied" ? "Konum izni olmadığı için yaklaşık konum kullanıldı. Daha isabetli sonuç için konum izni ver ya da yer ekle."
+                  : e.code === "geo_off" ? "Telefonunun konumu kapalı; yaklaşık konum kullanıldı." : "Konum bulunamadı; yaklaşık konum kullanıldı."), action:geoFix(e.code)};
       }
     },
     forecasts: function(pts){ return WEB.fetchJSON(forecastURL(pts)).then(function(j){ return Array.isArray(j) ? j : [j]; }); },
@@ -3394,7 +3427,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       S.sel = id; save(); closeSearch(); togglePanel(false); saved = near ? null : name;
       if (near) { await fetchLive(false, true); setStatus(tx("{0} zaten kayıtlı; o seçildi.", nm(near.name))); return; }
     } catch (e) {
-      setStatus(tx(e && e.code === "geo_denied" ? "Konum izni gerekiyor; tarayıcı ya da telefon ayarlarından izin ver." : "Konum bulunamadı, birazdan tekrar dene."));
+      var code = e && e.code;
+      setStatus(tx(code === "geo_denied" ? "Konum izni gerekiyor; tarayıcı ya da telefon ayarlarından izin ver."
+        : code === "geo_off" ? "Telefonunun konumu kapalı; açıp tekrar dene." : "Konum bulunamadı, birazdan tekrar dene."), geoFix(code));
     } finally { if (my === liveSeq) setBusy(false); }
     if (saved) { await fetchLive(false, true); setStatus(tx("{0} kaydedildi. “Ev” gibi bir ad verebilirsin.", nm(saved)), {label:tx("Adını değiştir"), fn:openRoutine}); }
   }

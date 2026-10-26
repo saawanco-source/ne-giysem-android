@@ -9,6 +9,8 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
+import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Base64
@@ -46,6 +48,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.io.File
 
 /**
@@ -188,6 +191,32 @@ class MainActivity : Activity() {
             pendingGeo = null
         }
         if (requestCode == REQ_NOTIFY) alertsChanged()
+        if (requestCode == REQ_LOCATE) {
+            val ids = locateWaiting.toList()
+            locateWaiting.clear()
+            ids.forEach { id -> if (hasLocation()) locate(id) else answerLocation(id, null, "geo_denied") }
+        }
+    }
+
+    private val locator by lazy { NativeLocator(applicationContext) }
+    /** The page's position requests waiting for Android's permission answer. */
+    private val locateWaiting = mutableListOf<String>()
+
+    /** The phone's position for the page's request [id]; asks the permission first when needed. */
+    private fun locate(id: String) {
+        if (!hasLocation()) {
+            val ask = locateWaiting.isEmpty()
+            locateWaiting += id
+            if (ask) requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION), REQ_LOCATE)
+            return
+        }
+        locator.locate { loc, err -> answerLocation(id, loc, err) }
+    }
+
+    private fun answerLocation(id: String, loc: Location?, err: String?) {
+        val o = if (loc != null) JSONObject().put("lat", loc.latitude).put("lon", loc.longitude).put("acc", loc.accuracy.toDouble())
+        else JSONObject().put("error", err ?: "geo_unavailable")
+        if (!webGone) web.evaluateJavascript("window.ngLocation && window.ngLocation(${JSONObject.quote(id)}, $o)", null)
     }
 
     /**
@@ -377,6 +406,20 @@ class MainActivity : Activity() {
             runOnUiThread { UserMessagingPlatform.showPrivacyOptionsForm(this@MainActivity) { _ -> } }
         }
 
+        /** The phone's position, answered later through window.ngLocation(id, {lat, lon, acc} or {error}). */
+        @JavascriptInterface
+        fun locate(id: String) { runOnUiThread { this@MainActivity.locate(id) } }
+
+        /** The phone's location settings (when its location is off). */
+        @JavascriptInterface
+        fun openLocationSettings() { runOnUiThread { runCatching { startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) } } }
+
+        /** This app's page in Android's settings (when a permission was refused for good). */
+        @JavascriptInterface
+        fun openAppSettings() {
+            runOnUiThread { runCatching { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))) } }
+        }
+
         @JavascriptInterface
         fun alertsState(): String = this@MainActivity.alertsState()
 
@@ -424,6 +467,7 @@ class MainActivity : Activity() {
     companion object {
         private const val REQ_LOCATION = 7
         private const val REQ_NOTIFY = 8
+        private const val REQ_LOCATE = 9
     }
 }
 

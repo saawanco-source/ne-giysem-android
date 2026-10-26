@@ -127,6 +127,10 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .ios-hint{margin-top:10px;display:flex;gap:12px;align-items:flex-start;background:var(--card);border-radius:16px;padding:10px 14px;font-size:14px}
 .ios-hint p{margin:0;flex:1;min-width:0}
 .ios-hint button{border:0;background:none;font-weight:700;cursor:pointer;padding:0}
+.apk-hint .chips{margin-top:8px}
+.apk-hint .chip{text-decoration:none;color:inherit;display:inline-flex;align-items:center;padding:10px 14px}
+.apk-hint>div{flex:1;min-width:0}
+.apk-hint p+p{margin-top:4px}
 
 /* layout */
 .grid{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"hero" "board" "trip" "day" "week" "me" "edit";gap:22px;margin-top:22px}
@@ -457,6 +461,14 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     <ul class="results" id="results" role="listbox" aria-label="Arama sonuçları" data-i18n-attr="aria-label" hidden></ul>
   </div>
   <p class="status" id="status" aria-live="polite"></p>
+  <div class="ios-hint apk-hint" id="apkHint" hidden>
+    <div>
+      <p><b data-i18n>Widget’lı Android uygulaması</b></p>
+      <p data-i18n>Ana ekran widget’ı ve hava uyarısı bildirimleri yalnızca Android uygulamasında var. İndirince dosyaya dokunup “Yükle” de; tarayıcın izin isterse ver.</p>
+      <div class="chips"><a class="chip" id="apkLink" href="#" rel="noopener" data-i18n>Uygulamayı indir</a><button type="button" class="chip" id="pwaBtn" hidden data-i18n>Web uygulaması olarak ekle</button></div>
+    </div>
+    <button type="button" id="apkHintClose" data-i18n>Kapat</button>
+  </div>
   <div class="ios-hint" id="iosHint" hidden>
     <p data-i18n>iPhone'a uygulama olarak eklemek için Safari'de Paylaş simgesine, sonra “Ana Ekrana Ekle”ye dokun.</p>
     <button type="button" id="iosHintClose" data-i18n>Tamam</button>
@@ -680,6 +692,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     shops: [],
     // Google AdSense on the website (never inside the Android app, which uses AdMob).
     adsense: {client:"", slot:""},
+    // The Android app (with the home-screen widget) for Android browsers; the newest release of the public repository.
+    androidApk: "https://github.com/saawanco-source/ne-giysem-android/releases/latest/download/NeGiysem.apk",
     // Donation page, website only (Google Play doesn't allow outside payments in the app).
     donate: ""
   };
@@ -852,7 +866,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   var EN = {
     // page
     "Bulunduğun yerin havasına göre bir bakışta bugünün kıyafeti.": "Today's outfit at a glance, for the weather where you are.",
-    "Uygulamayı yükle": "Install the app", "Hava durumunu yenile": "Refresh the weather",
+    "Uygulamayı yükle": "Install the app",
+    "Widget’lı Android uygulaması": "The Android app, with the widget",
+    "Ana ekran widget’ı ve hava uyarısı bildirimleri yalnızca Android uygulamasında var. İndirince dosyaya dokunup “Yükle” de; tarayıcın izin isterse ver.": "The home-screen widget and weather warning notifications are only in the Android app. Once it has downloaded, tap the file and choose “Install”; allow your browser if it asks.",
+    "Uygulamayı indir": "Download the app", "Web uygulaması olarak ekle": "Add as a web app", "Hava durumunu yenile": "Refresh the weather",
     "Semt, okul, durak ya da adres: Kadıköy, Kızılay, Alsancak…": "Neighborhood, school, stop or address…",
     "Yer ara": "Search for a place", "Ara": "Search", "Vazgeç": "Cancel", "Şu an bulunduğum yeri kaydet": "Save where I am now",
     "Arama sonuçları": "Search results",
@@ -3899,9 +3916,26 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   var deferredPrompt = null;
   if (!IS_ART) {
     var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
-    window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); deferredPrompt = e; $("installBtn").hidden = false; });
-    window.addEventListener("appinstalled", function(){ deferredPrompt = null; $("installBtn").hidden = true; });
-    $("installBtn").addEventListener("click", function(){ if (!deferredPrompt) return; deferredPrompt.prompt(); Promise.resolve(deferredPrompt.userChoice).catch(function(){}).then(function(){ deferredPrompt = null; $("installBtn").hidden = true; }); });
+    // Android: the install button offers the real app (widget, notifications); the web app only as a second choice.
+    var isAndroid = /android/i.test(navigator.userAgent) && !IN_APP && /^https:\/\//.test(CONFIG.androidApk || "");
+    var webInstall = function(){
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      Promise.resolve(deferredPrompt.userChoice).catch(function(){}).then(function(){ deferredPrompt = null; $("installBtn").hidden = !isAndroid; $("pwaBtn").hidden = true; });
+    };
+    var apkHint = function(show){ $("apkHint").hidden = !show; $("pwaBtn").hidden = !deferredPrompt; };
+    if (isAndroid) {
+      $("apkLink").href = CONFIG.androidApk;
+      $("installBtn").hidden = false;
+      // Opened as an installed web app: once, say that the widget is in the Android app.
+      var apkSeen = false; try { apkSeen = localStorage.getItem(KEY + ":apkhint") === "1"; } catch (e) {}
+      if (standalone && !apkSeen) apkHint(true);
+    }
+    window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); deferredPrompt = e; $("installBtn").hidden = false; if (!$("apkHint").hidden) $("pwaBtn").hidden = false; });
+    window.addEventListener("appinstalled", function(){ deferredPrompt = null; $("installBtn").hidden = !isAndroid; $("pwaBtn").hidden = true; });
+    $("installBtn").addEventListener("click", function(){ if (isAndroid) apkHint($("apkHint").hidden); else webInstall(); });
+    $("pwaBtn").addEventListener("click", webInstall);
+    $("apkHintClose").addEventListener("click", function(){ apkHint(false); try { localStorage.setItem(KEY + ":apkhint", "1"); } catch (e) {} });
     var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     var seen = false; try { seen = localStorage.getItem(KEY + ":ioshint") === "1"; } catch (e) {}
     if (isIOS && !standalone && !seen) $("iosHint").hidden = false;

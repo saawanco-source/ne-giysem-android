@@ -118,9 +118,9 @@ function serve(dir = APP_DIR) {
 function makeNet() {
   return {
     offline: false,
-    delay: { forecast: 0, photon: 0, omgeo: 0, bdc: 0, route: 0 },        // ms or fn(url) -> ms
-    fail: { forecast: null, photon: null, omgeo: null, bdc: null, route: null }, // null | http status | "abort" | fn(url)->same
-    calls: { forecast: [], photon: [], omgeo: [], bdc: [], fonts: [], route: [] },
+    delay: { forecast: 0, photon: 0, omgeo: 0, bdc: 0, route: 0, met: 0 },        // ms or fn(url) -> ms
+    fail: { forecast: null, photon: null, omgeo: null, bdc: null, route: null, met: null }, // null | http status | "abort" | fn(url)->same
+    calls: { forecast: [], photon: [], omgeo: [], bdc: [], fonts: [], route: [], met: [] },
     // /api/route (Google transit routes through the app's server): on or off, and the answer for a URL.
     routeOn: false, route: () => ({ routes: [], agencies: [], source: "Google Maps" }),
     log: [],
@@ -134,11 +134,22 @@ function kindOf(url) {
   if (url.startsWith(API_ORIGIN + "/api/reverse") || url.startsWith(API_ORIGIN + "/api/ip")) return "bdc";
   if (url.startsWith(API_ORIGIN + "/api/route")) return "route";
   if (url.includes("api.open-meteo.com/v1/forecast")) return "forecast";
+  if (url.startsWith("https://api.met.no/weatherapi/locationforecast/2.0/")) return "met";
   if (url.includes("photon.komoot.io")) return "photon";
   if (url.includes("geocoding-api.open-meteo.com")) return "omgeo";
   if (url.includes("api.bigdatacloud.net")) return "bdc";
   if (/fonts\.(googleapis|gstatic)\.com/.test(url)) return "fonts";
   return null;
+}
+// MET Norway's own answer (the app goes there itself when its server can't be reached): a steady temperature of
+// tempFor(place) for the next days, from the API tests' MET fixture builder.
+async function metJSON(lat, lon) {
+  const { metComplete } = await import(require("url").pathToFileURL(path.join(__dirname, "..", "api", "fixtures.mjs")).href);
+  const H = 3600e3, first = Math.floor(Date.now() / H) * H - 2 * H, T = tempFor(lat, lon);
+  return metComplete({ lat, lon, alt: 30, first, hourlyUntil: first + 60 * H, last: first + 9 * 24 * H,
+    temp: () => T, rh: () => 60, wind: () => 3, dir: () => 40, cloud: () => 20, uv: () => 2, gust: true,
+    sym: (t) => (new Date(t).getUTCHours() + 3) % 24 >= 7 && (new Date(t).getUTCHours() + 3) % 24 < 18 ? "fair_day" : "fair_night",
+    precip: () => 0, pop: { h1: true, h6: true, h12: false } });
 }
 async function handleRoute(net, route) {
   const url = route.request().url(), k = kindOf(url);
@@ -174,7 +185,8 @@ async function handleRoute(net, route) {
     if (u.searchParams.get("probe") === "1") body = { on: !!net.routeOn };
     else if (!net.routeOn) return route.fulfill({ status: 503, contentType: "application/json", headers: cors, body: JSON.stringify({ error: "routes_off" }) });
     else body = net.route(u);
-  } else if (k === "photon") body = photonJSON(u.searchParams.get("q") || "");
+  } else if (k === "met") body = await metJSON(+u.searchParams.get("lat"), +u.searchParams.get("lon"));
+  else if (k === "photon") body = photonJSON(u.searchParams.get("q") || "");
   else if (k === "omgeo") body = omGeoJSON(u.searchParams.get("name") || "");
   else if (k === "bdc") {
     const la = u.searchParams.get("latitude") || u.searchParams.get("lat"), lo = u.searchParams.get("longitude") || u.searchParams.get("lon");

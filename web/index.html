@@ -693,6 +693,16 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   })();
   // Money features (ads, shop links, donations) only with the app's own server: the free data sources are non-commercial.
   var PAID = !!API;
+  // The app's server can be out of reach (in Türkiye *.pages.dev is blocked on many networks). Then, for half an hour,
+  // the page goes straight to the free services: MET Norway for the weather (built into the same forecast as the server
+  // makes, by forecast-lib.js), Photon for place search, BigDataCloud for place names and the rough location.
+  var API_DOWN_KEY = KEY + ":apidown", API_DOWN_MS = 30 * 60000, API_DOWN = 0;
+  function apiDown(){ API_DOWN = Date.now() + API_DOWN_MS; try { localStorage.setItem(API_DOWN_KEY, String(API_DOWN)); } catch (e) {} }
+  function api(){
+    if (!API) return "";
+    if (!API_DOWN) { try { API_DOWN = +localStorage.getItem(API_DOWN_KEY) || 1; } catch (e) { API_DOWN = 1; } }
+    return Date.now() >= API_DOWN ? API : "";
+  }
   var IN_APP = !!window.NeGiysemAndroid;
 
   /* ================= state ================= */
@@ -2998,7 +3008,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     return S.places[0] || {lat:41.01, lon:28.97};
   }
   function photonURL(q, b){
-    if (API) return API + "/api/search?q=" + encodeURIComponent(q) + (b ? "&lat=" + (+b.lat).toFixed(3) + "&lon=" + (+b.lon).toFixed(3) : "");
+    if (api()) return API + "/api/search?q=" + encodeURIComponent(q) + (b ? "&lat=" + (+b.lat).toFixed(3) + "&lon=" + (+b.lon).toFixed(3) : "");
     return "https://photon.komoot.io/api/?q=" + encodeURIComponent(q) + "&limit=12" +
       (b ? "&lat=" + (+b.lat).toFixed(3) + "&lon=" + (+b.lon).toFixed(3) + "&zoom=10&location_bias_scale=0.1" : "");
   }
@@ -3087,9 +3097,40 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   function bdc(){ return "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=" + LANG; }
   // Place name for coordinates, and a rough location from the connection when GPS isn't available.
   function reverseURL(lat, lon){
-    return API ? API + "/api/reverse?lat=" + (+lat).toFixed(4) + "&lon=" + (+lon).toFixed(4) : bdc() + "&latitude=" + lat + "&longitude=" + lon;
+    return api() ? API + "/api/reverse?lat=" + (+lat).toFixed(4) + "&lon=" + (+lon).toFixed(4) : bdc() + "&latitude=" + lat + "&longitude=" + lon;
   }
-  function ipURL(){ return API ? API + "/api/ip" : bdc(); }
+  function ipURL(){ return api() ? API + "/api/ip" : bdc(); }
+  // The same request without the app's server (null: none; the forecast has its own way, metForecasts).
+  function directURL(url){
+    var u; try { u = new URL(url); } catch (e) { return null; }
+    var q = u.searchParams, path = u.pathname;
+    if (path === "/api/reverse") return bdc() + "&latitude=" + q.get("lat") + "&longitude=" + q.get("lon");
+    if (path === "/api/ip") return bdc();
+    if (path === "/api/search") return "https://photon.komoot.io/api/?q=" + encodeURIComponent(q.get("q") || "") + "&limit=12" +
+      (q.get("lat") ? "&lat=" + q.get("lat") + "&lon=" + q.get("lon") + "&zoom=10&location_bias_scale=0.1" : "");
+    return null;
+  }
+  // Weather straight from MET Norway, made into the server's forecast by the server's own code (forecast-lib.js).
+  var FLIB = null;
+  function forecastLib(){
+    if (window.NGForecast) return Promise.resolve(window.NGForecast);
+    if (!FLIB) FLIB = new Promise(function(res, rej){
+      var sc = document.createElement("script"); sc.src = "forecast-lib.js";
+      sc.onload = function(){ if (window.NGForecast) res(window.NGForecast); else { FLIB = null; rej({code:"parse"}); } };
+      sc.onerror = function(){ FLIB = null; rej({code:"network"}); };
+      document.head.appendChild(sc);
+    });
+    return FLIB;
+  }
+  function metForecasts(pts){
+    return forecastLib().then(function(L){
+      return Promise.all(pts.map(function(p){
+        return WEB.rawJSON(L.metUrl(+p.lat, +p.lon), 15000).then(function(j){
+          try { return L.fromMet(j, +p.lat, +p.lon, Date.now()); } catch (e) { throw {code:"parse"}; }
+        });
+      }));
+    });
+  }
   // The last found location; a name that could not be looked up before is looked up again (no permission needed for that).
   async function fromFix(note){
     var f = S.fix, name = f.name, fix = null;
@@ -3129,7 +3170,18 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   document.addEventListener("visibilitychange", function(){ if (!document.hidden && GEO_RETRY) { GEO_RETRY = false; fetchLive(true, true); } });
   var WEB = {
+    // A request to the app's server that can't get through marks the server as out of reach and is sent to the free
+    // service instead (when there is one); later requests go there directly for a while (api()).
     fetchJSON: function(url, ms){
+      return WEB.rawJSON(url, ms).catch(function(e){
+        if (!(e && e.code === "network" && API && url.indexOf(API + "/api/") === 0 && navigator.onLine !== false)) throw e;
+        apiDown();
+        var alt = directURL(url);
+        if (!alt) throw e;
+        return WEB.rawJSON(alt, ms);
+      });
+    },
+    rawJSON: function(url, ms){
       var ctl = ("AbortController" in window) ? new AbortController() : null;
       var timer = setTimeout(function(){ if (ctl) ctl.abort(); }, ms || 12000);
       return fetch(url, ctl ? {signal:ctl.signal} : {}).then(function(r){ if (!r.ok) throw {code:"http", status:r.status}; return r.json(); }, function(){ throw {code:"network"}; })
@@ -3181,7 +3233,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
                   : e.code === "geo_off" ? "Telefonunun konumu kapalı; yaklaşık konum kullanıldı." : "Konum bulunamadı; yaklaşık konum kullanıldı."), action:geoFix(e.code)};
       }
     },
-    forecasts: function(pts){ return WEB.fetchJSON(forecastURL(pts)).then(function(j){ return Array.isArray(j) ? j : [j]; }); },
+    forecasts: function(pts){
+      var list = function(j){ return Array.isArray(j) ? j : [j]; };
+      if (!API) return WEB.fetchJSON(forecastURL(pts)).then(list);
+      if (!api()) return metForecasts(pts);
+      return WEB.fetchJSON(forecastURL(pts)).then(list, function(e){ if (!api()) return metForecasts(pts); throw e; });
+    },
     search: function(q){ return findPlaces(function(u){ return WEB.fetchJSON(u, 8000); }, q); }
   };
 

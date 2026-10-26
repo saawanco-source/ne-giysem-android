@@ -35,6 +35,9 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           npx playwright install --with-deps chromium
+      - name: Sunucusuz hava kodu (forecast-lib.js) güncel mi
+        working-directory: tests
+        run: node forecast-lib/build.mjs --check
       - name: Uygulamayı telefonda dene
         working-directory: tests
         env:

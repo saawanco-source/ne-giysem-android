@@ -17,33 +17,71 @@ import java.util.Locale
 /** Fetches the weather for the saved place (and every routine place) and redraws every widget. */
 object Updater {
 
+    /** The app's server; tests point it somewhere unreachable to try the way without it. */
+    @Volatile internal var apiBase: String = Config.API
+
+    /** The server answered, but with an error (a connection that didn't get through is a plain IOException). */
+    private class HttpError(val code: Int) : IOException("HTTP $code")
+
     private fun getText(url: String): String {
         val conn = URL(url).openConnection() as HttpURLConnection
         try {
-            conn.connectTimeout = 12_000
+            conn.connectTimeout = 10_000
             conn.readTimeout = 12_000
             conn.setRequestProperty("Accept", "application/json")
-            conn.setRequestProperty("User-Agent", "NeGiysem-Android")
+            conn.setRequestProperty("User-Agent", MetDirect.USER_AGENT)
             val code = conn.responseCode
-            if (code !in 200..299) throw IOException("HTTP $code")
+            if (code !in 200..299) throw HttpError(code)
             return conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
         } finally {
             conn.disconnect()
         }
     }
 
+    /**
+     * The server for this request, or "" when there is none or it couldn't be reached lately (then the free services
+     * are asked directly: MET Norway for the weather, BigDataCloud for the rough location).
+     */
+    private fun server(store: Store): String = apiBase.takeIf { it.isNotEmpty() && !store.apiDown } ?: ""
+
+    /** Runs [call] against the server; a connection that doesn't get through marks it unreachable for a while. */
+    private fun <T> viaServer(store: Store, call: () -> T): T = try {
+        call()
+    } catch (e: HttpError) {
+        throw e
+    } catch (e: IOException) {
+        store.markApiDown()
+        throw e
+    }
+
     private fun getJson(url: String): JSONObject = JSONObject(getText(url))
 
     /** Open-Meteo answers a single object for one place and a list for several. */
-    private fun getForecasts(points: List<Pair<Double, Double>>): List<JSONObject> {
+    private fun getForecasts(context: Context, store: Store, points: List<Pair<Double, Double>>): List<JSONObject> {
         val q = "latitude=" + points.joinToString(",") { String.format(Locale.US, "%.4f", it.first) } +
             "&longitude=" + points.joinToString(",") { String.format(Locale.US, "%.4f", it.second) }
-        // The app's own server answers in the same shape (MET Norway data); without it, Open-Meteo directly (non-commercial).
-        val url = if (Config.API.isNotEmpty()) Config.API + "/api/forecast?" + q else "https://api.open-meteo.com/v1/forecast?" + q +
+        if (apiBase.isNotEmpty()) {
+            // The app's own server answers in the same shape (MET Norway data); out of reach, MET Norway directly.
+            val api = server(store)
+            if (api.isNotEmpty()) {
+                try {
+                    return parseForecasts(viaServer(store) { getText("$api/api/forecast?$q") })
+                } catch (e: HttpError) {
+                    throw e
+                } catch (e: IOException) { /* unreachable: MET directly, below */ }
+            }
+            return MetDirect.forecasts(context, points)
+        }
+        // Development without a server: Open-Meteo directly (non-commercial).
+        val url = "https://api.open-meteo.com/v1/forecast?" + q +
             "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
             "&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
             "&daily=uv_index_max,sunset&timezone=auto&forecast_days=7"
-        return when (val v = JSONTokener(getText(url)).nextValue()) {
+        return parseForecasts(getText(url))
+    }
+
+    private fun parseForecasts(text: String): List<JSONObject> {
+        return when (val v = JSONTokener(text).nextValue()) {
             is JSONArray -> (0 until v.length()).mapNotNull { v.optJSONObject(it) }
             is JSONObject -> listOf(v)
             else -> throw IOException("unexpected forecast")
@@ -64,7 +102,7 @@ object Updater {
             return true
         }
         val failure: Exception? = withContext(Dispatchers.IO) {
-            try { fetch(store, gen); null } catch (e: Exception) { e }
+            try { fetch(context, store, gen); null } catch (e: Exception) { e }
         }
         val cached = store.forecast?.let { runCatching { JSONObject(it) }.getOrNull() }?.takeIf { forThisPlace(store, it) }
             ?: throw (failure ?: IOException("no forecast"))
@@ -80,14 +118,22 @@ object Updater {
     }
 
     /** Looks the forecasts up for the saved place (or the connection's rough location) and every routine place. */
-    private fun fetch(store: Store, gen: Int) {
+    private fun fetch(context: Context, store: Store, gen: Int) {
         val lang = store.lang
         var lat = store.lat
         var lon = store.lon
         var name = store.placeName ?: "Konumun"
         if (lat == null || lon == null) {
             // No place chosen in the app yet: approximate location from the internet connection.
-            val ip = getJson(if (Config.API.isNotEmpty()) Config.API + "/api/ip" else "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=$lang")
+            val bdc = "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=$lang"
+            val api = server(store)
+            val ip = if (api.isEmpty()) getJson(bdc) else try {
+                JSONObject(viaServer(store) { getText("$api/api/ip") })
+            } catch (e: HttpError) {
+                throw e
+            } catch (e: IOException) {
+                getJson(bdc)
+            }
             val la = ip.optDouble("latitude", Double.NaN)
             val lo = ip.optDouble("longitude", Double.NaN)
             if (la.isNaN() || lo.isNaN()) throw IOException("no location")
@@ -97,7 +143,7 @@ object Updater {
         }
         val routine = Day.parse(store.routineJson)?.takeIf { it.dayMode && it.trips.isNotEmpty() }
         val tripPlaces = routine?.let { Day.tripPlaces(it) } ?: emptyList()
-        val all = getForecasts(listOf(lat to lon) + tripPlaces.map { it.lat to it.lon })
+        val all = getForecasts(context, store, listOf(lat to lon) + tripPlaces.map { it.lat to it.lon })
         val main = all.firstOrNull() ?: throw IOException("unexpected forecast")
         val places = JSONObject()
         tripPlaces.forEachIndexed { i, p -> all.getOrNull(i + 1)?.let { places.put(p.id, it) } }

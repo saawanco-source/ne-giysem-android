@@ -80,6 +80,8 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.11.2")
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("androidx.core:core-ktx:1.17.0")
+    // Runs the server's forecast builder (web/forecast-lib.js) when the server can't be reached (MetDirect).
+    implementation("androidx.javascriptengine:javascriptengine:1.1.1")
     implementation("com.google.android.gms:play-services-ads:25.5.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
 
@@ -91,7 +93,7 @@ dependencies {
 // They are copied into the APK's assets on every build, so there is only one copy to edit.
 val syncWeb by tasks.registering(Sync::class) {
     from(rootProject.file("web")) {
-        include("index.html", "manifest.webmanifest", "icons/**")
+        include("index.html", "forecast-lib.js", "manifest.webmanifest", "icons/**")
     }
     into(layout.projectDirectory.dir("src/main/assets/www"))
 }

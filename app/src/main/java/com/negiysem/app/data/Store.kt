@@ -48,6 +48,11 @@ class Store(context: Context) {
     fun markAlertsAsked() { prefs.edit().putBoolean("alertsAsked", true).apply() }
     fun saveAlerted(json: String) { prefs.edit().putString("alerted", json).apply() }
 
+    /** The app's server couldn't be reached lately (e.g. *.pages.dev blocked): for half an hour the widget goes around it. */
+    val apiDown: Boolean get() = System.currentTimeMillis() < prefs.getLong("apiDownUntil", 0L)
+    fun markApiDown(forMs: Long = 30 * 60_000L) { prefs.edit().putLong("apiDownUntil", System.currentTimeMillis() + forMs).apply() }
+    fun clearApiDown() { prefs.edit().remove("apiDownUntil").apply() }
+
     fun isStale(maxAgeMs: Long = 15 * 60_000L) = System.currentTimeMillis() - updatedAt > maxAgeMs
 
     /**

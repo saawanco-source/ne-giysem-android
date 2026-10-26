@@ -3,6 +3,7 @@ package com.negiysem.app.widget
 import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.negiysem.app.data.MetDirect
 import com.negiysem.app.data.Store
 import com.negiysem.app.data.Updater
 import kotlinx.coroutines.runBlocking
@@ -87,6 +88,25 @@ class RefreshTest {
             val o = snapshot()
             assertEquals("Kadıköy", o.optString("place"))
             assertEquals("en", o.optString("lang"))
+        }
+        step("sunucuya ulaşılamıyor: MET Norway'den doğrudan") {
+            val app = JSONObject().put("lang", "tr").put("place", JSONObject().put("name", "Beşiktaş").put("lat", 41.043).put("lon", 29.007))
+            Store(ctx).saveFromApp(app.toString())
+            Store(ctx).clearApiDown()
+            log.appendLine("     JavaScript sandbox: " + MetDirect.supported())
+            Updater.apiBase = "https://ne-giysem.invalid" // never resolves, like a blocked address
+            try {
+                Updater.refresh(ctx)
+            } finally {
+                Updater.apiBase = com.negiysem.app.Config.API
+            }
+            assertTrue("the server should now count as out of reach", Store(ctx).apiDown)
+            val o = snapshot()
+            assertEquals("Beşiktaş", o.optString("place"))
+            val fc = JSONObject(Store(ctx).forecast!!).getJSONObject("main")
+            log.appendLine("     MET'ten: " + fc.optString("timezone") + " " + fc.optJSONObject("current")?.toString()?.take(160))
+            assertEquals("Europe/Istanbul", fc.optString("timezone"))
+            Store(ctx).clearApiDown()
         }
         write()
     }

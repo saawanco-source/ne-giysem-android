@@ -118,6 +118,8 @@ class MainActivity : Activity() {
             setGeolocationEnabled(true)
             allowFileAccess = false
             allowContentAccess = false
+            // When the app's server can't be reached the page asks MET Norway directly, which wants each app named.
+            userAgentString = (userAgentString ?: "") + " NeGiysem/2.0 (+https://ne-giysem.pages.dev; saawanco@gmail.com)"
         }
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =

@@ -109,6 +109,35 @@ class Store(context: Context) {
         prefs.edit().putString("forecast", json).apply()
     }
 
+    /**
+     * A forecast the app screen just got ({at, lat, lon, name, main, places}, the same shape the widget keeps), so the
+     * widget can draw whatever the app shows even when it can't reach a weather service itself. Kept when it is for
+     * another place or newer than the one kept; returns whether it was kept.
+     */
+    fun acceptForecast(json: String): Boolean {
+        val o = runCatching { JSONObject(json) }.getOrNull() ?: return false
+        val main = o.optJSONObject("main") ?: return false
+        if ((main.optJSONObject("hourly")?.optJSONArray("time")?.length() ?: 0) == 0) return false
+        val at = o.optLong("at", 0L)
+        val la = o.optDouble("lat", Double.NaN)
+        val lo = o.optDouble("lon", Double.NaN)
+        if (at <= 0L || at > System.currentTimeMillis() + 5 * 60_000L || la.isNaN() || lo.isNaN()) return false
+        val old = forecast?.let { runCatching { JSONObject(it) }.getOrNull() }
+        val samePlace = old != null && kotlin.math.abs(old.optDouble("lat", 999.0) - la) < 0.01 && kotlin.math.abs(old.optDouble("lon", 999.0) - lo) < 0.01
+        if (samePlace && old!!.optLong("at") >= at) return false
+        saveForecast(
+            JSONObject().put("at", at).put("lat", la).put("lon", lo).put("name", o.optString("name", "Konumun"))
+                .put("main", main).put("places", o.optJSONObject("places") ?: JSONObject()).toString()
+        )
+        return true
+    }
+
+    /** Why the last refresh had nothing to draw, and when (shown on a widget still waiting for its first weather). */
+    val lastFail: String? get() = prefs.getString("lastFail", null)
+    val lastFailAt: Long get() = prefs.getLong("lastFailAt", 0L)
+    fun noteFail(why: String) { prefs.edit().putString("lastFail", why.take(80)).putLong("lastFailAt", System.currentTimeMillis()).apply() }
+    fun clearFail() { prefs.edit().remove("lastFail").remove("lastFailAt").apply() }
+
     /** [fetchedAt]: when its forecast was fetched; a redraw from an older forecast keeps that time. */
     fun saveWidget(json: String, fetchedAt: Long) {
         prefs.edit().putString("widget", json).putLong("updated", fetchedAt).apply()

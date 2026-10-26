@@ -3342,13 +3342,23 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       if (fix) S.fix = fix;
       S.live = {placeKey:key, place:place, wx:wx, fetchedAt:Date.now()};
       S.dayWx = ids.length ? {fetchedAt:Date.now(), byPlace:byPlace} : null;
-      S.mode = "live"; save(); render(); setStatus(note || "", action);
+      S.mode = "live"; save(); render(); setStatus(note || "", action); handForecast();
       return true;
     } catch (e) {
       if (my !== liveSeq) return;
       setStatus(errMsg(e) + (S.mode === "live" ? tx(" Son alınan hava gösteriliyor.") : ""), mcpState === "no" ? null : {label:tx("Tekrar dene"), fn:function(){ fetchLive(force === true, true); }});
       render();
     } finally { if (my === liveSeq) setBusy(false); }
+  }
+  // Android app: the forecast the page just got goes to the widget as well, so the widget shows whatever the app
+  // shows even when it can't reach a weather service on its own. Sent once per fetch, and only while fresh.
+  var HANDED = 0;
+  function handForecast(){
+    var A = window.NeGiysemAndroid, L = S.live;
+    if (!A || typeof A.saveForecast !== "function" || !L || !L.wx || !L.place || !isFinite(L.place.lat) || !isFinite(L.place.lon)) return;
+    if (L.fetchedAt === HANDED || Date.now() - L.fetchedAt > 6 * 3600000) return;
+    HANDED = L.fetchedAt;
+    try { A.saveForecast(JSON.stringify({at:L.fetchedAt, lat:+L.place.lat, lon:+L.place.lon, name:L.place.name, main:L.wx, places:(S.dayWx && S.dayWx.byPlace) || {}})); } catch (e) {}
   }
   // Tells, after the routine was saved, what the suggestion is now based on.
   function dayStatus(){
@@ -3922,6 +3932,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   // The page in the stored (or the device's) language, before anything is drawn.
   LANG = S.lang; applyLang();
+  try { handForecast(); } catch (e) {} // the weather kept from last time, for a widget that has none yet
   // A stored state this version can't draw must not leave a broken screen: drop the stored weather and draw again.
   try { render(); } catch (e) { S.live = null; S.dayWx = null; S.mode = "manual"; try { render(); } catch (e2) {} }
   if (IS_ART) {

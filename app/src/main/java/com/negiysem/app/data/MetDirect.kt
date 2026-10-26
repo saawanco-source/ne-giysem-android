@@ -18,8 +18,11 @@ object MetDirect {
     /** MET asks every app to name itself and give a way to reach its maker. */
     const val USER_AGENT = "NeGiysem-Android/2.0 (+https://ne-giysem.pages.dev; saawanco@gmail.com)"
 
+    /** MET's address; tests point it somewhere unreachable. */
+    @Volatile internal var base = "https://api.met.no"
+
     private fun metUrl(lat: Double, lon: Double) =
-        "https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=%.2f&lon=%.2f".format(Locale.US, lat, lon)
+        "$base/weatherapi/locationforecast/2.0/complete?lat=%.2f&lon=%.2f".format(Locale.US, lat, lon)
 
     private fun get(url: String): String {
         val conn = URL(url).openConnection() as HttpURLConnection

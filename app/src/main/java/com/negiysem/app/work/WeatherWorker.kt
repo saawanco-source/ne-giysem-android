@@ -19,8 +19,13 @@ import java.util.concurrent.TimeUnit
 class WeatherWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         // Redraws from the kept forecast even when the fetch fails; then fetches again as soon as there's a connection.
-        val fetched = runCatching { Updater.refresh(applicationContext) }.getOrDefault(false)
-        if (!fetched) Scheduler.whenOnline(applicationContext)
+        val result = runCatching { Updater.refresh(applicationContext) }
+        result.exceptionOrNull()?.let { e ->
+            // Nothing to draw yet: the waiting widget says when it last tried and what went wrong.
+            Store(applicationContext).noteFail(e.javaClass.simpleName + (e.message?.let { ": $it" } ?: ""))
+            runCatching { NeGiysemWidget.pushHint(applicationContext) }
+        }
+        if (result.getOrDefault(false) != true) Scheduler.whenOnline(applicationContext)
         return Result.success()
     }
 }

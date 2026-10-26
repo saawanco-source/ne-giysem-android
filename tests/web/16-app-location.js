@@ -5,9 +5,10 @@ const { check, note, sleep, GPS } = H;
 
 // The app's bridge: hasLocation() and locate(id) answered through window.ngLocation, like MainActivity does.
 function bridge(cfg) {
-  window.__b = { cfg, granted: !!cfg.granted, locate: 0, openLoc: 0, openApp: 0, saved: [] };
+  window.__b = { cfg, granted: !!cfg.granted, locate: 0, openLoc: 0, openApp: 0, saved: [], fc: [] };
   window.NeGiysemAndroid = {
     saveState: (j) => window.__b.saved.push(JSON.parse(j)), setTheme() {}, reset() {},
+    saveForecast: (j) => window.__b.fc.push(JSON.parse(j)),
     hasLocation: () => window.__b.granted,
     openLocationSettings: () => { window.__b.openLoc++; }, openAppSettings: () => { window.__b.openApp++; },
     locate(id) {
@@ -26,7 +27,8 @@ async function open(t, cfg) {
   await s.goto(); await sleep(500);
   return s;
 }
-const B = (s) => s.page.evaluate(() => ({ locate: window.__b.locate, openLoc: window.__b.openLoc, openApp: window.__b.openApp, saved: window.__b.saved }));
+const B = (s) => s.page.evaluate(() => ({ locate: window.__b.locate, openLoc: window.__b.openLoc, openApp: window.__b.openApp, saved: window.__b.saved,
+  fc: window.__b.fc.map((f) => ({ at: f.at, lat: f.lat, lon: f.lon, name: f.name, hours: f.main && f.main.hourly && f.main.hourly.time.length, tz: f.main && f.main.timezone })) }));
 const pageOk = (s, label) => check(label + ": no page errors, WebView geolocation never used", !s.errors.length && s.geo.gets === 0, { errors: s.errors, gets: s.geo.gets });
 
 H.run({
@@ -39,6 +41,9 @@ H.run({
     check("asked the app once", b.locate === 1, b.locate);
     const last = b.saved[b.saved.length - 1] || {};
     check("the widget gets the place", last.place && Math.abs(last.place.lat - GPS.etiler.lat) < 1e-6, last.place);
+    check("the widget gets the forecast the page got, once", b.fc.length === 1 && Math.abs(b.fc[0].lat - GPS.etiler.lat) < 1e-6 && b.fc[0].hours > 100 && b.fc[0].name === "Etiler", b.fc);
+    await s.page.reload(); await sleep(600);
+    check("reopening the app hands the kept forecast over again (for a widget without weather)", (await B(s)).fc.length === 1, (await B(s)).fc);
     pageOk(s, "granted");
     await s.close();
   },

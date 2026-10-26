@@ -67,6 +67,32 @@ class NeGiysemWidget : GlanceAppWidget() {
         val PLAN = stringPreferencesKey("plan")
         /** The app's language ("tr" / "en") for the widget's own words when there is no snapshot yet. */
         val LANG = stringPreferencesKey("lang")
+        /** For a widget without weather yet: "headline\nsecond line" (empty: no place chosen, the usual first message). */
+        val HINT = stringPreferencesKey("hint")
+
+        /** What a widget still waiting for its first weather says: looking it up, or when it last tried and why not. */
+        fun hintFor(store: Store): String {
+            if (store.lat == null || store.wiped) return ""
+            val lang = store.lang
+            val failAt = store.lastFailAt
+            if (failAt <= 0L) return Words.of("Hava alınıyor…", lang) + "\n" + Words.of("Bugünün kıyafeti bir bakışta", lang)
+            val hm = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(failAt))
+            return Words.of("Hava henüz alınamadı; bağlantı olunca yeniden denenecek.", lang) + "\n" +
+                Words.of("Son deneme", lang) + " " + hm + " · " + (store.lastFail ?: "")
+        }
+
+        /** Tells every widget without weather yet what is going on (after a refresh that had nothing to draw). */
+        suspend fun pushHint(context: Context) {
+            val store = Store(context)
+            if (store.widgetJson != null) return
+            val hint = hintFor(store)
+            val ids = GlanceAppWidgetManager(context).getGlanceIds(NeGiysemWidget::class.java)
+            val widget = NeGiysemWidget()
+            for (id in ids) {
+                updateAppWidgetState(context, id) { prefs -> prefs[HINT] = hint }
+                widget.update(context, id)
+            }
+        }
 
         /** Sends a fresh snapshot to every widget on the home screen. */
         suspend fun pushAll(context: Context, json: String) {
@@ -88,13 +114,15 @@ class NeGiysemWidget : GlanceAppWidget() {
         val store = Store(context)
         val stored = store.widgetJson
         val lang = store.lang
+        val hint = hintFor(store)
         updateAppWidgetState(context, id) { prefs ->
             if (stored != null && prefs[PLAN] == null) prefs[PLAN] = stored
             prefs[LANG] = lang
+            prefs[HINT] = hint
         }
         provideContent {
             val prefs = currentState<Preferences>()
-            Body(WidgetData.from(prefs[PLAN], prefs[LANG] ?: lang))
+            Body(WidgetData.from(prefs[PLAN], prefs[LANG] ?: lang, prefs[HINT]))
         }
     }
 }
@@ -107,7 +135,9 @@ private object Words {
         "Son güncelleme" to "Last updated",
         "Sıradaki: " to "Next: ",
         "Hissedilen " to "Feels like ",
-        "Yanına al: " to "Take along: "
+        "Yanına al: " to "Take along: ",
+        "Hava alınıyor…" to "Getting the weather…", "Son deneme" to "Last try",
+        "Hava henüz alınamadı; bağlantı olunca yeniden denenecek." to "Couldn't get the weather yet; it will try again once there's a connection."
     )
     fun of(s: String, lang: String) = if (lang == "en") EN[s] ?: s else s
 }
@@ -124,19 +154,26 @@ private data class WidgetData(
     val cond: String, val isDay: Boolean, val place: String, val updated: Long,
     val wear: List<Garment>, val take: List<Garment>, val pills: List<String>, val next: String = "", val lang: String = "tr",
     val warning: Warning? = null,
+    /** The empty widget's second line (default: "Bugünün kıyafeti bir bakışta"). */
+    val note: String? = null,
 ) {
     fun w(s: String) = Words.of(s, lang)
 
     companion object {
-        fun empty(lang: String) = WidgetData(
-            ok = false, level = 5, headline = Words.of("Uygulamayı aç ve konumunu seç.", lang), temp = Double.NaN, feels = Double.NaN,
-            cond = "", isDay = true, place = "Ne Giysem?", updated = 0L,
-            wear = listOf(Garment("tshirt", Outfit.label("tshirt", lang))), take = emptyList(), pills = emptyList(), lang = lang
-        )
+        /** [hint]: "headline\nsecond line" for a widget whose place is known but whose weather isn't there yet. */
+        fun empty(lang: String, hint: String? = null): WidgetData {
+            val h = hint?.takeIf { it.isNotBlank() }?.split("\n", limit = 2)
+            return WidgetData(
+                ok = false, level = 5, headline = h?.getOrNull(0) ?: Words.of("Uygulamayı aç ve konumunu seç.", lang), temp = Double.NaN, feels = Double.NaN,
+                cond = "", isDay = true, place = "Ne Giysem?", updated = 0L,
+                wear = listOf(Garment("tshirt", Outfit.label("tshirt", lang))), take = emptyList(), pills = emptyList(), lang = lang,
+                note = h?.getOrNull(1)
+            )
+        }
 
         /** [lang] is used for the empty widget; a snapshot carries its own (one from before languages existed is Turkish). */
-        fun from(json: String?, lang: String = "tr"): WidgetData {
-            if (json.isNullOrBlank()) return empty(lang)
+        fun from(json: String?, lang: String = "tr", hint: String? = null): WidgetData {
+            if (json.isNullOrBlank()) return empty(lang, hint)
             return runCatching {
                 val o = JSONObject(json)
                 val sLang = o.optString("lang", "tr").takeIf { it == "tr" || it == "en" } ?: "tr"
@@ -169,7 +206,7 @@ private data class WidgetData(
                     val w = d.warning ?: return@let d
                     d.copy(pills = d.pills.filter { p -> p != w.short && !w.title.startsWith(p) })
                 }
-            }.getOrDefault(empty(lang))
+            }.getOrDefault(empty(lang, hint))
         }
     }
 }
@@ -280,7 +317,7 @@ private class AndroidMeter(context: Context) : TextMeter {
 private fun placeLine(d: WidgetData) = if (d.ok) d.place + " · " + Outfit.levelName(d.level, d.lang) else "Ne Giysem?"
 
 private fun subLine(d: WidgetData) = when {
-    !d.ok -> d.w("Bugünün kıyafeti bir bakışta")
+    !d.ok -> d.note ?: d.w("Bugünün kıyafeti bir bakışta")
     staleText(d) != null -> staleText(d)!!
     d.next.isNotEmpty() -> d.w("Sıradaki: ") + d.next
     else -> d.w("Hissedilen ") + deg(d.feels) + " · " + d.cond

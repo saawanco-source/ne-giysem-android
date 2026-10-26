@@ -110,6 +110,7 @@ object Updater {
             ?: throw (failure ?: IOException("forecast no longer covers this hour"))
         if (Store(context).generation != gen) return failure == null // data was deleted while this refresh ran
         store.saveWidget(snapshot, cached.optLong("at"))
+        store.clearFail()
         NeGiysemWidget.pushAll(context, snapshot)
         cached.optJSONObject("main")?.let { main ->
             runCatching { AlertNotifier.check(context, main, Outfit.ownName(store.placeName ?: cached.optString("name", "Konumun"), store.lang)) }

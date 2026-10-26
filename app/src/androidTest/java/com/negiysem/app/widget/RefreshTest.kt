@@ -108,6 +108,25 @@ class RefreshTest {
             assertEquals("Europe/Istanbul", fc.optString("timezone"))
             Store(ctx).clearApiDown()
         }
+        step("hiçbir servise ulaşılamıyor ama uygulama havayı verdi") {
+            val kept = JSONObject(Store(ctx).forecast!!)
+            ctx.getSharedPreferences("negiysem", Context.MODE_PRIVATE).edit().clear().commit()
+            val app = JSONObject().put("lang", "tr").put("place", JSONObject().put("name", "Beşiktaş").put("lat", 41.043).put("lon", 29.007))
+            Store(ctx).saveFromApp(app.toString())
+            val handed = JSONObject().put("at", System.currentTimeMillis()).put("lat", 41.043).put("lon", 29.007).put("name", "Beşiktaş")
+                .put("main", kept.getJSONObject("main")).put("places", JSONObject())
+            assertTrue("the app's forecast wasn't kept", Store(ctx).acceptForecast(handed.toString()))
+            Updater.apiBase = "https://ne-giysem.invalid"
+            MetDirect.base = "https://met.invalid"
+            try {
+                Updater.refresh(ctx) // the fetch fails; the widget draws from what the app handed over
+            } finally {
+                Updater.apiBase = com.negiysem.app.Config.API
+                MetDirect.base = "https://api.met.no"
+            }
+            assertEquals("Beşiktaş", snapshot().optString("place"))
+            Store(ctx).clearApiDown()
+        }
         write()
     }
 }

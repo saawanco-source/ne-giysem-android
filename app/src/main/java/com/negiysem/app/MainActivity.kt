@@ -357,6 +357,17 @@ class MainActivity : Activity() {
             if (changed) scope.launch { if (Scheduler.hasWidgets(ctx)) Scheduler.now(ctx, replace = true, delaySeconds = 4) }
         }
 
+        /**
+         * The forecast the page just got (from the app's server or straight from MET Norway): the widget draws from it
+         * at once, so it shows whatever the app shows even when it can't reach a weather service itself.
+         */
+        @JavascriptInterface
+        fun saveForecast(json: String) {
+            if (json.length > 4_000_000) return
+            val ctx = applicationContext
+            if (Store(ctx).acceptForecast(json)) scope.launch { if (Scheduler.hasWidgets(ctx)) Scheduler.now(ctx, replace = true, delaySeconds = 2) }
+        }
+
         /** "Tüm verilerimi sil": wipe the app's own store and show the empty widget until a new place is chosen. */
         @JavascriptInterface
         fun reset() {

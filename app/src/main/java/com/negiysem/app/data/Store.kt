@@ -155,6 +155,9 @@ class Store(context: Context) {
             if (!next.isNullOrBlank()) o.put("next", next)
             o.put("lang", lang)
             o.put("level", plan.level)
+            // For the watch, which has no copy of the engine: the level's name and colour as the app shows them.
+            o.put("levelName", Outfit.levelName(plan.level, lang))
+            o.put("color", String.format(Locale.ROOT, "#%08X", Outfit.LEVEL_COLORS[plan.level].toInt()))
             o.put("headline", plan.headline)
             o.put("temp", input.now.t)
             o.put("feels", input.now.app)

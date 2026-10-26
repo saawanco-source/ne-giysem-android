@@ -77,3 +77,8 @@ Her bulut derlemesindeki “Dosyaları denetle” adımı bu listeyi APK’dan v
 | `WAKE_LOCK`, `FOREGROUND_SERVICE` | WorkManager (widget’ın ve hava uyarılarının arka plan yenilemesi) | — |
 | `POST_NOTIFICATIONS` | Uygulama (hava uyarısı bildirimleri; yalnızca kişi “Sana göre → Hava uyarıları”nı açınca sorulur) | — (veri toplanmaz; uyarı telefonda hesaplanır) |
 | `com.negiysem.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | AndroidX Core (uygulamanın kendi iç izni) | — |
+
+## 6. Saat uygulaması (Wear OS, 26 Ekim 2026)
+
+Telefon, widget özetini (yer adı, sıcaklık, kıyafet, uyarı) Google Play hizmetlerinin Data Layer'ı ile eşleştirilmiş saate gönderir. Bu, kullanıcının kendi cihazları arasında aktarımdır; geliştiriciye veri gelmez. Saat Bluetooth ile bağlı değilken Google'ın sunucularından geçebilir; Google'ın bu aktarımı kendi politikasına tabidir. Formda yeni bir veri türü gerekmez (konum zaten "Yaklaşık konum" olarak beyanlı), ama "veriler aktarılırken şifrelenir" cevabı Data Layer için de geçerlidir.
+

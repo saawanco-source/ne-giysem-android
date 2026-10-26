@@ -375,6 +375,7 @@ class MainActivity : Activity() {
             Store(ctx).clear()
             Scheduler.cancel(ctx)
             AlertNotifier.clear(ctx)
+            com.negiysem.app.data.WatchSync.clear(ctx)
             CoroutineScope(Dispatchers.IO).launch {
                 runCatching { NeGiysemWidget.pushAll(ctx, "") }
                 if (Scheduler.hasWidgets(ctx)) Scheduler.schedule(ctx) // stays empty: the refresh skips a wiped store

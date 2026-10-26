@@ -232,11 +232,14 @@ jobs:
           if [ "$MODE" = debug ]; then
             cp app/build/outputs/apk/debug/app-debug.apk out/NeGiysem.apk
             cp watchface/build/outputs/apk/debug/watchface-debug.apk out/NeGiysem-SaatYuzu.apk
+            cp wear/build/outputs/apk/debug/wear-debug.apk out/NeGiysem-SaatUygulamasi.apk
           else
             cp app/build/outputs/bundle/release/app-release.aab out/NeGiysem.aab
             cp app/build/outputs/apk/release/app-release.apk out/NeGiysem.apk
             cp watchface/build/outputs/bundle/release/watchface-release.aab out/NeGiysem-SaatYuzu.aab
             cp watchface/build/outputs/apk/release/watchface-release.apk out/NeGiysem-SaatYuzu.apk
+            cp wear/build/outputs/bundle/release/wear-release.aab out/NeGiysem-SaatUygulamasi.aab
+            cp wear/build/outputs/apk/release/wear-release.apk out/NeGiysem-SaatUygulamasi.apk
           fi
 
       # What Play checks, checked here first: target API, version number, signature, permissions, AdMob ID, 16 KB pages.
@@ -347,6 +350,23 @@ jobs:
               bt validate --bundle="$waab" > /dev/null 2>&1 && echo "   bundletool validate: geçerli" || problem "saat yüzü AAB bundletool hatası"
               jarsigner -verify "$waab" 2>&1 | grep -q "jar verified" && echo "   jar verified" || problem "saat yüzü AAB imzası doğrulanamadı"
             fi
+            # The watch app (complication): the phone app's package and key, or the Data Layer won't connect them.
+            uapk=out/NeGiysem-SaatUygulamasi.apk
+            echo
+            echo "== Saat uygulaması APK: $(stat -c %s "$uapk") bayt"
+            ub=$("$BT/aapt2" dump badging "$uapk")
+            echo "$ub" | grep -E "^(package:|minSdkVersion|targetSdkVersion|uses-feature:)"
+            echo "$ub" | grep -q "^package: name='com.negiysem.app'" || problem "saat uygulamasının paket adı com.negiysem.app değil (telefonla eşleşmez)"
+            echo "$ub" | grep -q "android.hardware.type.watch" || problem "saat uygulaması android.hardware.type.watch istemiyor"
+            "$BT/aapt2" dump xmltree --file AndroidManifest.xml "$uapk" | grep -q "OutfitComplicationService" && echo "   karmaşıklık servisi var" || problem "karmaşıklık servisi manifestte yok"
+            if "$BT/apksigner" verify --print-certs "$uapk" > usig.txt 2>&1; then
+              grep -E "certificate SHA-256" usig.txt | sed 's/^/   /'
+              if [ -f psig.txt ] || "$BT/apksigner" verify --print-certs "$apk" > psig.txt 2>&1; then
+                [ "$(grep 'certificate SHA-256' psig.txt)" = "$(grep 'certificate SHA-256' usig.txt)" ] && echo "   telefonla aynı anahtar" || problem "saat uygulaması telefondan farklı anahtarla imzalı (eşleşmez)"
+              fi
+            else
+              sed 's/^/   /' usig.txt | head -10; problem "saat uygulaması APK imzası doğrulanamadı"
+            fi
           } > verify.txt 2>&1
           cat verify.txt
           { echo '```'; cat verify.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
@@ -375,6 +395,8 @@ jobs:
               echo "**NeGiysem.apk**: telefona doğrudan kurmak için, yükleme anahtarıyla imzalı. Telefonda eski (debug) sürüm varsa bu bir kez kaldırılıp kurulur."
               echo
               echo "**NeGiysem-SaatYuzu.apk / .aab**: Wear OS 5+ saat yüzü (Galaxy Watch 7 ve sonrası). Play'de ayrı bir uygulama kaydı olarak yüklenir."
+              echo
+              echo "**NeGiysem-SaatUygulamasi.apk / .aab**: saat uygulaması (Ne Giysem? karmaşıklığı, her saat yüzüne eklenir; telefondaki öneriyi gösterir). Play'de telefon uygulamasıyla aynı kayıtta, Wear OS kanalına yüklenir."
             } > notes.md
           fi
 

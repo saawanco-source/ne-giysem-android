@@ -3,11 +3,26 @@
 Saat, tarih ve sıcaklığın yanında Ne Giysem'in kıyafet önerisini gösteren saat yüzü. Bu bir uygulama değil; Google'ın
 **Watch Face Format** (WFF) biçiminde, yalnızca görsel ve XML'den oluşan bir paket. Telefon uygulaması gerekmez.
 
+## Saat uygulaması ve karmaşıklıklar
+
+- Yüzde **dört küçük karmaşıklık yeri** var (sol, sağ, sol alt, sağ alt): saat yüzüne basılı tut → **Özelleştir** ile
+  adım, nabız, pil, takvim gibi istediğin veriyi seç. Varsayılanlar: adım, pil, gün doğumu/batımı, sıradaki etkinlik.
+- **Ne Giysem? saat uygulaması** (`wear/`, `NeGiysem-SaatUygulamasi.apk`) kuruluysa ortadaki kıyafet alanı telefondaki
+  öneriyi birebir gösterir (telefonun hissedilen sıcaklığı, rutinin, hava uyarısı). Kurulu değilse ya da telefondan veri
+  gelmediyse saatin kendi havasından hesaplanan kıyafet görünür.
+- Aynı uygulama **Ne Giysem? karmaşıklığını** her saat yüzüne (Samsung'unkiler dahil) ekler: kısa metin (çıkartma +
+  sıcaklık), uzun metin (öneri cümlesi), küçük resim. Dokununca saatte önerinin tamamı açılır.
+- Veriyi telefon gönderir (Google Play hizmetlerinin saat bağlantısı); telefon uygulaması ve saat uygulaması aynı paket
+  adı (`com.negiysem.app`) ve aynı anahtarla imzalı olmalı. 12 saatten eski veri gösterilmez.
+
+Saat uygulaması da saat yüzü gibi kablosuz hata ayıklamayla kurulur (aşağıda), dosya adı `NeGiysem-SaatUygulamasi.apk`.
+Play'de telefon uygulamasıyla **aynı kayıtta**, Wear OS kanalına `NeGiysem-SaatUygulamasi.aab` olarak yüklenir.
+
 ## Ne gösterir
 
 - Üstte gün ve tarih, sıcaklık (saatin gösterdiği birimle) ve seviye etiketi (Dondurucu … Çok sıcak).
 - Ortada büyük saat. Ambiyans (her zaman açık) ekranında yalnızca ince saat, tarih ve sıcaklık kalır.
-- Altta üç kıyafet çıkartması ve kısa bir öneri, kenarda seviyenin rengiyle bir halka.
+- Ortada üç kıyafet çıkartması ve kısa bir öneri; seviye, sıcaklığın yanında kendi rengindeki etikette.
 - **Yağmur yağıyorsa** ya da bugün yağış ihtimali %50 ve üstüyse üçüncü çıkartma şemsiye olur. **Kar yağıyorsa** bot.
 - Hava bilgisi yoksa: "Hava bilgisi bekleniyor".
 

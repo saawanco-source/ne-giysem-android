@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English is the default; Turkish is in values-tr. -->
+<resources>
+    <string name="app_name">Ne Giysem?</string>
+    <string name="complication_name">Outfit (Ne Giysem?)</string>
+    <string name="waiting">Open Ne Giysem? on your phone once: today\'s outfit then shows up here and in the complication.</string>
+    <string name="updated">Updated %1$s</string>
+    <string name="take">Take along: %1$s</string>
+    <string name="old">Not updated for a while: open the app on your phone.</string>
+</resources>

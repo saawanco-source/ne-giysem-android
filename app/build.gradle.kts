@@ -82,6 +82,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
     // Runs the server's forecast builder (web/forecast-lib.js) when the server can't be reached (MetDirect).
     implementation("androidx.javascriptengine:javascriptengine:1.1.1")
+    // Sends the widget's snapshot to the Ne Giysem? watch app (WatchSync).
+    implementation("com.google.android.gms:play-services-wearable:19.0.0")
     implementation("com.google.android.gms:play-services-ads:25.5.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
 

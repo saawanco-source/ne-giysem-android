@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ne Giysem?</string>
+    <string name="complication_name">Kıyafet (Ne Giysem?)</string>
+    <string name="waiting">Telefondaki Ne Giysem? uygulamasını bir kez aç: bugünün kıyafeti burada ve karmaşıklıkta görünür.</string>
+    <string name="updated">Güncellendi %1$s</string>
+    <string name="take">Yanına al: %1$s</string>
+    <string name="old">Bir süredir güncellenmedi: telefondaki uygulamayı aç.</string>
+</resources>

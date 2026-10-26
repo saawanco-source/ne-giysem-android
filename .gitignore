@@ -8,3 +8,4 @@ captures/
 .DS_Store
 app/src/main/assets/www/
 node_modules
+__pycache__/

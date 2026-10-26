@@ -112,6 +112,7 @@ object Updater {
         store.saveWidget(snapshot, cached.optLong("at"))
         store.clearFail()
         NeGiysemWidget.pushAll(context, snapshot)
+        WatchSync.send(context, snapshot)
         cached.optJSONObject("main")?.let { main ->
             runCatching { AlertNotifier.check(context, main, Outfit.ownName(store.placeName ?: cached.optString("name", "Konumun"), store.lang)) }
         }

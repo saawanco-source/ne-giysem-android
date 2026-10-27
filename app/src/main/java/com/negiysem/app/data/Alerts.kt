@@ -15,7 +15,8 @@ import java.time.format.DateTimeFormatter
 object Alerts {
 
     /** [k]: storm, thunder, rain, snow, ice, heat, cold or fog. [lv]: 1 "Dikkat", 2 "Tehlikeli". [from]/[to]: first and last hour. */
-    data class Alert(val k: String, val lv: Int, val from: String, val to: String, val peak: Int?)
+    /** [total]: for rain, the millimetres over the warning's hours (as the app screen's card says "toplam … mm"). */
+    data class Alert(val k: String, val lv: Int, val from: String, val to: String, val peak: Int?, val total: Int? = null)
 
     /** What is shown for one warning: "Fırtına", "Tehlikeli", "15:00–18:00 · rüzgâr saatte 98 km'ye kadar", what to do. */
     data class Info(val title: String, val level: String, val whenText: String, val tips: List<String>)
@@ -54,7 +55,7 @@ object Alerts {
         "Yoğun sis" to "Dense fog", "Dikkat" to "Caution", "Tehlikeli" to "Danger", "Ne yapmalı?" to "What to do", "yarın" to "tomorrow",
         "rüzgâr saatte {0} km'ye kadar" to "wind up to {0} km/h", "hissedilen {0}'ye kadar" to "feels like up to {0}",
         "hissedilen {0}'ye kadar düşüyor" to "feels as low as {0}",
-        "saatte {0} mm'ye kadar" to "up to {0} mm an hour", "sıcaklık {0}" to "temperature {0}",
+        "saatte {0} mm'ye kadar" to "up to {0} mm an hour", ", toplam {0} mm" to ", {0} mm in all", "sıcaklık {0}" to "temperature {0}",
         "Çatı, tabela, iskele ve ağaçların yakınından geçme." to "Keep away from roofs, signs, scaffolding and trees.",
         "Balkondaki saksı ve eşyaları içeri al ya da sabitle." to "Bring in or tie down pots and anything loose on your balcony.",
         "Vapur ve deniz otobüsü seferleri iptal olabilir; yola çıkmadan kontrol et." to "Ferries may be cancelled; check before you set out.",
@@ -92,7 +93,7 @@ object Alerts {
     private fun JSONArray.str(i: Int): String = opt(i)?.takeIf { it != JSONObject.NULL }?.toString() ?: "null"
     private fun offset(wx: JSONObject): Long = (wx.opt("utc_offset_seconds") as? Number)?.toLong() ?: 0L
 
-    private class Acc(var lv: Int, val i: Int, var j: Int, var peak: Double?)
+    private class Acc(var lv: Int, val i: Int, var j: Int, var peak: Double?, var total: Double?)
 
     /**
      * How heavy the rain is, hour by hour (0; 1 "Dikkat"; 2 "Tehlikeli"): an hour of 6 (15) mm, or every wet hour (1 mm or
@@ -105,11 +106,14 @@ object Alerts {
         val prec = h.optJSONArray("precipitation"); val code = h.optJSONArray("weather_code")
         fun snowAt(k: Int): Boolean { val c = code.num(k)?.let { Math.round(it).toInt() } ?: -1; return c in 71..77 || c == 85 || c == 86 }
         val lv = IntArray(n) { k -> val v = prec.num(k); if (v == null || snowAt(k)) 0 else if (v >= 15) 2 else if (v >= 6) 1 else 0 }
-        for (j in 0 until n) {
-            var sum = 0.0
-            for (q in j until minOf(n, j + 6)) sum += prec.num(q) ?: 0.0
-            if (sum < 20) continue
-            for (q in j until minOf(n, j + 6)) { val w = prec.num(q); if (w != null && w >= 1 && !snowAt(q)) lv[q] = maxOf(lv[q], if (sum >= 40) 2 else 1) }
+        // Spells: 20 (40) mm in six hours, or 40 (60) mm in a day of steady rain.
+        for ((len, lo, hi) in listOf(Triple(6, 20.0, 40.0), Triple(24, 40.0, 60.0))) {
+            for (j in 0 until n) {
+                var sum = 0.0
+                for (q in j until minOf(n, j + len)) sum += prec.num(q) ?: 0.0
+                if (sum < lo) continue
+                for (q in j until minOf(n, j + len)) { val w = prec.num(q); if (w != null && w >= 1 && !snowAt(q)) lv[q] = maxOf(lv[q], if (sum >= hi) 2 else 1) }
+            }
         }
         return lv
     }
@@ -131,7 +135,8 @@ object Alerts {
         val rl = rainLevels(h)
         fun hit(k: String, lv: Int, at: Int, peak: Double?) {
             val a = found[k]
-            if (a == null) { found[k] = Acc(lv, at, at, peak); return }
+            if (a == null) { found[k] = Acc(lv, at, at, peak, if (k == "rain") peak ?: 0.0 else null); return }
+            if (k == "rain") a.total = (a.total ?: 0.0) + (peak ?: 0.0)
             if (lv > a.lv) a.lv = lv
             a.j = at
             if (peak != null && (a.peak == null || (if (k == "cold" || k == "ice") peak < a.peak!! else peak > a.peak!!))) a.peak = peak
@@ -155,7 +160,8 @@ object Alerts {
             if (c == 45 || c == 48) hit("fog", 1, j, null)
         }
         return KINDS.mapNotNull { k ->
-            found[k]?.let { a -> Alert(k, a.lv, time.str(a.i).take(16), time.str(a.j).take(16), a.peak?.let { Math.round(it).toInt() }) }
+            found[k]?.let { a -> Alert(k, a.lv, time.str(a.i).take(16), time.str(a.j).take(16), a.peak?.let { Math.round(it).toInt() },
+                a.total?.let { Math.round(it).toInt() }) }
         }.sortedWith(compareByDescending<Alert> { it.lv }.thenBy { it.from }.thenBy { KINDS.indexOf(it.k) })
     }
 
@@ -174,7 +180,8 @@ object Alerts {
             "storm" -> t("rüzgâr saatte {0} km'ye kadar", lang, "$p")
             "heat" -> t("hissedilen {0}'ye kadar", lang, Outfit.deg(p.toDouble()))
             "cold" -> t("hissedilen {0}'ye kadar düşüyor", lang, Outfit.deg(p.toDouble()))
-            "rain" -> if (p > 0) t("saatte {0} mm'ye kadar", lang, "$p") else ""
+            "rain" -> (if (p > 0) t("saatte {0} mm'ye kadar", lang, "$p") else "") +
+                (a.total?.takeIf { it >= 10 && it > p }?.let { t(", toplam {0} mm", lang, "$it") } ?: "")
             "ice" -> t("sıcaklık {0}", lang, Outfit.deg(p.toDouble()))
             else -> ""
         }

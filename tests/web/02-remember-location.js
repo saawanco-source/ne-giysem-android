@@ -78,13 +78,8 @@ H.run({
     const a = await s.snap();
     note("denied with stored fix:", JSON.stringify(a));
     check("denied+fix: keeps using last fix (Trabzon)", a.label === "Trabzon" && a.temp === "7°", a);
-    // the action offered is 'Konumumu güncelle' which can never work while denied
-    if (a.acts.includes("Konumumu güncelle")) {
-      await s.page.click("#status button"); await sleep(600);
-      const b = await s.snap();
-      note("Konumumu güncelle while denied:", JSON.stringify(b));
-      check("denied: 'Konumumu güncelle' explains the permission is blocked", /izin/i.test(b.status), b.status);
-    }
+    // 'Konumumu güncelle' can never work while the permission is denied: it isn't offered.
+    check("denied: no 'Konumumu güncelle' that can't work", !a.acts.includes("Konumumu güncelle"), a.acts);
     await s.close();
   },
 

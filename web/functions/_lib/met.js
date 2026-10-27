@@ -2,7 +2,7 @@
 // Expires, revalidate with If-Modified-Since, and reduce the response to the few values the forecast builder needs.
 // Terms: https://api.met.no/doc/TermsOfService (max 4 decimals, own User-Agent, cache, max 20 requests/s in total).
 import { cacheKey, readEntry, writeEntry } from "./cache.js";
-import { userAgent, upstreamError } from "./http.js";
+import { userAgent, upstreamError, HttpError } from "./http.js";
 
 export const MET_URL = "https://api.met.no/weatherapi/locationforecast/2.0/complete";
 const SERIES_VERSION = "met-v1"; // bump when the normalized format changes
@@ -117,6 +117,8 @@ export async function getMetSeries(context, lat, lon) {
     // 429 = throttled, 403 = User-Agent or coordinates refused, 5xx = MET trouble.
     const s = stale();
     if (s) return s;
+    // 400/422: MET refuses these coordinates (out of its area or invalid): the request's fault, not an outage.
+    if (res.status === 400 || res.status === 422) throw new HttpError(400, "coordinates_refused", { upstreamStatus: res.status });
     throw upstreamError(`met_status_${res.status}`, { upstreamStatus: res.status });
   }
   if (res.status === 203) console.warn("MET Locationforecast answered 203: this product version is deprecated, see api.met.no");

@@ -47,6 +47,31 @@ MET Norway, isteklerin kimden geldiğini bilmek ister (yoksa engelleyebilir). Al
 
 Bu ayar yokken `NeGiysem/1.0 (+https://ne-giysem.pages.dev)` kullanılır.
 
+## 4. Kötüye kullanıma karşı istek sınırı (önerilir)
+
+`/api/...` adresleri herkese açık; biri döngüyle istek gönderirse günlük 100.000 istek bir anda biter. Ücretsiz
+planda bir hız sınırı kuralı kurulabilir:
+
+1. Cloudflare panelinde alan adın → **Security** → **WAF** → **Rate limiting rules** → **Create rule**.
+2. **If incoming requests match:** URI Path → *starts with* → `/api/`.
+3. **With the same characteristics:** IP. **When rate exceeds:** 60 istek / 10 saniye.
+4. **Then:** Block, 10 saniye → **Deploy**.
+
+Uygulamanın kendisi bu sınırın çok altında kalır (bir açılışta en fazla birkaç istek).
+
+## 5. Google rota önerileri (isteğe bağlı)
+
+Rota önerileri yalnızca `GOOGLE_ROUTES_KEY` adlı **Secret** eklenince açılır. Anahtar sunucuda kalır ama sayfanın
+kendisinden geldiğini söyleyen başlıkları bir betik de gönderebilir; bu yüzden **asıl fren Google tarafındadır**:
+
+1. Google Cloud → **APIs & Services** → **Credentials** → anahtar → **API restrictions:** yalnızca *Routes API*.
+2. **APIs & Services** → **Routes API** → **Quotas** → günlük istek sınırını düşür (ör. günde 300).
+3. **Billing** → **Budgets & alerts** → küçük bir aylık bütçe ve %50 / %90 / %100 e-posta uyarıları.
+4. Site kendi alan adında açılınca rota isteklerine izin verilir; başka alan adları da gerekiyorsa `ALLOWED_ORIGINS`
+   adlı değişkene virgülle yaz (ör. `https://negiysem.com,https://www.negiysem.com`).
+
+Sunucu ayrıca her ziyaretçiye (IPv6'da bir hat = /64) saatte en fazla 30 rota cevabı verir.
+
 ## Güncelleme
 
 GitHub'da `main` dalına her yüklemede site kendiliğinden yeniden yayınlanır. Başka dallar ayrı bir deneme adresi alır.
@@ -55,6 +80,9 @@ GitHub'da `main` dalına her yüklemede site kendiliğinden yeniden yayınlanır
 
 - **Ücretsiz plan:** `/api/...` adreslerine günde **100.000** istek (sayfa, simge gibi dosyalar sınırsız ve ücretsiz).
   Sınır aşılırsa o gün `/api/...` hata verir; sayaç her gece 03:00'te (Türkiye saati) sıfırlanır.
+  Sınır aşılırsa ya da sunucu hata verirse uygulama ve widget havayı doğrudan MET Norway'den alır (yarım saat).
+  Hazırlanan tahmin her ~1 km'lik bölge için 10 dakika saklanır; bu, ücretsiz plandaki istek başına 10 ms işlem
+  süresi sınırının altında kalmayı sağlar.
   Hava durumu aynı ~1 km'lik bölge için MET'in izin verdiği süre boyunca saklandığından MET'e giden istek çok daha azdır.
 - **Kaynak gösterme (zorunlu):** hava verisi için sayfada "Hava verisi: MET Norway" (CC BY 4.0, değiştirilerek
   kullanılıyor), yer arama için "© OpenStreetMap katkıda bulunanlar" yazmalı.

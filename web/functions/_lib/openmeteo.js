@@ -160,7 +160,8 @@ export function buildForecast(series, lat, lon, now = Date.now()) {
   // Current conditions: instants interpolated at `now`, symbol and precipitation of the hour containing now.
   const k0 = Math.max(0, Math.min(HOURS - 1, Math.floor((now - start) / HOUR)));
   const w0 = instant(now), b0 = per[k0];
-  const gust = lerpStrict(steps, "g", now) ?? (w0.ws == null ? null : w0.ws * 1.5);
+  // Only MET's own gust, as in the hourly list (a guess from the mean wind would look like a storm that isn't one).
+  const gust = lerpStrict(steps, "g", now);
   const amount0 = hourAmount(b0);
   const current = {
     time: local(Math.floor(now / 900000) * 900000).slice(0, 16),

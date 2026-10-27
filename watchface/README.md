@@ -13,7 +13,7 @@ Saat, tarih ve sıcaklığın yanında Ne Giysem'in kıyafet önerisini göstere
 - Aynı uygulama **Ne Giysem? karmaşıklığını** her saat yüzüne (Samsung'unkiler dahil) ekler: kısa metin (çıkartma +
   sıcaklık), uzun metin (öneri cümlesi), küçük resim. Dokununca saatte önerinin tamamı açılır.
 - Veriyi telefon gönderir (Google Play hizmetlerinin saat bağlantısı); telefon uygulaması ve saat uygulaması aynı paket
-  adı (`com.negiysem.app`) ve aynı anahtarla imzalı olmalı. 12 saatten eski veri gösterilmez.
+  adı (`com.negiysem.app`) ve aynı anahtarla imzalı olmalı. 3 saatten eski veri gösterilmez; saat, verisi eskiyince telefondan yenisini ister.
 
 Saat uygulaması da saat yüzü gibi kablosuz hata ayıklamayla kurulur (aşağıda), dosya adı `NeGiysem-SaatUygulamasi.apk`.
 Play'de telefon uygulamasıyla **aynı kayıtta**, Wear OS kanalına `NeGiysem-SaatUygulamasi.aab` olarak yüklenir.

@@ -35,6 +35,7 @@ class PhoneListener : WearableListenerService() {
             val store = PlanStore(app)
             val now = System.currentTimeMillis()
             val plan = store.plan()
+            if (store.wiped && !force) return
             if (!force && plan != null && now - plan.updated < 3_600_000L) return
             if (now - store.asked < 20 * 60_000L) return
             store.asked = now

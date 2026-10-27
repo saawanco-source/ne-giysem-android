@@ -19,24 +19,43 @@ export const FIELD_MASK = [
   "routes.legs.steps.transitDetails",
 ].join(",");
 
-/** The app's own pages: the site (and its preview builds), the Android app's bundled page, local development. */
-export function allowedOrigin(o) {
+/**
+ * The app's own pages: the site (and its preview builds), the Android app's bundled page, local development, the site's
+ * own origin whatever its domain ([self], e.g. negiysem.com once attached) and any origins listed in the
+ * ALLOWED_ORIGINS variable ([extra], comma-separated: "https://negiysem.com,https://www.negiysem.com").
+ */
+export function allowedOrigin(o, self, extra) {
   if (!o) return false;
   let u;
   try { u = new URL(o); } catch (e) { return false; }
+  if (self && u.origin === self) return true;
+  if (extra && String(extra).split(",").map((x) => x.trim().replace(/\/$/, "")).filter(Boolean).includes(u.origin)) return true;
   if (u.protocol === "https:" && (u.hostname === "ne-giysem.pages.dev" || u.hostname.endsWith(".ne-giysem.pages.dev"))) return true;
   if (u.protocol === "https:" && u.hostname === "appassets.androidplatform.net") return true;
   return (u.protocol === "http:" || u.protocol === "https:") && (u.hostname === "localhost" || u.hostname === "127.0.0.1");
 }
 
-function fromApp(request) {
-  const h = request.headers;
-  if (allowedOrigin(h.get("origin"))) return true;
+// These headers keep other web pages from spending the key; a script can still send them, so the real cap is the
+// daily quota set on the key in Google Cloud (DEPLOY.md), with the per-visitor limit below on top.
+function fromApp(request, env) {
+  const h = request.headers, self = new URL(request.url).origin, extra = env && env.ALLOWED_ORIGINS;
+  if (allowedOrigin(h.get("origin"), self, extra)) return true;
   // Same-site GETs carry no Origin; browsers say so in Sec-Fetch-Site, and the Referer names the page.
   if (h.get("sec-fetch-site") === "same-origin") return true;
   const ref = h.get("referer");
-  if (ref) { try { return allowedOrigin(new URL(ref).origin); } catch (e) { return false; } }
+  if (ref) { try { return allowedOrigin(new URL(ref).origin, self, extra); } catch (e) { return false; } }
   return false;
+}
+
+/** The visitor for rate limiting: the IPv4 address, or the /64 network of an IPv6 one (one home or phone line). */
+export function visitor(ip) {
+  const a = String(ip || "?").trim();
+  if (a.indexOf(":") < 0) return a;
+  let parts = a.split("::");
+  if (parts.length > 2) return a;
+  const head = parts[0] ? parts[0].split(":") : [], tail = parts.length === 2 && parts[1] ? parts[1].split(":") : [];
+  const full = parts.length === 2 ? head.concat(Array(Math.max(0, 8 - head.length - tail.length)).fill("0"), tail) : head;
+  return full.slice(0, 4).map((x) => (x || "0").toLowerCase().replace(/^0+(?=.)/, "")).join(":") + "::/64";
 }
 
 function point(v, name) {
@@ -55,7 +74,7 @@ function km(a, b) {
 async function underLimit(request) {
   const cache = globalThis.caches && globalThis.caches.default;
   if (!cache) return true;
-  const ip = request.headers.get("cf-connecting-ip") || "?";
+  const ip = visitor(request.headers.get("cf-connecting-ip"));
   const key = `${new URL(request.url).origin}/__ng-rate/route/${encodeURIComponent(ip)}/${Math.floor(Date.now() / 3600e3)}`;
   try {
     const hit = await cache.match(key);
@@ -139,7 +158,7 @@ export const onRequest = route(async (context, url) => {
   const key = context.env && typeof context.env.GOOGLE_ROUTES_KEY === "string" ? context.env.GOOGLE_ROUTES_KEY.trim() : "";
   if (url.searchParams.get("probe") === "1") return json({ on: !!key }, 200, "no-store");
   if (!key) throw new HttpError(503, "routes_off");
-  if (!fromApp(context.request)) throw new HttpError(403, "forbidden");
+  if (!fromApp(context.request, context.env)) throw new HttpError(403, "forbidden");
 
   const from = point(url.searchParams.get("from"), "from");
   const to = point(url.searchParams.get("to"), "to");

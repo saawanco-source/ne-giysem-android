@@ -119,7 +119,7 @@ object Day {
                 if (w != null) {
                     val heat = if (st.m == "walk") slopeHeat(st.slope) else WAIT_HEAT
                     out.add(Out(w.time, end, st.min, w.app + heat, w.t, w.p, w.code, if (st.m == "wait") w.wind else w.wind * 0.6, w.day, pid, w.mm,
-                        if (st.m == "wait") w.gust else w.gust * 0.6, w.rl))
+                        w.gust, w.rl)) // a gust is a gust, sheltered street or not
                 }
             }
             t = end
@@ -161,7 +161,7 @@ object Day {
         fun place(id: String) = r.places.firstOrNull { it.id == id }
 
         fun pick(offset: Int): List<Item> {
-            val dow = (todayDow + offset) % 7
+            val dow = Math.floorMod(todayDow + offset, 7)
             val list = ArrayList<Item>()
             for (t in r.trips.filter { dow in it.days && it.from != it.to && place(it.from) != null && place(it.to) != null }.sortedBy { it.time }) {
                 val start = atTime(t.time, offset)
@@ -181,7 +181,8 @@ object Day {
         // Today first; otherwise the next day with a trip (7 = the same weekday next week). Only today (or tomorrow in the evening) drives the outfit.
         var items: List<Item> = emptyList()
         var offset = 0
-        for (o in 0..7) { items = pick(o); offset = o; if (items.isNotEmpty()) break }
+        // Just after midnight, last night's trip may still be under way: it counts as today's (as the app screen).
+        for (o in 0..7) { items = (if (o == 0) pick(-1).map { it.copy(offset = 0) } else emptyList()) + pick(o); offset = o; if (items.isNotEmpty()) break }
         if (items.isEmpty()) return Result(null, null)
         val lead = offset == 0 || (offset == 1 && Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 17)
 
@@ -201,7 +202,9 @@ object Day {
         }
         if (!lead) return Result(null, next)
 
-        val exps = items.flatMap { it.ex?.out ?: emptyList() }.filter { it.end > now }
+        // Every outdoor moment of the trips ahead or under way, the part already behind included: the outfit chosen at
+        // home doesn't change on the metro (finished trips aren't in items any more).
+        val exps = items.flatMap { it.ex?.out ?: emptyList() }
         if (exps.isEmpty()) return Result(null, next)
         val e0 = exps.first()
         val daily = byPlace[e0.place]?.optJSONObject("daily")

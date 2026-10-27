@@ -367,7 +367,7 @@ H.run({
     s.net.offline = true; await s.context.setOffline(true); await sleep(200);
     await s.page.tap("#refresh"); await sleep(600);
     const off = await s.status();
-    check("offline: English message", /^You're offline\./.test(off), off);
+    check("offline: English message", /^You're offline; showing the last weather fetched\./.test(off), off);
     await s.shot("12-offline-light");
     await noLeaks(s, "offline message");
     s.net.offline = false; await s.context.setOffline(false); await sleep(200);

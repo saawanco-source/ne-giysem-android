@@ -104,8 +104,18 @@ class PlanStore(context: Context) {
 
     val json: String? get() = prefs.getString("plan", null)
     fun plan(): Plan? = Plan.parse(json)
-    fun save(json: String) { prefs.edit().putString("plan", json).putLong("received", System.currentTimeMillis()).apply() }
-    fun clear() { prefs.edit().clear().apply() }
+    fun save(json: String) { prefs.edit().putString("plan", json).putLong("received", System.currentTimeMillis()).putBoolean("wiped", false).apply() }
+    /** The phone deleted everything: nothing is asked for until it sends something again. Active slots are kept. */
+    fun clear() {
+        val slots = activeSlots
+        prefs.edit().clear().putBoolean("wiped", true).putStringSet("slots", slots).apply()
+    }
+    val wiped: Boolean get() = prefs.getBoolean("wiped", false)
+
+    /** The complication's instances now on a watch face (ActiveSlots). */
+    var activeSlots: Set<String>
+        get() = prefs.getStringSet("slots", emptySet())?.toSet() ?: emptySet()
+        set(v) { prefs.edit().putStringSet("slots", v).apply() }
 
     /** When the phone was last asked for a fresh outfit (PhoneListener.ask), so it isn't asked over and over. */
     var asked: Long

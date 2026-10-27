@@ -120,7 +120,8 @@ object Outfit {
         "Uzun pantolon" to "Long pants", "Su itici rüzgârlık" to "Water-repellent windbreaker", "İnce yağmurluk" to "Light raincoat",
         "Su geçirmez ayakkabı" to "Waterproof shoes", "Kaymaz bot" to "Non-slip boots",
         // pills
-        "Yağmur yağıyor" to "Raining", "Çiseliyor" to "Drizzling", "Gök gürültüsü" to "Thunder", "Kar yağıyor" to "Snowing", "Kar" to "Snow", "Buzlanma" to "Icy", "Fırtına" to "Storm",
+        "Yağmur yağıyor" to "Raining", "Çiseliyor" to "Drizzling", "Gök gürültüsü" to "Thunder",
+        "Rüzgâr çok sert: dışarıda az kal, ağaç ve tabelalardan uzak dur." to "The wind is very strong: stay out as little as you can, away from trees and signs.", "Kar yağıyor" to "Snowing", "Kar" to "Snow", "Buzlanma" to "Icy", "Fırtına" to "Storm",
         "UV yüksek" to "High UV", "Sis" to "Fog",
         // my day (Day.kt) and stored names
         "Bugün" to "Today", "Yarın" to "Tomorrow",
@@ -261,8 +262,9 @@ object Outfit {
      */
     fun plan(inp: Input, feel: String, act: String, who: String = "me", missing: Set<String> = emptySet(), lang: String = "tr"): Plan {
         val en = lang == "en"
-        val off = (when (feel) { "cold" -> -3.0; "warm" -> 3.0; else -> 0.0 }) + (when (act) { "field" -> -1.0; "sport" -> 6.0; else -> 0.0 }) +
-            (WHO_OFF[who] ?: 0.0)
+        // Children and older people: a little warmer in the cool and cold, never a milder "sana göre" in the heat (as the app screen).
+        val off0 = (when (feel) { "cold" -> -3.0; "warm" -> 3.0; else -> 0.0 }) + (when (act) { "field" -> -1.0; "sport" -> 6.0; else -> 0.0 })
+        val off = off0 + (if (inp.now.app + off0 < 20) (WHO_OFF[who] ?: 0.0) else 0.0)
         fun owned(g: String) = g !in missing
         fun lab(g: String) = label(g, lang)
         val w = inp.window.filter { !it.app.isNaN() }
@@ -343,7 +345,12 @@ object Outfit {
         var carry: String? = null
         if (lLow < level) {
             val lo = if (sport) sport(lLow) else OUT[lLow]
-            val pool = (lo.wear + lo.take).filter { !has(it) && owned(it) }
+            // A piece the person doesn't have is replaced by the closest one they do (no kaban: the mont, not a sweater).
+            val pool = ArrayList<String>()
+            for (g in lo.wear + lo.take) {
+                val x = if (owned(g)) g else SUBS[g].orEmpty().firstOrNull { owned(it) }
+                if (x != null && !has(x) && x !in pool) pool.add(x)
+            }
             lowPool = pool
             // Already wearing a coat: carry a warmer layer or a scarf/beanie, never a second coat.
             val cand = (if (hasOuter) pool.firstOrNull { it in MID } ?: pool.firstOrNull { it in setOf("atki", "bere", "eldiven") }
@@ -360,6 +367,8 @@ object Outfit {
                         else pool.filter { it in setOf("eldiven", "atki", "bere") && it != cand }.take(2)
                     more.forEach { addTake(it) }
                 }
+                // Freezing later: gloves come along whatever else does.
+                if (rawLow + off < 3 && "eldiven" in pool) addTake("eldiven")
                 val acc = ACC[cand]
                 if (acc != null && !sport) {
                     val cold = rawLow + off < 8
@@ -424,16 +433,25 @@ object Outfit {
             if (act == "city") swap(SHOES, "bot", t("Kaymaz bot", lang))
         }
         if (thunder) pills.add(0, t("Gök gürültüsü", lang))
-        // Storm-force wind (as the storm warning): something windproof is worn, not carried.
-        if (stormy && !sport && outerNow() == null && level < 7) {
-            val tkO = take.firstOrNull { it.g in OUTER }
-            val gO = tkO?.g ?: "ruzgarlik"
-            val lbO = tkO?.label ?: lab("ruzgarlik")
-            take = take.filter { it.g != gO }.toMutableList()
-            wear.add(Item(gO, lbO))
+        // Storm-force wind (as the storm warning): something windproof is worn, not carried, and the headline says so.
+        if (stormy) {
+            if (outerNow() == null && level < 7) {
+                val tkO = if (sport) null else take.firstOrNull { it.g in OUTER }
+                val gO = tkO?.g ?: "ruzgarlik"
+                val lbO = tkO?.label ?: lab("ruzgarlik")
+                take = take.filter { it.g != gO }.toMutableList()
+                wear.add(Item(gO, lbO))
+            }
             if ((!wet || drizzle) && !snowy) {
-                headT = "Rüzgâr çok sert: {" + lcf(ACC.getValue(gO), false) + "} giy, yakanı kapat."
-                head = if (en) "The wind is very strong: wear your {" + low(lbO, true) + "} and zip it up." else headT
+                val oS = outerNow()
+                if (oS != null) {
+                    val lbS = wear.first { it.g == oS }.label
+                    headT = "Rüzgâr çok sert: {" + lcf(ACC.getValue(oS), false) + "} giy, yakanı kapat."
+                    head = if (en) "The wind is very strong: wear your {" + low(lbS, true) + "} and zip it up." else headT
+                } else {
+                    headT = "Rüzgâr çok sert: dışarıda az kal, ağaç ve tabelalardan uzak dur."
+                    head = t(headT, lang)
+                }
             }
         }
         if (windy) {
@@ -446,7 +464,7 @@ object Outfit {
         }
         val rainAllDay = wet && w.isNotEmpty() && w.all { isRain(it.code) }
         val uv = inp.uvMax
-        if (inp.uvDay && uv != null && !rainAllDay) {
+        if (inp.uvDay && uv != null && !rainAllDay && !heavy) {
             if (uv >= 6) { addTake("gozluk"); addTake("krem"); addTake("sapka"); pills.add(t("UV yüksek", lang)) }
             else if (uv >= 3 && rawNow >= 15) addTake("gozluk")
         }

@@ -30,12 +30,13 @@ import java.util.Locale
  * - long text: the headline, with place and temperature (or the warning) as its title;
  * - small image / icon: the key garment's sticker;
  * - photo image: the whole outfit card (Ne Giysem's own face uses it in place of its weather-based outfit).
- * The data is the phone app's widget snapshot; without one, or when it is more than 12 hours old, it shows nothing.
+ * The data is the phone app's widget snapshot; without one, or when it is more than 3 hours old, it shows nothing.
  */
 class OutfitComplicationService : SuspendingComplicationDataSourceService() {
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData {
         // Missing or getting old: the phone is asked for a fresh one (it comes back through PhoneListener).
+        ActiveSlots.refresh(this)
         PhoneListener.ask(this)
         val plan = PlanStore(this).plan()?.takeIf { System.currentTimeMillis() - it.updated < PlanStore.MAX_AGE_MS }
             ?: return NoDataComplicationData()
@@ -44,8 +45,14 @@ class OutfitComplicationService : SuspendingComplicationDataSourceService() {
 
     /** Just added to a watch face: whatever the phone sent before is read now, and a fresh one is asked for. */
     override fun onComplicationActivated(complicationInstanceId: Int, type: ComplicationType) {
+        ActiveSlots.on(this, complicationInstanceId)
         PhoneListener.pull(this) {}
         PhoneListener.ask(this)
+    }
+
+    /** Taken off the watch face: once none is left, the phone stops refreshing for the watch. */
+    override fun onComplicationDeactivated(complicationInstanceId: Int) {
+        ActiveSlots.off(this, complicationInstanceId)
     }
 
     override fun getPreviewData(type: ComplicationType): ComplicationData? =

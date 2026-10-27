@@ -203,8 +203,8 @@ test("Berlin: MET probabilities, no gusts, sleet/snow/thunder mapping", async ()
     assert.equal(h.precipitation_probability[at("2026-10-27T06:00:00Z") + i], 96);
   }
   assert.equal(h.precipitation_probability[at("2026-10-28T12:00:00Z")], 12, "6-hour MET probability");
-  // No wind_speed_of_gust in this fixture: gusts are 1.5 × the wind speed.
-  assert.equal(body.current.wind_gusts_10m, Math.round(body.current.wind_speed_10m * 1.5 * 10) / 10);
+  // No wind_speed_of_gust in this fixture: no gust is made up from the mean wind (it would look like a storm).
+  assert.equal(body.current.wind_gusts_10m, null);
   // NOAA: Berlin sunset on 24 Oct 2026 is about 17:52 CEST.
   const [hh, mm] = body.daily.sunset[0].slice(11).split(":").map(Number);
   assert.ok(Math.abs(hh * 60 + mm - (17 * 60 + 52)) <= 4, body.daily.sunset[0]);
@@ -298,9 +298,10 @@ test("cache: served until MET's Expires, then revalidated with If-Modified-Since
   await atTime(NOW, async (clock) => {
     const r1 = await call(forecast, URL1);
     assert.equal(r1.res.headers.get("x-ng-cache"), "miss");
-    assert.equal(cache.puts, 1);
-    const key = [...cache.store.keys()][0];
-    assert.equal(key, `${ORIGIN}/__ng-cache/met-v1/${encodeURIComponent("41.01,28.98")}`);
+    assert.equal(cache.puts, 2, "MET's series and the built forecast");
+    const keys = [...cache.store.keys()];
+    assert.equal(keys[0], `${ORIGIN}/__ng-cache/met-v1/${encodeURIComponent("41.01,28.98")}`);
+    assert.ok(keys[1].startsWith(`${ORIGIN}/__ng-cache/built-v1/`), keys[1]);
 
     clock.now = Date.parse("2026-10-24T09:50:00Z"); // before Expires (09:51:12)
     const r2 = await call(forecast, `${ORIGIN}/api/forecast?latitude=41.012&longitude=28.981`);
@@ -308,7 +309,12 @@ test("cache: served until MET's Expires, then revalidated with If-Modified-Since
     assert.equal(calls.length, 1, "no MET call while fresh");
     assert.equal(r2.body.current.time, "2026-10-24T12:45", "current is rebuilt per request from the cached series");
 
-    clock.now = Date.parse("2026-10-24T09:52:00Z"); // expired
+    clock.now = Date.parse("2026-10-24T09:52:00Z"); // MET's copy expired, but the forecast built at 09:50 is kept until 10:00
+    const r2b = await call(forecast, URL1);
+    assert.equal(r2b.res.headers.get("x-ng-cache"), "hit");
+    assert.equal(calls.length, 1);
+
+    clock.now = Date.parse("2026-10-24T10:01:00Z"); // expired, and a new 10-minute slot
     mode = "304";
     const r3 = await call(forecast, URL1);
     assert.equal(r3.res.headers.get("x-ng-cache"), "revalidated");
@@ -356,4 +362,52 @@ test("works without caches.default (local dev) and answers HEAD", async () => {
   const head = await atTime(NOW, () => call(forecast, URL1, { method: "HEAD" }));
   assert.equal(head.res.status, 200);
   assert.equal(head.text, "");
+});
+
+test("a built forecast is reused within its 10 minutes, then rebuilt from the cached series", async () => {
+  installCache();
+  const calls = metServer();
+  await atTime(NOW, async (clock) => {
+    const a = await call(forecast, URL1);
+    clock.now = NOW + 4 * 60000; // same 10-minute slot (09:20–09:30)
+    const b = await call(forecast, URL1);
+    assert.equal(b.res.headers.get("x-ng-cache"), "hit");
+    assert.equal(b.text, a.text, "the same built answer");
+    clock.now = NOW + 11 * 60000; // next slot
+    const c = await call(forecast, URL1);
+    assert.equal(c.res.headers.get("x-ng-cache"), "hit");
+    assert.notEqual(c.body.current.time, undefined);
+    assert.equal(calls.length, 1, "MET asked once");
+  });
+});
+
+test("one place MET can't answer for doesn't sink the others; a stale copy is marked and not cached", async () => {
+  installCache();
+  metServer({ "41.01": istanbul }); // Berlin -> 404 from the fake MET
+  const two = await atTime(NOW, () => call(forecast, `${ORIGIN}/api/forecast?latitude=41.01,52.52&longitude=28.98,13.41`));
+  assert.equal(two.res.status, 200);
+  assert.ok(Array.isArray(two.body) && two.body.length === 2);
+  assert.ok(two.body[0].hourly && !two.body[0].error);
+  assert.equal(two.body[1].error, "met_status_404");
+  assert.equal(two.res.headers.get("cache-control"), "no-store");
+  assert.equal(two.res.headers.get("x-ng-cache"), "miss,error");
+
+  const none = await atTime(NOW, () => call(forecast, `${ORIGIN}/api/forecast?latitude=52.52,52.53&longitude=13.41,13.42`));
+  assert.equal(none.res.status, 502, "every place failing is an error");
+
+  installFetch(() => jsonResponse({ error: "x" }, 500));
+  const stale = await atTime(NOW + 3 * 3600e3, () => call(forecast, URL1)); // series expired, built slot long gone, MET down
+  assert.equal(stale.res.status, 200);
+  assert.equal(stale.res.headers.get("x-ng-cache"), "stale");
+  assert.equal(stale.res.headers.get("cache-control"), "no-store");
+  assert.equal(stale.body.stale, true);
+  assert.ok("met_updated_at" in stale.body);
+});
+
+test("MET refusing the coordinates (400/422) is a 400, not an outage", async () => {
+  installCache();
+  installFetch(() => jsonResponse({ error: "bad coords" }, 422));
+  const r = await atTime(NOW, () => call(forecast, URL1));
+  assert.equal(r.res.status, 400);
+  assert.equal(r.body.error, "coordinates_refused");
 });

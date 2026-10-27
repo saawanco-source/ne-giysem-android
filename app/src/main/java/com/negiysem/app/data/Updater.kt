@@ -53,6 +53,10 @@ object Updater {
     } catch (e: HttpError) {
         if (e.code == 429 || e.code >= 500) { store.markApiDown(); throw IOException("server ${e.code}") }
         throw e
+    } catch (e: org.json.JSONException) {
+        // Not JSON (a quota or error page): as good as out of reach.
+        store.markApiDown()
+        throw IOException("server answered no JSON")
     } catch (e: IOException) {
         store.markApiDown()
         throw e
@@ -73,7 +77,7 @@ object Updater {
             val api = server(store)
             if (api.isNotEmpty()) {
                 try {
-                    return points.chunked(8).flatMap { part -> parseForecasts(viaServer(store) { getText("$api/api/forecast?" + coords(part, "%.2f")) }) }
+                    return points.chunked(8).flatMap { part -> viaServer(store) { parseForecasts(getText("$api/api/forecast?" + coords(part, "%.2f"))) } }
                 } catch (e: HttpError) {
                     throw e
                 } catch (e: IOException) { /* unreachable: MET directly, below */ }
@@ -156,9 +160,10 @@ object Updater {
         val routine = Day.parse(store.routineJson)?.takeIf { it.dayMode && it.trips.isNotEmpty() }
         val tripPlaces = routine?.let { Day.tripPlaces(it) } ?: emptyList()
         val all = getForecasts(context, store, listOf(lat to lon) + tripPlaces.map { it.lat to it.lon })
-        val main = all.firstOrNull() ?: throw IOException("unexpected forecast")
+        // A place the server couldn't get comes back as {"error": …}: the main one is needed, the others are skipped.
+        val main = all.firstOrNull()?.takeIf { it.has("hourly") } ?: throw IOException("no forecast for this place")
         val places = JSONObject()
-        tripPlaces.forEachIndexed { i, p -> all.getOrNull(i + 1)?.let { places.put(p.id, it) } }
+        tripPlaces.forEachIndexed { i, p -> all.getOrNull(i + 1)?.takeIf { it.has("hourly") }?.let { places.put(p.id, it) } }
         if (store.generation != gen) return // deleted meanwhile: keep nothing
         store.saveForecast(
             JSONObject().put("at", System.currentTimeMillis()).put("lat", lat).put("lon", lon).put("name", name)

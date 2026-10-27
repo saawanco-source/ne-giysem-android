@@ -134,3 +134,13 @@ test("a departure in the past asks from now on", async () => {
   assert.deepEqual(body.routes, []);
   assert.equal(JSON.parse(calls[0].body).departureTime, new Date(NOW + 60e3).toISOString());
 });
+
+test("visitors: IPv6 counted per /64 (one line), the site's own domain and ALLOWED_ORIGINS may ask", async () => {
+  const { visitor, allowedOrigin } = routeApi;
+  assert.equal(visitor("1.2.3.4"), "1.2.3.4");
+  assert.equal(visitor("2a02:1234:abcd:1::5"), visitor("2a02:1234:abcd:1:ffff:1:2:3"));
+  assert.equal(visitor("2a02:1234::1"), "2a02:1234:0:0::/64");
+  assert.ok(allowedOrigin("https://negiysem.com", "https://negiysem.com", ""));
+  assert.ok(allowedOrigin("https://www.negiysem.com", "https://ne-giysem.pages.dev", "https://negiysem.com, https://www.negiysem.com"));
+  assert.ok(!allowedOrigin("https://evil.example", "https://negiysem.com", "https://negiysem.com"));
+});

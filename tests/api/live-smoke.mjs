@@ -58,7 +58,9 @@ function checkForecast(name, b, offsets) {
   check(h.weather_code.every((v) => KNOWN.has(v)), `${name}: known weather codes`);
   check(h.precipitation_probability.every((v) => Number.isInteger(v) && v >= 0 && v <= 100), `${name}: probabilities 0-100`);
   check(d.time.length === 7 && d.uv_index_max.length === 7 && d.sunset.length === 7, `${name}: 7 daily entries`);
-  for (const k of ["temperature_2m", "apparent_temperature", "wind_speed_10m", "wind_gusts_10m", "weather_code", "is_day"]) {
+  // Gusts only where MET gives them (none is made up from the mean wind): a number or null.
+  check(c.wind_gusts_10m === null || typeof c.wind_gusts_10m === "number", `${name}: current.wind_gusts_10m is a number or null`);
+  for (const k of ["temperature_2m", "apparent_temperature", "wind_speed_10m", "weather_code", "is_day"]) {
     check(typeof c[k] === "number", `${name}: current.${k} is a number`);
   }
   console.log(`${name}: ${b.timezone} UTC${b.utc_offset_seconds >= 0 ? "+" : ""}${b.utc_offset_seconds / 3600}, now ${c.temperature_2m}°C ` +

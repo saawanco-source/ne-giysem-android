@@ -23,6 +23,27 @@ class PhoneListener : WearableListenerService() {
 
     companion object {
         const val PATH = "/negiysem/plan"
+        /** Asks the phone app for a fresh outfit (app: WatchRequestListener). */
+        private const val REFRESH_PATH = "/negiysem/refresh"
+
+        /**
+         * Asks the phone for a fresh outfit when there is none yet or it is getting old (an hour), at most every
+         * 20 minutes; the answer comes back as a new snapshot (onDataChanged).
+         */
+        fun ask(context: Context, force: Boolean = false) {
+            val app = context.applicationContext
+            val store = PlanStore(app)
+            val now = System.currentTimeMillis()
+            val plan = store.plan()
+            if (!force && plan != null && now - plan.updated < 3_600_000L) return
+            if (now - store.asked < 20 * 60_000L) return
+            store.asked = now
+            runCatching {
+                Wearable.getNodeClient(app).connectedNodes.addOnSuccessListener { nodes ->
+                    nodes.forEach { n -> runCatching { Wearable.getMessageClient(app).sendMessage(n.id, REFRESH_PATH, ByteArray(0)) } }
+                }
+            }
+        }
 
         /** Reads the phone's current snapshot (in case a change was missed while the watch was away). */
         fun pull(context: Context, done: () -> Unit) {

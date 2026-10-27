@@ -17,9 +17,11 @@ import androidx.wear.watchface.complications.data.ShortTextComplicationData
 import androidx.wear.watchface.complications.data.SmallImage
 import androidx.wear.watchface.complications.data.SmallImageComplicationData
 import androidx.wear.watchface.complications.data.SmallImageType
+import androidx.wear.watchface.complications.data.TimeRange
 import androidx.wear.watchface.complications.datasource.ComplicationDataSourceUpdateRequester
 import androidx.wear.watchface.complications.datasource.ComplicationRequest
 import androidx.wear.watchface.complications.datasource.SuspendingComplicationDataSourceService
+import java.time.Instant
 import java.util.Locale
 
 /**
@@ -33,9 +35,17 @@ import java.util.Locale
 class OutfitComplicationService : SuspendingComplicationDataSourceService() {
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData {
+        // Missing or getting old: the phone is asked for a fresh one (it comes back through PhoneListener).
+        PhoneListener.ask(this)
         val plan = PlanStore(this).plan()?.takeIf { System.currentTimeMillis() - it.updated < PlanStore.MAX_AGE_MS }
             ?: return NoDataComplicationData()
         return build(this, plan, request.complicationType) ?: NoDataComplicationData()
+    }
+
+    /** Just added to a watch face: whatever the phone sent before is read now, and a fresh one is asked for. */
+    override fun onComplicationActivated(complicationInstanceId: Int, type: ComplicationType) {
+        PhoneListener.pull(this) {}
+        PhoneListener.ask(this)
     }
 
     override fun getPreviewData(type: ComplicationType): ComplicationData? =
@@ -58,6 +68,8 @@ class OutfitComplicationService : SuspendingComplicationDataSourceService() {
             )
             val warning = plan.liveWarning()
             val key = plan.key
+            // Too old to fit the weather after this: the watch face stops showing it even before the next update.
+            val valid = TimeRange.before(Instant.ofEpochMilli(plan.updated + PlanStore.MAX_AGE_MS))
             val sticker = Icon.createWithResource(context, Art.sticker(key?.g))
             val icon = if (warning != null) Icon.createWithResource(context, R.drawable.ic_warn) else sticker
             val said = listOfNotNull(
@@ -70,21 +82,26 @@ class OutfitComplicationService : SuspendingComplicationDataSourceService() {
                     .setTitle(text(warning?.short?.ifBlank { null } ?: warning?.title ?: key?.label ?: plan.levelName))
                     .setMonochromaticImage(MonochromaticImage.Builder(icon).build())
                     .setTapAction(open)
+                    .setValidTimeRange(valid)
                     .build()
                 ComplicationType.LONG_TEXT -> LongTextComplicationData.Builder(text(plan.headline.ifBlank { plan.levelName }), description)
                     .setTitle(text(warning?.let { "⚠ " + it.title + (if (it.whenText.isNotBlank()) " · " + it.whenText else "") }
                         ?: listOf(plan.place, plan.tempText).filter { it.isNotBlank() }.joinToString(" · ")))
                     .setSmallImage(SmallImage.Builder(if (warning != null) icon else sticker, SmallImageType.ICON).build())
                     .setTapAction(open)
+                    .setValidTimeRange(valid)
                     .build()
                 ComplicationType.SMALL_IMAGE -> SmallImageComplicationData.Builder(SmallImage.Builder(sticker, SmallImageType.ICON).build(), description)
                     .setTapAction(open)
+                    .setValidTimeRange(valid)
                     .build()
                 ComplicationType.MONOCHROMATIC_IMAGE -> MonochromaticImageComplicationData.Builder(MonochromaticImage.Builder(icon).build(), description)
                     .setTapAction(open)
+                    .setValidTimeRange(valid)
                     .build()
                 ComplicationType.PHOTO_IMAGE -> PhotoImageComplicationData.Builder(Icon.createWithBitmap(Art.card(context, plan)), description)
                     .setTapAction(open)
+                    .setValidTimeRange(valid)
                     .build()
                 else -> null
             }

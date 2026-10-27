@@ -21,9 +21,9 @@ object Day {
                        val choiceDate: String = "", val picks: Map<String, String> = emptyMap())
 
     private data class W(val time: String, val app: Double, val t: Double, val p: Double, val code: Int, val wind: Double, val day: Boolean,
-                         val mm: Double)
+                         val mm: Double, val gust: Double, val rl: Int)
     private data class Out(val time: String, val end: Long, val min: Int, val app: Double, val t: Double, val p: Double,
-                           val code: Int, val wind: Double, val day: Boolean, val place: String, val mm: Double)
+                           val code: Int, val wind: Double, val day: Boolean, val place: String, val mm: Double, val gust: Double, val rl: Int)
     private data class Ex(val out: List<Out>, val total: Int, val outMin: Int, val start: Long, val end: Long)
 
     data class Result(val input: Outfit.Input?, val next: String?)
@@ -96,7 +96,9 @@ object Day {
             code = h.optJSONArray("weather_code")?.optInt(i, 3) ?: 3,
             wind = h.optJSONArray("wind_speed_10m").dbl(i).let { if (it.isNaN()) 0.0 else it },
             day = (h.optJSONArray("is_day")?.optInt(i, 1) ?: 1) == 1,
-            mm = h.optJSONArray("precipitation").dbl(i)
+            mm = h.optJSONArray("precipitation").dbl(i),
+            gust = h.optJSONArray("wind_gusts_10m").dbl(i).let { if (it.isNaN()) 0.0 else it },
+            rl = Alerts.rainLevels(h).getOrElse(i) { 0 }
         )
     }
 
@@ -116,7 +118,8 @@ object Day {
                 outMin += st.min
                 if (w != null) {
                     val heat = if (st.m == "walk") slopeHeat(st.slope) else WAIT_HEAT
-                    out.add(Out(w.time, end, st.min, w.app + heat, w.t, w.p, w.code, if (st.m == "wait") w.wind else w.wind * 0.6, w.day, pid, w.mm))
+                    out.add(Out(w.time, end, st.min, w.app + heat, w.t, w.p, w.code, if (st.m == "wait") w.wind else w.wind * 0.6, w.day, pid, w.mm,
+                        if (st.m == "wait") w.gust else w.gust * 0.6, w.rl))
                 }
             }
             t = end
@@ -190,7 +193,7 @@ object Day {
             when (offset) {
                 0 -> {}
                 1 -> append(Outfit.t("Yarın", lang)).append(" ")
-                7 -> append(if (en) "Next " else "Haftaya ").append(Outfit.t(DAY_NAMES[todayDow], lang)).append(" ")
+                7 -> if (en) append(Outfit.t(DAY_NAMES[todayDow], lang)).append(" next week ") else append("Haftaya ").append(DAY_NAMES[todayDow]).append(" ")
                 else -> append(Outfit.t(DAY_NAMES[(todayDow + offset) % 7], lang)).append(" ")
             }
             append(first.trip.time).append(" ").append(fromName).append(" → ").append(toName)
@@ -209,7 +212,7 @@ object Day {
         val input = Outfit.Input(
             now = Outfit.Now(t = if (e0.t.isNaN()) e0.app else e0.t, app = e0.app, code = e0.code, isDay = e0.day,
                 wind = e0.wind, gust = 0.0, dir = null, rh = null, precip = 0.0),
-            window = exps.map { Outfit.Hour(it.time, it.app, it.p, it.code, it.wind, it.mm) },
+            window = exps.map { Outfit.Hour(it.time, it.app, it.p, it.code, it.wind, it.mm, it.t, it.gust, it.rl) },
             uvMax = uv,
             uvDay = exps.any { (it.time.substring(11, 13).toIntOrNull() ?: 0) in 10..16 && it.time.take(10) == e0.time.take(10) },
             trip = true

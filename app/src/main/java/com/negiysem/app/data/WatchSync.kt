@@ -11,6 +11,10 @@ import com.google.android.gms.wearable.Wearable
  */
 object WatchSync {
     const val PATH = "/negiysem/plan"
+    /** The watch app declares this (wear/src/main/res/values/wear.xml): the phone keeps refreshing for it. */
+    const val CAPABILITY = "negiysem_watch"
+    /** The watch asks for a refresh (just installed, or its outfit is old): the phone fetches and sends at once. */
+    const val REFRESH_PATH = "/negiysem/refresh"
 
     fun send(context: Context, snapshot: String) {
         runCatching {

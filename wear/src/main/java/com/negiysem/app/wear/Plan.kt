@@ -2,7 +2,15 @@ package com.negiysem.app.wear
 
 import android.content.Context
 import android.graphics.Color
+import android.text.format.DateFormat
 import org.json.JSONObject
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.Date
+import java.util.Locale
 
 /** One garment of the phone's outfit: its sticker key ("mont") and its name in the phone app's language ("Mont"). */
 data class Garment(val g: String, val label: String)
@@ -99,8 +107,27 @@ class PlanStore(context: Context) {
     fun save(json: String) { prefs.edit().putString("plan", json).putLong("received", System.currentTimeMillis()).apply() }
     fun clear() { prefs.edit().clear().apply() }
 
+    /** When the phone was last asked for a fresh outfit (PhoneListener.ask), so it isn't asked over and over. */
+    var asked: Long
+        get() = prefs.getLong("asked", 0L)
+        set(v) { prefs.edit().putLong("asked", v).apply() }
+
     companion object {
-        /** Older than this, the outfit no longer fits the weather: the complication shows nothing instead. */
-        const val MAX_AGE_MS = 12 * 3_600_000L
+        /**
+         * Older than this, the outfit may no longer fit the weather: the complication shows nothing instead (the phone's
+         * widget says "Son güncelleme" after two hours), and the watch asks the phone for a new one.
+         */
+        const val MAX_AGE_MS = 3 * 3_600_000L
+
+        /** "08:10", "dün 08:10" / "yesterday 08:10", "24 Eki 08:10": when something happened, with the day when it isn't today. */
+        fun stamp(context: Context, ms: Long): String {
+            val at = Instant.ofEpochMilli(ms).atZone(ZoneId.systemDefault())
+            val time = DateFormat.getTimeFormat(context).format(Date(ms))
+            return when (ChronoUnit.DAYS.between(at.toLocalDate(), LocalDate.now())) {
+                0L -> time
+                1L -> context.getString(R.string.yesterday_at, time)
+                else -> at.format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())) + " " + time
+            }
+        }
     }
 }

@@ -44,10 +44,14 @@ object Updater {
      */
     private fun server(store: Store): String = apiBase.takeIf { it.isNotEmpty() && !store.apiDown } ?: ""
 
-    /** Runs [call] against the server; a connection that doesn't get through marks it unreachable for a while. */
+    /**
+     * Runs [call] against the server; a connection that doesn't get through marks it unreachable for a while, and so does
+     * a server that is out of its daily quota or failing (429, 5xx): the free services are asked instead.
+     */
     private fun <T> viaServer(store: Store, call: () -> T): T = try {
         call()
     } catch (e: HttpError) {
+        if (e.code == 429 || e.code >= 500) { store.markApiDown(); throw IOException("server ${e.code}") }
         throw e
     } catch (e: IOException) {
         store.markApiDown()
@@ -57,15 +61,19 @@ object Updater {
     private fun getJson(url: String): JSONObject = JSONObject(getText(url))
 
     /** Open-Meteo answers a single object for one place and a list for several. */
+    private fun coords(points: List<Pair<Double, Double>>, fmt: String): String =
+        "latitude=" + points.joinToString(",") { String.format(Locale.US, fmt, it.first) } +
+            "&longitude=" + points.joinToString(",") { String.format(Locale.US, fmt, it.second) }
+
     private fun getForecasts(context: Context, store: Store, points: List<Pair<Double, Double>>): List<JSONObject> {
-        val q = "latitude=" + points.joinToString(",") { String.format(Locale.US, "%.4f", it.first) } +
-            "&longitude=" + points.joinToString(",") { String.format(Locale.US, "%.4f", it.second) }
+        val q = coords(points, "%.4f")
         if (apiBase.isNotEmpty()) {
             // The app's own server answers in the same shape (MET Norway data); out of reach, MET Norway directly.
+            // It takes 8 points a request and works at 2 decimals (about 1 km): home and work aren't sent more precisely.
             val api = server(store)
             if (api.isNotEmpty()) {
                 try {
-                    return parseForecasts(viaServer(store) { getText("$api/api/forecast?$q") })
+                    return points.chunked(8).flatMap { part -> parseForecasts(viaServer(store) { getText("$api/api/forecast?" + coords(part, "%.2f")) }) }
                 } catch (e: HttpError) {
                     throw e
                 } catch (e: IOException) { /* unreachable: MET directly, below */ }
@@ -141,7 +149,9 @@ object Updater {
             if (la.isNaN() || lo.isNaN()) throw IOException("no location")
             lat = la
             lon = lo
-            name = ip.optString("city").ifBlank { ip.optString("locality") }.ifBlank { "Konumun" }
+            // A JSON null ("city": null when the network's location has no city) is no name, not the text "null".
+            fun text(k: String) = if (ip.isNull(k)) "" else ip.optString(k)
+            name = text("city").ifBlank { text("locality") }.ifBlank { "Konumun" }
         }
         val routine = Day.parse(store.routineJson)?.takeIf { it.dayMode && it.trips.isNotEmpty() }
         val tripPlaces = routine?.let { Day.tripPlaces(it) } ?: emptyList()

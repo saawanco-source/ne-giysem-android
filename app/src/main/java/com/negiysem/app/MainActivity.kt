@@ -354,7 +354,7 @@ class MainActivity : Activity() {
             val ctx = applicationContext
             val changed = Store(ctx).saveFromApp(json)
             // A few seconds' wait lets a burst of edits in Rutinim become one refresh.
-            if (changed) scope.launch { if (Scheduler.hasWidgets(ctx)) Scheduler.now(ctx, replace = true, delaySeconds = 4) }
+            if (changed) scope.launch { if (Scheduler.shows(ctx)) Scheduler.now(ctx, replace = true, delaySeconds = 4) }
         }
 
         /**
@@ -365,7 +365,7 @@ class MainActivity : Activity() {
         fun saveForecast(json: String) {
             if (json.length > 4_000_000) return
             val ctx = applicationContext
-            if (Store(ctx).acceptForecast(json)) scope.launch { if (Scheduler.hasWidgets(ctx)) Scheduler.now(ctx, replace = true, delaySeconds = 2) }
+            if (Store(ctx).acceptForecast(json)) scope.launch { if (Scheduler.shows(ctx)) Scheduler.now(ctx, replace = true, delaySeconds = 2) }
         }
 
         /** "Tüm verilerimi sil": wipe the app's own store and show the empty widget until a new place is chosen. */
@@ -378,7 +378,7 @@ class MainActivity : Activity() {
             com.negiysem.app.data.WatchSync.clear(ctx)
             CoroutineScope(Dispatchers.IO).launch {
                 runCatching { NeGiysemWidget.pushAll(ctx, "") }
-                if (Scheduler.hasWidgets(ctx)) Scheduler.schedule(ctx) // stays empty: the refresh skips a wiped store
+                if (Scheduler.shows(ctx)) Scheduler.schedule(ctx) // stays empty: the refresh skips a wiped store
             }
         }
 

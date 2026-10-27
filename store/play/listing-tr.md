@@ -31,7 +31,7 @@ Sabah kapıdan çıkmadan önce tek soruya cevap: Bugün ne giysem?
 Ne Giysem?, bulunduğun yerin hava tahminine bakar ve bugün giyeceklerini büyük, renkli çıkartmalarla gösterir. Ekranın rengi günün sıcaklığına göre değişir; tişört havası mı, mont havası mı, tek bakışta anlarsın.
 
 Ne yapar?
-• Hissedilen sıcaklığa, yağmura, kara, rüzgara ve UV'ye göre bugünün kıyafeti
+• Hissedilen sıcaklığa, yağmura, kara, rüzgâra ve UV'ye göre bugünün kıyafeti
 • "Yanına al" önerileri: akşam serinleyecekse hırka, yağmur varsa şemsiye, güneş güçlüyse gözlük ve krem
 • Her çıkartmaya dokununca neden önerildiğini anlatan bilgi kartı
 • Saat saat hava şeridi ve haftalık görünüm

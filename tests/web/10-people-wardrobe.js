@@ -53,7 +53,7 @@ H.run({
     await toggle(s, ["semsiye"]);
     const tk = await take(s), head = await s.head();
     check("no umbrella owned: not offered, headline doesn't ask for it", !tk.some((x) => /Şemsiye/.test(x)) && !/emsiye/.test(head), { tk, head });
-    check("still something waterproof is worn", (await wear(s)).some((x) => /Yağmurluk|Rüzgarlık|ceket|Mont/.test(x)), await wear(s));
+    check("still something waterproof is worn", (await wear(s)).some((x) => /Yağmurluk|Rüzgârlık|ceket|Mont/.test(x)), await wear(s));
     await s.close();
   },
 

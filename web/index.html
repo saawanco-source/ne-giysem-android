@@ -38,7 +38,7 @@
   :root:not([data-theme="light"]){
     --field:color-mix(in oklab,var(--lv) 22%,#0b0d16);
     --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
-    --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55);
+    --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55); --row-in-card:rgba(0,0,0,.22);
     --input:rgba(0,0,0,.32); --input-line:rgba(246,244,238,.58);
     --hl-bg:var(--lv); --hl-ink:#14161f; --pill-bg:var(--lv); --pill-ink:#14161f; --focus:var(--lv);
     --tip-bg:#1d2030; --tip-ink:#f6f4ee; --tip-sub:rgba(246,244,238,.7);
@@ -48,7 +48,7 @@
 :root[data-theme="dark"],:root[data-night="1"]{
   --field:color-mix(in oklab,var(--lv) 22%,#0b0d16);
   --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
-  --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55);
+  --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55); --row-in-card:rgba(0,0,0,.22);
   --input:rgba(0,0,0,.32); --input-line:rgba(246,244,238,.58);
   --hl-bg:var(--lv); --hl-ink:#14161f; --pill-bg:var(--lv); --pill-ink:#14161f; --focus:var(--lv);
     --tip-bg:#1d2030; --tip-ink:#f6f4ee; --tip-sub:rgba(246,244,238,.7);
@@ -84,11 +84,13 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .ptr.spin svg{animation:spin .9s linear infinite}
 
 /* top bar */
-.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.bar{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:10px}
 .logo{display:flex;align-items:center;gap:8px;font:800 1.15rem/1 var(--font-display);letter-spacing:-.02em;white-space:nowrap}
 .logo svg{width:28px;height:28px;flex:none}
 .bar-r{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;flex:1 1 auto}
 @media (max-width:400px){.logo span{display:none}}
+/* With the install button too, the name keeps the row on a phone: the header never changes height with the place's name. */
+@media (max-width:460px){.bar:has(#installBtn:not([hidden])) .logo span{display:none}}
 .place-btn{display:inline-flex;align-items:center;gap:6px;min-width:min(8.5em,100%);max-width:100%;border:0;background:var(--chip);border-radius:999px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer}
 .place-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .place-btn svg{width:16px;height:16px;flex:none}
@@ -201,6 +203,8 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .x{border:0;background:none;font-size:20px;line-height:1;cursor:pointer;color:var(--ink2);margin-left:auto;min-width:40px;min-height:40px;border-radius:999px}
 .route-box{background:var(--card);border-radius:18px;padding:12px;margin-top:10px}
 .route-box > .ed-row:first-child{margin-top:0}
+.route-box .ed-row{background:var(--row-in-card,var(--chip))}
+[aria-invalid="true"]{border-color:#e5484d !important;outline-color:#e5484d}
 .route-box .name{font-weight:800;flex:1 1 10em}
 .add-steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
 .add-steps .lbl{font-size:13px;font-weight:700;color:var(--ink2);margin-right:2px}
@@ -542,7 +546,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         </div>
       </div>
       <div class="row">
-        <span class="rl" id="lWind" data-i18n>Rüzgar</span>
+        <span class="rl" id="lWind" data-i18n>Rüzgâr</span>
         <div class="seg" role="group" aria-labelledby="lWind" data-key="wind">
           <button type="button" data-val="calm" data-i18n>Sakin</button>
           <button type="button" data-val="breezy" data-i18n>Esintili</button>
@@ -610,7 +614,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <div class="row" id="donateRow" hidden>
         <span class="rl" data-i18n>Destek ol</span>
         <div class="chips"><a class="chip" id="donateBtn" href="#" target="_blank" rel="noopener" data-i18n>Ne Giysem?’i destekle</a></div>
-        <p class="src" data-i18n>Uygulama ücretsiz; beğendiysen küçük bir bağışla sunucu masrafına katkı olabilirsin.</p>
+        <p class="src" data-i18n>Uygulama ücretsiz; beğendiysen küçük bir bağışla sunucu masrafına katkıda bulunabilirsin.</p>
       </div>
       <div class="row" id="alertsRow" hidden>
         <span class="rl" data-i18n>Hava uyarıları</span>
@@ -670,9 +674,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   <section class="ad-slot" id="adSlot" hidden aria-label="Reklam" data-i18n-attr="aria-label"><span class="ad-lab" data-i18n>Reklam</span></section>
   <div class="consent" id="consent" hidden role="dialog" aria-labelledby="consentTxt">
     <p id="consentTxt"><span data-i18n>Ne Giysem? ücretsiz kalabilsin diye sayfada Google reklamı gösteriyoruz. Reklamlar senin ilgine göre seçilebilir mi? Bu, Google’ın çerez kullanmasına izin verir; istemezsen yine reklam görürsün ama kişiselleştirilmez.</span> <a href="gizlilik.html" target="_blank" rel="noopener" data-i18n data-i18n-attr="href">Gizlilik</a></p>
-    <div class="ed-foot"><button type="button" class="btn" data-ads="pers" data-i18n>İzin ver</button><button type="button" class="btn soft" data-ads="npa" data-i18n>Kişiselleştirme</button></div>
+    <div class="ed-foot"><button type="button" class="btn" data-ads="pers" data-i18n>İzin ver</button><button type="button" class="btn soft" data-ads="npa" data-i18n>Kişiselleştirilmesin</button></div>
   </div>
-  <p class="foot" id="foot">Hava verisi Open-Meteo.com, konum adı BigDataCloud, yer arama Photon üzerinden alınır (harita verisi © OpenStreetMap katkıcıları). Konumun yalnızca hava durumunu bulmak için bu servislere gönderilir; ayarların ve son alınan hava sadece bu cihazda saklanır.</p>
+  <p class="foot" id="foot">Hava verisi Open-Meteo.com, konum adı BigDataCloud, yer arama Photon üzerinden alınır (harita verisi © OpenStreetMap katkıda bulunanlar). Konumun yalnızca hava durumunu bulmak için bu servislere gönderilir; ayarların ve son alınan hava sadece bu cihazda saklanır.</p>
 </div>
 
 <script>
@@ -793,6 +797,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   var busy = false, lastWearSig = "", CUR = {wear:[], take:[]}, SHOWN = null;
   function curProf(){ for (var i = 0; i < S.profiles.length; i++) if (S.profiles[i].id === S.prof) return S.profiles[i]; return S.profiles[0]; }
   // The first person is stored as "Ben" until renamed; it is shown in the current language.
+  function livePlaceName(){ var sp = S.live && S.live.placeKey && S.live.placeKey !== "auto" ? placeById(S.live.placeKey) : null; return sp ? sp.name : S.live.place.name; }
+  // "Benim için" / "For me" for the app's own first person; "Deniz için" for the others.
+  function forWhom(pr){ return pr.id === "me" && pr.name === "Ben" ? tx("Benim için") : tx("{0} için", personName(pr)); }
   function personName(pr){ return pr.id === "me" && pr.name === "Ben" ? tx("Ben") : nm(pr.name); }
   // What the outfit engine needs to know about the person being dressed.
   function prefs(){ var pr = curProf(); return {feel:S.feel, act:S.act, who:pr.who, missing:pr.missing, lang:S.lang}; }
@@ -804,7 +811,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       profiles:S.profiles, prof:S.prof, gRoutes:S.gRoutes || undefined})); } catch (e) {}
     // Android app: share the chosen place, preferences, language and routine with the home-screen widget
     if (window.NeGiysemAndroid) {
-      var pl = S.live && S.live.place ? {name:S.live.place.name, lat:S.live.place.lat, lon:S.live.place.lon} : null;
+      var pl = S.live && S.live.place ? {name:livePlaceName(), lat:S.live.place.lat, lon:S.live.place.lon} : null;
       var places = S.places.map(function(p){ return {id:p.id, name:p.name, lat:p.lat, lon:p.lon}; });
       var pr = curProf();
       try { window.NeGiysemAndroid.saveState(JSON.stringify({lang:S.lang, feel:S.feel, act:S.act, hours:S.hours, place:pl, who:pr.who, missing:pr.missing,
@@ -880,7 +887,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Günüm": "My day", "Günüme göre": "For my day", "Yarınki günüme göre": "For my day tomorrow", "Düzenle": "Edit",
     "Havayı elle ayarla": "Set the weather by hand", "Sıcaklık": "Temperature", "Gökyüzü": "Sky",
     "Güneşli": "Sunny", "Parçalı": "Partly cloudy", "Kapalı": "Overcast", "Yağmurlu": "Rainy", "Karlı": "Snowy",
-    "Rüzgar": "Wind", "Sakin": "Calm", "Esintili": "Breezy", "Sert": "Strong", "Fırtına": "Storm",
+    "Rüzgâr": "Wind", "Sakin": "Calm", "Esintili": "Breezy", "Sert": "Strong", "Fırtına": "Storm",
     "Canlı hava için sağ üstten konum seç.": "For live weather, choose a location at the top right.",
     "Bu hafta": "This week", "Bavul hazırla": "Pack a bag",
     "Gündüz saatlerinin (08–20) hissedilen sıcaklığı ve senin ayarlarınla. Ayrıntı için bir güne dokun.": "Daytime (08–20) feels-like temperatures, with your settings. Tap a day for details.",
@@ -894,13 +901,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Yerlerini ve yolculuklarını eklersen kıyafet, dışarıda geçireceğin anlara göre bütün gün için seçilir.": "Add your places and trips, and the outfit is picked for the whole day, based on the times you'll be outside.",
     "Seyahat": "Travel", "Gideceğin yerin hava tahminine göre kaç gün için ne alacağını listeler.": "Lists what to pack and for how many days, from the forecast where you're going.",
     "Destek ol": "Support", "Ne Giysem?’i destekle": "Support Ne Giysem?",
-    "Uygulama ücretsiz; beğendiysen küçük bir bağışla sunucu masrafına katkı olabilirsin.": "The app is free; if you like it, a small donation helps with the server costs.",
+    "Uygulama ücretsiz; beğendiysen küçük bir bağışla sunucu masrafına katkıda bulunabilirsin.": "The app is free; if you like it, a small donation helps with the server costs.",
     "Verilerim": "My data", "Tüm verilerimi sil": "Delete all my data", "Emin misin? Silmek için tekrar bas": "Are you sure? Press again to delete",
     "Kayıtlı yerlerin, rutinin ve ayarların yalnızca bu cihazda durur. Silince uygulama ilk açıldığı haline döner.": "Your saved places, routine and settings stay on this device only. Deleting them resets the app to how it was the first time you opened it.",
     "Tüm veriler silindi; uygulama ilk açıldığı haline döndü.": "All data deleted; the app is back to how it was the first time you opened it.",
     "Rutinim": "My routine", "Bavul listesini kapat": "Close the packing list", "Kişi ekle": "Add a person", "Kapat": "Close",
     "Dolabı kapat": "Close the wardrobe", "Paylaşım kartı": "Share card", "Paylaşım kartını kapat": "Close the share card",
-    "Reklam": "Ad", "Gizlilik": "Privacy", "gizlilik.html": "privacy.html", "İzin ver": "Allow", "Kişiselleştirme": "Don't personalize",
+    "Reklam": "Ad", "Gizlilik": "Privacy", "gizlilik.html": "privacy.html", "İzin ver": "Allow", "Kişiselleştirilmesin": "Don't personalize",
     "Ne Giysem? ücretsiz kalabilsin diye sayfada Google reklamı gösteriyoruz. Reklamlar senin ilgine göre seçilebilir mi? Bu, Google’ın çerez kullanmasına izin verir; istemezsen yine reklam görürsün ama kişiselleştirilmez.":
       "To keep Ne Giysem? free, we show Google ads on this page. May the ads be picked based on your interests? That lets Google use cookies; if you'd rather not, you'll still see ads, just not personalized ones.",
     "Reklam tercihin kaydedildi; sayfa yeniden açılınca geçerli olur.": "Your ad choice is saved; it applies the next time the page opens.",
@@ -919,11 +926,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     // garments
     "Tişört": "T-shirt", "Uzun kollu": "Long sleeve", "Termal içlik": "Thermal top", "Sweatshirt": "Sweatshirt", "Hırka": "Cardigan",
     "Kazak": "Sweater", "İnce ceket": "Light jacket", "Mont": "Jacket", "Kaban": "Wool coat", "Şişme mont": "Puffer jacket", "Parka": "Parka",
-    "Yağmurluk": "Raincoat", "Rüzgarlık": "Windbreaker", "Jean": "Jeans", "Kalın pantolon": "Warm pants", "Şort": "Shorts", "Tayt": "Leggings",
+    "Yağmurluk": "Raincoat", "Rüzgârlık": "Windbreaker", "Jean": "Jeans", "Kalın pantolon": "Warm pants", "Şort": "Shorts", "Tayt": "Leggings",
     "Sneaker": "Sneakers", "Spor ayakkabı": "Running shoes", "Bot": "Boots", "Yürüyüş botu": "Hiking boots", "Sandalet": "Sandals",
     "Bere": "Beanie", "Şapka": "Cap", "Şemsiye": "Umbrella", "Güneş gözlüğü": "Sunglasses", "Atkı": "Scarf", "Eldiven": "Gloves",
     "Su": "Water", "Güneş kremi": "Sunscreen", "Yedek çorap": "Spare socks",
-    "Uzun pantolon": "Long pants", "Su itici rüzgarlık": "Water-repellent windbreaker", "İnce yağmurluk": "Light raincoat",
+    "Uzun pantolon": "Long pants", "Su itici rüzgârlık": "Water-repellent windbreaker", "İnce yağmurluk": "Light raincoat",
     "Su geçirmez ayakkabı": "Waterproof shoes", "Kaymaz bot": "Non-slip boots", "Şemsiye (%{0})": "Umbrella ({0}%)",
     "Katlanır şemsiye": "Folding umbrella", "Çorap": "Socks", "İç çamaşırı": "Underwear",
     // what each sticker is
@@ -935,13 +942,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Sweatshirt, hırka ya da ince kazak": "Sweatshirt, cardigan or a thin sweater", "Fermuarlı olursa ısınınca açarsın.": "With a zipper you can open it as you warm up.",
     "Hırka ya da önü açılan ince bir ceket": "Cardigan or a thin open-front jacket", "Katlanınca çantaya sığar.": "Folds up to fit in a bag.",
     "Kazak, polar ya da kalın sweatshirt": "Sweater, fleece or a thick sweatshirt", "Yün ve polar nemde de ısıtır.": "Wool and fleece stay warm even when damp.",
-    "Denim ceket, rüzgarlık ya da ince bomber": "Denim jacket, windbreaker or a light bomber", "Akşam serinliğine ve rüzgara yeter.": "Enough for a cool evening and some wind.",
+    "Denim ceket, rüzgârlık ya da ince bomber": "Denim jacket, windbreaker or a light bomber", "Akşam serinliğine ve rüzgâra yeter.": "Enough for a cool evening and some wind.",
     "Mont, trençkot ya da kaşe ceket": "Jacket, trench coat or a wool-blend jacket", "Yakası kapanabilen bir model seç.": "Pick one with a collar that closes.",
-    "Kaban ya da kalın, uzun mont": "Wool coat or a thick, long jacket", "Uzun boy bacakları da rüzgardan korur.": "A long cut keeps the wind off your legs too.",
+    "Kaban ya da kalın, uzun mont": "Wool coat or a thick, long jacket", "Uzun boy bacakları da rüzgârdan korur.": "A long cut keeps the wind off your legs too.",
     "Şişme mont ya da kapüşonlu kışlık mont": "Puffer jacket or a hooded winter jacket", "Kapüşonu varsa bereye gerek kalmayabilir.": "With a hood you may not need a beanie.",
     "Kalın parka ya da kürk yakalı kışlık mont": "Heavy parka or a winter jacket with a fur collar", "Uzun boy ve kapüşon şart.": "A long cut and a hood are a must.",
-    "Yağmurluk ya da su geçirmez rüzgarlık": "Raincoat or a waterproof windbreaker", "Kapüşonlu olanı rüzgarda şemsiyeden iyidir.": "In the wind, a hooded one beats an umbrella.",
-    "İnce rüzgarlık ya da yelek": "Light windbreaker or a vest", "Katlanınca cebe sığar.": "Folds up to fit in a pocket.",
+    "Yağmurluk ya da su geçirmez rüzgârlık": "Raincoat or a waterproof windbreaker", "Kapüşonlu olanı rüzgârda şemsiyeden iyidir.": "In the wind, a hooded one beats an umbrella.",
+    "İnce rüzgârlık ya da yelek": "Light windbreaker or a vest", "Katlanınca cebe sığar.": "Folds up to fit in a pocket.",
     "Jean, chino ya da kanvas pantolon": "Jeans, chinos or canvas pants", "Rahat kesim olsun; gün boyu yürümeye uygun.": "Go for a relaxed fit you can walk in all day.",
     "Kalın kumaş pantolon ya da astarlı jean": "Thick pants or lined jeans", "Çok soğukta altına ince tayt giy.": "In bitter cold, wear thin leggings underneath.",
     "Şort, keten pantolon ya da hafif etek": "Shorts, linen pants or a light skirt", "Açık renk ve keten serin tutar.": "Light colors and linen keep you cool.",
@@ -953,9 +960,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Sandalet ya da file sneaker": "Sandals or mesh sneakers", "Uzun yürüyüşte bantlı olanı ayağı tutar.": "On long walks, straps keep your feet in place.",
     "Isının önemli bir kısmı baştan kaçar.": "You lose a lot of heat through your head.",
     "Şapka ya da kep": "Cap or hat", "Siperlik yüzü güneşten korur.": "The brim shades your face from the sun.",
-    "Rüzgar sertse kapüşon daha iyi iş görür.": "In strong wind, a hood works better.",
+    "Rüzgâr sertse kapüşon daha iyi iş görür.": "In strong wind, a hood works better.",
     "UV korumalı güneş gözlüğü": "Sunglasses with UV protection", "Gözü ve göz çevresini güneşten korur.": "Protects your eyes and the skin around them.",
-    "Atkı ya da boyunluk": "Scarf or neck warmer", "Rüzgarda boynu kapatmak çok fark eder.": "Covering your neck makes a big difference in the wind.",
+    "Atkı ya da boyunluk": "Scarf or neck warmer", "Rüzgârda boynu kapatmak çok fark eder.": "Covering your neck makes a big difference in the wind.",
     "Dokunmatik uçlu olanla telefonu da kullanırsın.": "Touchscreen fingertips let you use your phone too.",
     "Su şişesi": "Water bottle", "Gün içinde azar azar iç.": "Sip a little at a time through the day.",
     "Güneş kremi (SPF 30+)": "Sunscreen (SPF 30+)", "Yüze ve enseye sür.": "Put it on your face and the back of your neck.",
@@ -975,11 +982,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "En {hafif} kıyafetlerini giy, bol su iç.": "Wear your {lightest} clothes, drink lots of water.",
     "{Şort} ve tişörtle çık, su al.": "Go out in {shorts} and a T-shirt, take water.",
     "{Uzun kollu} ve tayt yeter.": "A {long sleeve} and leggings will do.",
-    "Tayta {rüzgarlık} ekle, ısınınca açarsın.": "Add a {windbreaker} to your leggings, unzip it as you warm up.",
-    "{Termal} katman ve rüzgarlık şart.": "A {thermal} layer and a windbreaker are a must.",
-    "Yağmur var: su itici {rüzgarlık} giy, kaymayan taban seç.": "Rain today: wear a water-repellent {windbreaker} and shoes that grip.",
-    "{Kapüşonlu yağmurluğunu} giy; rüzgarda şemsiye uçar.": "Wear your {hooded raincoat}; umbrellas fly away in this wind.",
-    "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgarda şemsiye uçar.": "Wear a waterproof, {hooded} outer layer; umbrellas fly away in this wind.",
+    "Tayta {rüzgârlık} ekle, ısınınca açarsın.": "Add a {windbreaker} to your leggings, unzip it as you warm up.",
+    "{Termal} katman ve rüzgârlık şart.": "A {thermal} layer and a windbreaker are a must.",
+    "Yağmur var: su itici {rüzgârlık} giy, kaymayan taban seç.": "Rain today: wear a water-repellent {windbreaker} and shoes that grip.",
+    "{Kapüşonlu yağmurluğunu} giy; rüzgârda şemsiye uçar.": "Wear your {hooded raincoat}; umbrellas fly away in this wind.",
+    "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgârda şemsiye uçar.": "Wear a waterproof, {hooded} outer layer; umbrellas fly away in this wind.",
     "{Yağmurluğunu} giy, şemsiyeni al.": "Wear your {raincoat}, take your umbrella.",
     "Kuvvetli yağmur: {yağmurluğunu} giy, şemsiye tek başına yetmez.": "Heavy rain: wear your {raincoat}, an umbrella alone won't do.",
     "Kuvvetli yağmur: {şemsiyeni} al, dış katmanın su geçirmez olsun.": "Heavy rain: take your {umbrella} and wear a waterproof outer layer.",
@@ -988,7 +995,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "{0} yanına al, {1} serinliyor.": "Take your {0}, it gets chilly {1}.",
     // pills, reasons and tips
     "Yağmur yağıyor": "Raining", "Yağmur %{0}": "Rain {0}%", "Çiseliyor": "Drizzling", "Çiseleme %{0}": "Drizzle {0}%", "Yağmur ihtimali %{0}": "Chance of rain {0}%", "Kar yağıyor": "Snowing", "Kar": "Snow",
-    "Buzlanma": "Icy", "UV yüksek": "High UV", "Sis": "Fog",
+    "Buzlanma": "Icy", "UV yüksek": "High UV", "Sis": "Fog", "Gök gürültüsü": "Thunder",
+    "Rüzgâr çok sert: {0} giy, yakanı kapat.": "The wind is very strong: wear your {0} and zip it up.",
     "Arazide güneşe ve dallara karşı": "Out in the field, against sun and branches",
     "Arazide çalıya ve keneye karşı uzun ve dayanıklı olsun": "In the field, long and sturdy against brush and ticks",
     "Engebeli yolda bileği korur, kaymaz": "Protects your ankles on rough ground and doesn't slip",
@@ -1004,11 +1012,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Saatte {0} mm'ye kadar yağmur; şemsiye tek başına yetmez": "Up to {0} mm of rain an hour; an umbrella alone won't do",
     "Kar ve buzda kaymaz taban": "Non-slip soles for snow and ice", "Kar var; eller ilk üşüyen yer": "Snow ahead; hands get cold first",
     "Kar bekleniyor": "Snow expected", "{0}: su itici olsun": "{0}: make it water-repellent",
-    "Donan yağmur: yerde buzlanma olabilir": "Freezing rain: the ground may be icy",
+    "Yağış donabilir; yerde buzlanma olabilir": "Rain may freeze; the ground may be icy",
     "Yerde buzlanma olabilir; kaymaz tabanlı ayakkabı giy, adımlarını kısalt.": "The ground may be icy; wear non-slip shoes and take shorter steps.",
     "Gök gürültüsü varken açık alanda ve ağaç altında bekleme.": "When there's thunder, don't wait in the open or under trees.",
-    "{0}: rüzgar geçirmez olsun, yakası kapansın": "{0}: windproof, with a collar that closes", "{0}; ince bir rüzgarlık yeter": "{0}; a light windbreaker is enough",
-    "Rüzgar çok sert; şemsiye yerine kapüşon kullan.": "The wind is very strong; use a hood instead of an umbrella.",
+    "{0}: rüzgâr geçirmez olsun, yakası kapansın": "{0}: windproof, with a collar that closes", "{0}; ince bir rüzgârlık yeter": "{0}; a light windbreaker is enough",
+    "Rüzgâr çok sert; şemsiye yerine kapüşon kullan.": "The wind is very strong; use a hood instead of an umbrella.",
     "{0}: güneş yüksek": "{0}: strong sun", "{0}: açıkta kalan cilde": "{0}: for exposed skin", "{0}: yüzü ve enseyi korur": "{0}: protects your face and neck",
     "{0}: güneş gözü yorar": "{0}: the sun strains your eyes", "Nem yüksek; pamuk ya da keten seç.": "It's humid; pick cotton or linen.",
     "Arazide ayak ıslanırsa değiştirirsin": "To change into if your feet get wet in the field", "Sıcakta su kaybın artar": "You lose more water in the heat",
@@ -1025,7 +1033,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Düz": "Flat", "Hafif yokuş": "Gentle uphill", "Dik yokuş": "Steep uphill",
     "Pzt": "Mon", "Sal": "Tue", "Çar": "Wed", "Per": "Thu", "Cum": "Fri", "Cmt": "Sat", "Paz": "Sun",
     "Pazar": "Sunday", "Pazartesi": "Monday", "Salı": "Tuesday", "Çarşamba": "Wednesday", "Perşembe": "Thursday", "Cuma": "Friday", "Cumartesi": "Saturday",
-    "Bugün": "Today", "Yarın": "Tomorrow", "Haftaya {0}": "Next {0}", "dışarıda {0} dk": "outside {0} min",
+    "Bugün": "Today", "Yarın": "Tomorrow", "Haftaya {0}": "{0} next week", "dışarıda {0} dk": "outside {0} min",
     "Yağmur sen toplu taşımadayken yağıyor; dışarıdaki anlarında kuru.": "It rains while you're on public transit; it's dry while you're outside.",
     "Toplu taşımada içerisi sıcak olur; önü açılan bir dış katman seç.": "It's warm on public transit; pick an outer layer that opens at the front.",
     "Yokuşta ısınırsın; dış katmanı açabileceğin şekilde giy.": "You'll warm up on the hill; wear an outer layer you can open.",
@@ -1040,7 +1048,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Şimdi": "Now", "yağış ihtimali": "chance of rain", "hissedilen": "feels like", "Önümüzdeki {0} saat": "Next {0} hours",
     "Yağış <b>%{0}</b>": "Rain <b>{0}%</b>", "Nem <b>%{0}</b>": "Humidity <b>{0}%</b>", "Gün batımı <b>{0}</b>": "Sunset <b>{0}</b>",
     "Güncelleme <b>{0}</b>": "Updated <b>{0}</b>", " · {0} saat önce": function(n){ return " · " + plural(n, "hour", "hours") + " ago"; },
-    "Rüzgar {0} km/sa": "Wind {0} km/h",
+    "Rüzgâr {0} km/sa": "Wind {0} km/h",
     "Öneri şu an bulunduğun yerin havasına göre. Günün tamamına göre seçilmesi için “Günüme göre”yi aç.": "The suggestion is for the weather where you are now. Turn on “For my day” to plan for your whole day.",
     "Yolculuklarının havasını almak için yenile düğmesine bas.": "Press refresh to get the weather for your trips.",
     "Yolculuklarının yerleri eksik ya da başlangıçla varış aynı. Rutinim’den yolculuklarını kontrol et.": "Some trip places are missing, or a trip starts and ends at the same place. Check your trips in My routine.",
@@ -1053,6 +1061,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     // this week, rain, packing list
     "Hissedilen {0} – {1}": "Feels like {0} – {1}", "Kar ihtimali %{0}": "Chance of snow {0}%", "Yağış ihtimali %{0}": "Chance of rain {0}%",
     "su itici bir üst al": "take a water-repellent top", "kapüşonlu bir dış katman giy": "wear a hooded outer layer", "şemsiyeni al": "take your umbrella",
+    "yağmurluğunu giy, şemsiyeni de al": "wear your raincoat and take your umbrella too",
     "<b>Yağmur {0} civarı</b> başlıyor; {1}.": "<b>Rain starts around {0}</b>; {1}.",
     "<b>Yağmur {0} civarı</b> başlıyor; {1} yolunda ({2}) {3}.": "<b>Rain starts around {0}</b>; on your {1} trip ({2}), {3}.",
     "<b>Yağmur {0} civarı</b> {1} yolunda; {2}.": "<b>Rain around {0}</b> on your {1} trip; {2}.",
@@ -1127,7 +1136,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Kaç gün?": "How many days?", "{0} gün": function(n){ return plural(n, "day", "days"); }, "Hava alınıyor…": "Getting the weather…",
     "{0} için kayıtlı tahmin eski; listeyi hazırlamak için güncel tahmin gerekiyor.": "The saved forecast for {0} is old; the list needs a fresh forecast.",
     "{0} için hava tahmini henüz alınmadı; listeyi hazırlamak için önce havasını al.": "There's no forecast for {0} yet; get its weather first to make the list.",
-    "{0} havasını al": "Get the weather for {0}", "{0} · {1} gün": function(a, n){ return a + " · " + plural(n, "day", "days"); }, "{0} hazır": "{0} packed",
+    "{0} için havayı al": "Get the weather for {0}", "{0} · {1} gün": function(a, n){ return a + " · " + plural(n, "day", "days"); }, "{0} hazır": "{0} packed",
     "Son {0} gün için henüz tahmin yok: adetler {1} güne, hava ilk {2} güne göre.": function(a, b, c){
       return "No forecast yet for the last " + (+a === 1 ? "day" : a + " days") + ": the counts are for " + plural(b, "day", "days") + ", the weather for the first " + (+c === 1 ? "day" : c + " days") + "."; },
     ", {0} adet": ", quantity {0}", "Listeyi paylaş": "Share the list", "Listeyi kopyala": "Copy the list", "İşaretleri temizle": "Clear the checkmarks",
@@ -1140,7 +1149,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Kişiyi düzenle": "Edit person", "Adı": "Name", "Ör. Deniz": "E.g. Alex", "Yaş grubu": "Age group",
     "Çocuklar ve 65 yaş üstü kişiler daha çabuk üşür; onlar için bir kat daha sıcak giyim önerilir. Soğuğa karşı ayarını ve dolabını bu kişiyi seçince ayrıca belirleyebilirsin.":
       "Children and people over 65 get cold faster, so one warmer layer is suggested for them. Once you pick this person, you can set their cold tolerance and wardrobe separately.",
-    "Kaydet": "Save", "Kişiyi sil": "Delete person", "{0} silindi.": "{0} deleted.", "Öneri {0} için{1}.": "The suggestion is for {0}{1}.",
+    "Kaydet": "Save", "Kişiyi sil": "Delete person", "{0} silindi.": "{0} deleted.", "Öneri {0} için{1}.": "The suggestion is for {0}{1}.", "Öneri senin için{0}.": "The suggestion is for you{0}.", "Bir ad yaz.": "Type a name.",
+    "Yer ekle": "Add a place", "Çevrimdışısın; kayıtlı hava tahmini eskidi, elle ayar gösteriliyor.": "You're offline; the saved forecast is too old, so the manual settings are shown.",
+    "Öneri artık senin için{0}.": "The suggestion is now for you{0}.", "Benim için": "For me",
     "{0} · Dolabım": "{0} · My wardrobe",
     "Dolabında olmayan parçalara dokun; öneride onların yerine elindeki en yakın parça çıkar.": "Tap the pieces you don't have; the closest piece you do have is suggested instead.",
     "var": "have", "yok": "missing", "Hepsi var": "I have them all",
@@ -1187,7 +1198,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "{0}, öneri şu anki yerine göre. {1} {2} için önizleme Günüm kartında.": "{0}, so the suggestion is for where you are now. The preview for {1} {2} is in the My day card.",
     "{0} bir yolculukta kullanılıyor; önce o yolculuğu sil ya da değiştir.": "{0} is used in a trip; delete or change that trip first.",
     " Gösterilen hava hâlâ onun; başka bir yer seç.": " The weather shown is still for that place; choose another one.", "Geri al": "Undo",
-    "{0} zaten kayıtlı.": "{0} is already saved.", "{0} yerlerine eklendi.": "{0} was added to your places.", "{0} zaten kayıtlı; o seçildi.": "{0} is already saved; it's selected now.",
+    "{0} zaten kayıtlı.": "{0} is already saved.", "{0} kayıtlı yerlerine eklendi.": "{0} was added to your places.", "{0} zaten kayıtlı; o seçildi.": "{0} is already saved; it's selected now.",
     "“{0}” aranıyor…": "Searching for “{0}”…",
     "Çevrimdışısın; yer aramak için internete bağlan.": "You're offline; connect to the internet to search for places.",
     "Yer arama servisi şu an çok yoğun; biraz sonra tekrar dene.": "The place search service is very busy right now; try again in a bit.",
@@ -1199,7 +1210,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "{0} kaydedildi; bu yer için konum izni hiç sorulmaz. “Ev” gibi bir ad verebilirsin.": "{0} saved; location permission is never asked for this place. You can give it a name like “Home”.",
     "Konumumu güncelle": "Update my location", "bugün {0}": "today {0}", "dün {0}": "yesterday {0}",
     "Son bilinen konumun kullanılıyor ({0}).": "Using your last known location ({0}).",
-    "Tarayıcın izni hatırlamıyor; bundan sonra bu konum kullanılır, tekrar sorulmaz. Kaydedersen hep hazır olur.": "Your browser doesn't remember the permission; this location will be used from now on, without asking again. Save it to always have it ready.",
+    "Tarayıcın konum iznini hatırlamıyor; bundan sonra bu konum kullanılır, tekrar sorulmaz. Kaydedersen hep hazır olur.": "Your browser doesn't remember the permission; this location will be used from now on, without asking again. Save it to always have it ready.",
     "Bu konumu kaydet": "Save this location",
     "Bu sitenin konum izni kapalı; izin vermek için tarayıcının site ayarlarını ya da telefon ayarlarını aç. Son bilinen konumun kullanıldı ({0}).": "Location permission is off for this site; to allow it, open your browser's site settings or your phone settings. Your last known location was used ({0}).",
     "Konum izni verilmedi; son bilinen konumun kullanıldı ({0}).": "Location permission wasn't given; your last known location was used ({0}).",
@@ -1295,7 +1306,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     corap: '<path d="M22 6 H36 V36 L48 44 Q54 48 50 54 Q46 59 40 55 L24 45 Q22 43 22 39 Z" fill="#ffffff"/><path d="M22 12 H36 M22 18 H36" stroke="#ef5b4a" stroke-width="2.6" fill="none"/>'
   };
   function art(g){ return '<svg viewBox="0 0 64 64" aria-hidden="true" stroke="' + INK + '" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">' + (ART[g] || ART.tshirt) + '</svg>'; }
-  var G = {tshirt:"Tişört", longsleeve:"Uzun kollu", thermal:"Termal içlik", sweatshirt:"Sweatshirt", hirka:"Hırka", kazak:"Kazak", ceket:"İnce ceket", mont:"Mont", kaban:"Kaban", sisme:"Şişme mont", parka:"Parka", yagmurluk:"Yağmurluk", ruzgarlik:"Rüzgarlık", jean:"Jean", pantolon:"Kalın pantolon", sort:"Şort", tayt:"Tayt", sneaker:"Sneaker", spor:"Spor ayakkabı", bot:"Bot", yuruyus:"Yürüyüş botu", sandalet:"Sandalet", bere:"Bere", sapka:"Şapka", semsiye:"Şemsiye", gozluk:"Güneş gözlüğü", atki:"Atkı", eldiven:"Eldiven", su:"Su", krem:"Güneş kremi", corap:"Yedek çorap"};
+  var G = {tshirt:"Tişört", longsleeve:"Uzun kollu", thermal:"Termal içlik", sweatshirt:"Sweatshirt", hirka:"Hırka", kazak:"Kazak", ceket:"İnce ceket", mont:"Mont", kaban:"Kaban", sisme:"Şişme mont", parka:"Parka", yagmurluk:"Yağmurluk", ruzgarlik:"Rüzgârlık", jean:"Jean", pantolon:"Kalın pantolon", sort:"Şort", tayt:"Tayt", sneaker:"Sneaker", spor:"Spor ayakkabı", bot:"Bot", yuruyus:"Yürüyüş botu", sandalet:"Sandalet", bere:"Bere", sapka:"Şapka", semsiye:"Şemsiye", gozluk:"Güneş gözlüğü", atki:"Atkı", eldiven:"Eldiven", su:"Su", krem:"Güneş kremi", corap:"Yedek çorap"};
   // What each sticker stands for: where it goes, what else works, and one practical tip.
   var INFO = {
     tshirt:{slot:"Üst · iç katman", alt:"Pamuklu tişört ya da ince polo", tip:"Açık renk ve pamuk serin tutar."},
@@ -1304,13 +1315,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     sweatshirt:{slot:"Üst · orta katman", alt:"Sweatshirt, hırka ya da ince kazak", tip:"Fermuarlı olursa ısınınca açarsın."},
     hirka:{slot:"Üst · orta katman", alt:"Hırka ya da önü açılan ince bir ceket", tip:"Katlanınca çantaya sığar."},
     kazak:{slot:"Üst · orta katman", alt:"Kazak, polar ya da kalın sweatshirt", tip:"Yün ve polar nemde de ısıtır."},
-    ceket:{slot:"Dış katman", alt:"Denim ceket, rüzgarlık ya da ince bomber", tip:"Akşam serinliğine ve rüzgara yeter."},
+    ceket:{slot:"Dış katman", alt:"Denim ceket, rüzgârlık ya da ince bomber", tip:"Akşam serinliğine ve rüzgâra yeter."},
     mont:{slot:"Dış katman", alt:"Mont, trençkot ya da kaşe ceket", tip:"Yakası kapanabilen bir model seç."},
-    kaban:{slot:"Dış katman", alt:"Kaban ya da kalın, uzun mont", tip:"Uzun boy bacakları da rüzgardan korur."},
+    kaban:{slot:"Dış katman", alt:"Kaban ya da kalın, uzun mont", tip:"Uzun boy bacakları da rüzgârdan korur."},
     sisme:{slot:"Dış katman", alt:"Şişme mont ya da kapüşonlu kışlık mont", tip:"Kapüşonu varsa bereye gerek kalmayabilir."},
     parka:{slot:"Dış katman", alt:"Kalın parka ya da kürk yakalı kışlık mont", tip:"Uzun boy ve kapüşon şart."},
-    yagmurluk:{slot:"Dış katman", alt:"Yağmurluk ya da su geçirmez rüzgarlık", tip:"Kapüşonlu olanı rüzgarda şemsiyeden iyidir."},
-    ruzgarlik:{slot:"Dış katman", alt:"İnce rüzgarlık ya da yelek", tip:"Katlanınca cebe sığar."},
+    yagmurluk:{slot:"Dış katman", alt:"Yağmurluk ya da su geçirmez rüzgârlık", tip:"Kapüşonlu olanı rüzgârda şemsiyeden iyidir."},
+    ruzgarlik:{slot:"Dış katman", alt:"İnce rüzgârlık ya da yelek", tip:"Katlanınca cebe sığar."},
     jean:{slot:"Alt", alt:"Jean, chino ya da kanvas pantolon", tip:"Rahat kesim olsun; gün boyu yürümeye uygun."},
     pantolon:{slot:"Alt", alt:"Kalın kumaş pantolon ya da astarlı jean", tip:"Çok soğukta altına ince tayt giy."},
     sort:{slot:"Alt", alt:"Şort, keten pantolon ya da hafif etek", tip:"Açık renk ve keten serin tutar."},
@@ -1322,15 +1333,15 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     sandalet:{slot:"Ayak", alt:"Sandalet ya da file sneaker", tip:"Uzun yürüyüşte bantlı olanı ayağı tutar."},
     bere:{slot:"Baş", alt:"Bere", tip:"Isının önemli bir kısmı baştan kaçar."},
     sapka:{slot:"Baş", alt:"Şapka ya da kep", tip:"Siperlik yüzü güneşten korur."},
-    semsiye:{slot:"Yanına al", alt:"Katlanır şemsiye", tip:"Rüzgar sertse kapüşon daha iyi iş görür."},
+    semsiye:{slot:"Yanına al", alt:"Katlanır şemsiye", tip:"Rüzgâr sertse kapüşon daha iyi iş görür."},
     gozluk:{slot:"Yanına al", alt:"UV korumalı güneş gözlüğü", tip:"Gözü ve göz çevresini güneşten korur."},
-    atki:{slot:"Yanına al", alt:"Atkı ya da boyunluk", tip:"Rüzgarda boynu kapatmak çok fark eder."},
+    atki:{slot:"Yanına al", alt:"Atkı ya da boyunluk", tip:"Rüzgârda boynu kapatmak çok fark eder."},
     eldiven:{slot:"Yanına al", alt:"Eldiven", tip:"Dokunmatik uçlu olanla telefonu da kullanırsın."},
     su:{slot:"Yanına al", alt:"Su şişesi", tip:"Gün içinde azar azar iç."},
     krem:{slot:"Yanına al", alt:"Güneş kremi (SPF 30+)", tip:"Yüze ve enseye sür."},
     corap:{slot:"Yanına al", alt:"Yedek çorap", tip:"Islak çorap ayağı çabuk üşütür."}
   };
-  var ACC = {hirka:"Hırkanı", ceket:"İnce ceketini", mont:"Montunu", kaban:"Kabanını", sisme:"Şişme montunu", parka:"Parkanı", kazak:"Kazağını", sweatshirt:"Sweatshirtünü", bere:"Bereni", atki:"Atkını", ruzgarlik:"Rüzgarlığını", yagmurluk:"Yağmurluğunu", eldiven:"Eldivenlerini"};
+  var ACC = {hirka:"Hırkanı", ceket:"İnce ceketini", mont:"Montunu", kaban:"Kabanını", sisme:"Şişme montunu", parka:"Parkanı", kazak:"Kazağını", sweatshirt:"Sweatshirtünü", bere:"Bereni", atki:"Atkını", ruzgarlik:"Rüzgârlığını", yagmurluk:"Yağmurluğunu", eldiven:"Eldivenlerini"};
   var OUTER = ["ceket","mont","kaban","sisme","parka","yagmurluk","ruzgarlik"], MID = ["hirka","sweatshirt","kazak"];
   var SHOES = ["sneaker","spor","bot","yuruyus","sandalet"], BOTTOMS = ["jean","pantolon","sort","tayt"];
 
@@ -1358,8 +1369,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   var SPORT = function(L){
     if (L >= 6) return {wear:["tshirt","sort","spor"], take:["su"], head:"{Şort} ve tişörtle çık, su al."};
     if (L >= 4) return {wear:["longsleeve","tayt","spor"], take:["su"], head:"{Uzun kollu} ve tayt yeter."};
-    if (L >= 2) return {wear:["longsleeve","ruzgarlik","tayt","spor"], take:["su"], head:"Tayta {rüzgarlık} ekle, ısınınca açarsın."};
-    return {wear:["thermal","ruzgarlik","tayt","spor","bere"], take:["eldiven"], head:"{Termal} katman ve rüzgarlık şart."};
+    if (L >= 2) return {wear:["longsleeve","ruzgarlik","tayt","spor"], take:["su"], head:"Tayta {rüzgârlık} ekle, ısınınca açarsın."};
+    return {wear:["thermal","ruzgarlik","tayt","spor","bere"], take:["eldiven"], head:"{Termal} katman ve rüzgârlık şart."};
   };
   var FEEL_OFF = {cold:-3, normal:0, warm:3}, ACT_OFF = {city:0, field:-1, sport:6};
   /* ---- people and wardrobe ---- */
@@ -1378,7 +1389,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   var MUST = OUTER.concat(MID, ["thermal","longsleeve","tshirt"], BOTTOMS, SHOES);
   // How a headline names each piece (any form), to notice a headline that talks about a piece the person doesn't have.
   var STEMS = {parka:"parka", sisme:"şişme mont", kaban:"kaban", mont:"mont", ceket:"ceket", hirka:"hırka", sweatshirt:"sweatshirt", tshirt:"tişört",
-    thermal:"termal", kazak:"kaza", yagmurluk:"yağmurlu", ruzgarlik:"rüzgarlı", bere:"bere", atki:"atkı", eldiven:"eldiven", sort:"şort", tayt:"tayt",
+    thermal:"termal", kazak:"kaza", yagmurluk:"yağmurlu", ruzgarlik:"rüzgârlı", bere:"bere", atki:"atkı", eldiven:"eldiven", sort:"şort", tayt:"tayt",
     longsleeve:"uzun kollu", semsiye:"şemsiye", sapka:"şapka"};
   // Wardrobe editor groups (everyday consumables like water and socks aren't listed).
   var WARDROBE = [["Üst", ["tshirt","longsleeve","thermal","sweatshirt","hirka","kazak"]], ["Dış katman", ["ceket","ruzgarlik","yagmurluk","mont","kaban","sisme","parka"]],
@@ -1424,7 +1435,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var codes = [inp.now.code].concat(W.map(function(h){ return h.code; }));
     var pMax = Math.round(Math.max.apply(null, [0].concat(W.map(function(h){ return h.p || 0; }))));
     var windMax = Math.round(Math.max.apply(null, [inp.now.wind || 0].concat(W.map(function(h){ return h.wind || 0; }))));
-    var gust = Math.round(inp.now.gust || 0);
+    // The strongest gust while out, not only the one blowing now (a storm due in two hours counts).
+    var gust = Math.round(Math.max.apply(null, [inp.now.gust || 0].concat(W.map(function(h){ return h.gust || 0; }))));
     var wi = windIdx(inp.now.dir);
     var precipNow = !trip && (inp.now.precip || 0) >= 0.2;
     var snowNow = !trip && (isSnow(inp.now.code) || (precipNow && !isRain(inp.now.code) && fin(inp.now.t) && inp.now.t <= 0.5));
@@ -1432,17 +1444,24 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var snowy = snowNow || codes.some(isSnow);
     var wet = rainNow || (codes.some(isRain) && pMax >= (trip ? 30 : 40)) || (pMax >= 60 && !snowy);
     var maybe = !wet && !snowy && pMax >= 30;
-    var icy = codes.some(function(c){ return c === 56 || c === 57 || c === 66 || c === 67; });
+    // Freezing rain, or rain falling at about 0° (as the ice warning): the ground may freeze.
+    var iceCode = function(c){ return (c >= 51 && c <= 67) || (c >= 80 && c <= 82); };
+    var icy = codes.some(function(c){ return c === 56 || c === 57 || c === 66 || c === 67; }) ||
+      (fin(inp.now.t) && inp.now.t <= 0.5 && iceCode(inp.now.code)) || W.some(function(h){ return fin(h.t) && h.t <= 0.5 && iceCode(h.code); });
     var thunder = codes.some(function(c){ return c >= 95; });
     // How hard it rains, in mm an hour: the wettest hour ahead (snow aside) or what is falling now. Drizzle (under
     // 0.5 mm) needs no raincoat or boots; from 6 mm an umbrella alone won't do (the heavy-rain warning starts there too).
     var mms = W.filter(function(h){ return fin(h.mm) && !isSnow(h.code); }).map(function(h){ return h.mm; });
     if (!trip && !snowNow && fin(inp.now.precip) && inp.now.precip > 0) mms.push(inp.now.precip);
     var mmMax = mms.length ? Math.max.apply(null, mms) : null;
-    var heavy = wet && mmMax != null && mmMax >= 6;
-    var drizzle = wet && !heavy && !thunder && mmMax != null && mmMax >= 0.1 && mmMax < 0.5 && !codes.some(function(c){ return c === 65 || c === 67 || c === 82; });
+    // Heavy as the warning card counts it too: an hour of 6 mm, or any wet hour of a six-hour spell bringing 20 mm.
+    var heavy = wet && ((mmMax != null && mmMax >= 6) || W.some(function(h){ return (h.rl || 0) >= 1; }));
+    // Drizzle: under 0.5 mm an hour, or no amount at all with only drizzle / light-rain codes.
+    var rainCodes = codes.filter(function(c){ return isRain(c); });
+    var lightOnly = rainCodes.length > 0 && rainCodes.every(function(c){ return c === 51 || c === 53 || c === 55 || c === 61 || c === 80; });
+    var drizzle = wet && !heavy && !thunder && mmMax != null && mmMax < 0.5 && (mmMax >= 0.1 || lightOnly) && !codes.some(function(c){ return c === 65 || c === 67 || c === 82; });
     var windy = windMax >= 28 || gust >= 45;
-    var stormy = windMax >= 45 || gust >= 70;
+    var stormy = windMax >= 50 || gust >= 70; // as the storm warning
     var hasOuter = wear.some(function(w){ return OUTER.indexOf(w.g) >= 0; });
 
     if (P.act === "field") {
@@ -1471,6 +1490,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       if (cand) {
         take = take.filter(function(t){ return OUTER.indexOf(t.g) < 0 && MID.indexOf(t.g) < 0; }); addTake(cand, null, true);
         why(cand, carryWhy); carry = cand;
+        // A big drop (three levels or more) needs more than one piece: a warm layer under the coat, or gloves and a scarf.
+        if (Llow <= L - 3) {
+          var more = OUTER.indexOf(cand) >= 0 ? [inGroup(MID)] : pool.filter(function(g){ return ["eldiven","atki","bere"].indexOf(g) >= 0 && g !== cand; }).slice(0, 2);
+          more.forEach(function(g){ if (g) { addTake(g); why(g, carryWhy); } });
+        }
       }
       if (cand && ACC[cand] && !sport) {
         var gets = rawLow + off < 8 ? "{0} yanına al, {1} soğuyor." : "{0} yanına al, {1} serinliyor.";
@@ -1481,7 +1505,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     } else if (Lhigh > L && highAt) {
       var dpH = daypart(highAt);
       pills.push(cap(tx(dpH)) + " " + deg(rawHigh));
-      notes.push(en ? "It warms up " + DP_AT[dpH] + "; pick a layer that's easy to take off." : cap(dpH) + " ısınıyor; kolay çıkarılan bir katman seç.");
+      if (wear.some(function(w){ return OUTER.indexOf(w.g) >= 0 || MID.indexOf(w.g) >= 0; }))
+        notes.push(en ? "It warms up " + DP_AT[dpH] + "; pick a layer that's easy to take off." : cap(dpH) + " ısınıyor; kolay çıkarılan bir katman seç.");
     }
 
     if (wet) {
@@ -1489,9 +1514,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var rainWhy = rainNow ? tx("Şu an yağmur yağıyor") : tx(trip ? "Yolculuğunda yağmur ihtimali %{0}" : "Dışarıdayken yağmur ihtimali %{0}", pMax);
       if (sport) {
         // No umbrella while running: a water-repellent shell instead.
-        if (!has("ruzgarlik")) wear.push({g:"ruzgarlik", label:tx("Su itici rüzgarlık")});
+        if (!has("ruzgarlik")) wear.push({g:"ruzgarlik", label:tx("Su itici rüzgârlık")});
         why("ruzgarlik", tx("{0}; su itici olsun", rainWhy));
-        headT = "Yağmur var: su itici {rüzgarlık} giy, kaymayan taban seç."; head = tx(headT);
+        headT = "Yağmur var: su itici {rüzgârlık} giy, kaymayan taban seç."; head = tx(headT);
       } else if (drizzle) {
         // Just drizzle: an umbrella in the bag, or a hood in the wind; no raincoat, no boots.
         if (!windy) { addTake("semsiye"); why("semsiye", tx("Hafif çiseleme; çantada dursun")); }
@@ -1512,11 +1537,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           if (!heavy) notes.push(tx("Dış katmanın su geçirmez olsun."));
           why(outerNow(), tx("{0}: su geçirmez ya da su itici olsun", rainWhy));
         }
-        if (P.act === "city" && !hot && wear.some(function(w){ return w.g === "sneaker" || w.g === "sandalet"; })) {
+        if (P.act === "city" && (!hot || heavy) && wear.some(function(w){ return w.g === "sneaker" || w.g === "sandalet"; })) {
           swap(SHOES, "bot", tx("Su geçirmez ayakkabı")); why("bot", tx("Islak zeminde su geçirmez olsun; kanvas ve süetten kaçın"));
           infoOv.bot = {alt:"Su geçirmez sneaker ya da bot", tip:"Kalın tabanlı olanı su birikintisinde de ayağı kuru tutar."};
         }
-        if (windy) { headT = addedCoat ? "{Kapüşonlu yağmurluğunu} giy; rüzgarda şemsiye uçar." : "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgarda şemsiye uçar."; head = tx(headT); }
+        if (windy) { headT = addedCoat ? "{Kapüşonlu yağmurluğunu} giy; rüzgârda şemsiye uçar." : "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgârda şemsiye uçar."; head = tx(headT); }
         else {
           addTake("semsiye", null, true); why("semsiye", rainWhy);
           if (heavy) { headT = addedCoat ? "Kuvvetli yağmur: {yağmurluğunu} giy, şemsiye tek başına yetmez." : "Kuvvetli yağmur: {şemsiyeni} al, dış katmanın su geçirmez olsun."; head = tx(headT); }
@@ -1540,24 +1565,34 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (icy) {
       pills.unshift(tx("Buzlanma"));
       if (P.act === "city") {
-        swap(SHOES, "bot", tx("Kaymaz bot")); why("bot", tx("Donan yağmur: yerde buzlanma olabilir"));
+        swap(SHOES, "bot", tx("Kaymaz bot")); why("bot", tx("Yağış donabilir; yerde buzlanma olabilir"));
         infoOv.bot = {alt:"Tırtıklı, kaymaz tabanlı bot", tip:"Kalın çorapla giy; buzda adımlarını kısalt."};
       }
       notes.unshift(tx("Yerde buzlanma olabilir; kaymaz tabanlı ayakkabı giy, adımlarını kısalt."));
     }
     if (thunder) {
-      pills.unshift(tx("Fırtına"));
+      pills.unshift(tx("Gök gürültüsü"));
       notes.unshift(tx("Gök gürültüsü varken açık alanda ve ağaç altında bekleme."));
+    }
+    // Storm-force wind (as the storm warning): something windproof is worn, not carried.
+    if (stormy && !sport && !outerNow() && L < 7) {
+      var tkO = take.filter(function(t){ return OUTER.indexOf(t.g) >= 0; })[0], gO = tkO ? tkO.g : "ruzgarlik", lbO = tkO ? tkO.label : gl("ruzgarlik");
+      take = take.filter(function(t){ return t.g !== gO; });
+      wear.push({g:gO, label:lbO});
+      if ((!wet || drizzle) && !snowy) {
+        headT = fill("Rüzgâr çok sert: {0} giy, yakanı kapat.", ["{" + lcfT(ACC[gO]) + "}"]);
+        head = en ? tx("Rüzgâr çok sert: {0} giy, yakanı kapat.", "{" + low(lbO) + "}") : headT;
+      }
     }
     if (windy) {
       // "Poyraz 32 km/sa" / "NE wind 32 km/h"
       var windTxt = en ? (wi >= 0 ? WN_EN[wi] + " wind" : "Wind") + (windMax >= 28 ? " " + windMax + " km/h" : ", gusts " + gust + " km/h")
-        : (wi >= 0 ? WN[wi] + " " : "Rüzgar ") + (windMax >= 28 ? windMax + " km/sa" : "hamlede " + gust + " km/sa");
+        : (wi >= 0 ? WN[wi] + " " : "Rüzgâr ") + (windMax >= 28 ? windMax + " km/sa" : "hamlede " + gust + " km/sa");
       pills.push(windTxt);
-      var ow = outerNow(); if (ow) why(ow, tx("{0}: rüzgar geçirmez olsun, yakası kapansın", windTxt));
-      if (!hasOuter && L >= 4 && L <= 5 && !sport && !outerNow() && !takesOuter()) { addTake("ruzgarlik"); why("ruzgarlik", tx("{0}; ince bir rüzgarlık yeter", windTxt)); }
-      if (!wet && L <= 5) notes.unshift(en ? "Strong " + (wi >= 0 ? WN_EN[wi] + " " : "") + "wind, zip up to the chin." : (wi >= 0 ? WN[wi] : "Rüzgar") + " sert esiyor, yakanı kapat.");
-      if (stormy && (wet || maybe)) notes.push(tx("Rüzgar çok sert; şemsiye yerine kapüşon kullan."));
+      var ow = outerNow(); if (ow) why(ow, tx("{0}: rüzgâr geçirmez olsun, yakası kapansın", windTxt));
+      if (!hasOuter && L >= 4 && L <= 5 && !sport && !outerNow() && !takesOuter()) { addTake("ruzgarlik"); why("ruzgarlik", tx("{0}; ince bir rüzgârlık yeter", windTxt)); }
+      if (!wet && L <= 5 && outerNow()) notes.unshift(en ? "Strong " + (wi >= 0 ? WN_EN[wi] + " " : "") + "wind, zip up to the chin." : (wi >= 0 ? WN[wi] : "Rüzgâr") + " sert esiyor, yakanı kapat.");
+      if (stormy && (wet || maybe)) notes.push(tx("Rüzgâr çok sert; şemsiye yerine kapüşon kullan."));
     }
     var rainAllDay = wet && W.length && W.every(function(h){ return isRain(h.code); });
     if (inp.uvDay && inp.uvMax != null && !rainAllDay) {
@@ -1567,6 +1602,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         why("gozluk", tx("{0}: güneş yüksek", uvTxt)); why("krem", tx("{0}: açıkta kalan cilde", uvTxt)); why("sapka", tx("{0}: yüzü ve enseyi korur", uvTxt));
       } else if (inp.uvMax >= 3 && rawNow >= 15) { addTake("gozluk"); why("gozluk", tx("{0}: güneş gözü yorar", uvTxt)); }
     }
+    // No cap in a storm: it flies off.
+    if (stormy) { wear = wear.filter(function(w){ return w.g !== "sapka"; }); take = take.filter(function(t){ return t.g !== "sapka"; }); }
     if (rawNow >= 24 && (inp.now.rh || 0) >= 70) notes.push(tx("Nem yüksek; pamuk ya da keten seç."));
     if (codes.some(function(c){ return c === 45 || c === 48; })) pills.push(tx("Sis"));
     if (P.act === "field" && wet) { addTake("corap"); why("corap", tx("Arazide ayak ıslanırsa değiştirirsin")); }
@@ -1621,7 +1658,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     };
     return {L:L, E:E, rawNow:rawNow, rawLow:rawLow, off:off,
             wear:withWhy(wear.slice(0, 6), false), take:withWhy(take.slice(0, 5), true),
-            head:head, pills:pills.slice(0, 3), notes:notes.slice(0, 2), pMax:pMax, windMax:windMax, gust:gust, wi:wi, wet:wet};
+            head:head, pills:pills.slice(0, 3), notes:notes.slice(0, 2), pMax:pMax, windMax:windMax, gust:gust, wi:wi, wet:wet, windy:windy, heavy:heavy};
   }
 
   /* ================= my day: routine, outdoor exposure, route advice ================= */
@@ -1675,7 +1712,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (app == null) return null;
     var mm = H.precipitation ? H.precipitation[i] : null;
     return {time:H.time[i], app:app, t:fin(tt) ? tt : app, p:(H.precipitation_probability && H.precipitation_probability[i]) || 0,
-            code:H.weather_code[i], wind:(H.wind_speed_10m && H.wind_speed_10m[i]) || 0, day:H.is_day ? H.is_day[i] : 1, mm:fin(mm) ? mm : null};
+            code:H.weather_code[i], wind:(H.wind_speed_10m && H.wind_speed_10m[i]) || 0, day:H.is_day ? H.is_day[i] : 1, mm:fin(mm) ? mm : null,
+            gust:(H.wind_gusts_10m && H.wind_gusts_10m[i]) || 0, rl:rainLevels(H)[i]};
   }
   // Walks a route step by step: the first half of the journey uses the start place's weather, the second half the destination's.
   function exposure(trip, route, start){
@@ -1688,7 +1726,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       if (mode.out) {
         var heat = st.m === "walk" ? (SLOPES[st.slope] || SLOPES.flat).heat : WAIT_HEAT;
         ex.outMin += min; if (st.m === "walk") ex.walkMin += min; if (st.m === "walk" && st.slope === "steep") ex.steep = true;
-        if (w) { info.felt = w.app + heat; ex.out.push({time:w.time, ms:mid, end:info.end, min:min, app:w.app + heat, raw:w.app, t:w.t, p:w.p, code:w.code, wind:st.m === "wait" ? w.wind : w.wind * 0.6, day:w.day, mm:w.mm, place:pid}); }
+        if (w) { info.felt = w.app + heat; ex.out.push({time:w.time, ms:mid, end:info.end, min:min, app:w.app + heat, raw:w.app, t:w.t, p:w.p, code:w.code, wind:st.m === "wait" ? w.wind : w.wind * 0.6, day:w.day, mm:w.mm,
+          gust:st.m === "wait" ? w.gust : w.gust * 0.6, rl:w.rl, place:pid}); }
       } else {
         ex.rideMin += min;
         if (w && (w.p >= 60 || isRain(w.code))) ex.rainRide = true;
@@ -1739,7 +1778,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var w0 = S.dayWx.byPlace[first.place], di = -1;
     if (w0 && w0.daily && w0.daily.time) di = w0.daily.time.indexOf(String(first.time).slice(0,10));
     var inp = {kind:"day", now:{t:first.t, app:first.app, code:first.code, isDay:first.day, wind:first.wind, gust:0, dir:null, rh:null, precip:0},
-               window:exps.map(function(e){ return {time:e.time, app:e.app, p:e.p, code:e.code, wind:e.wind, day:e.day, mm:e.mm}; }),
+               window:exps.map(function(e){ return {time:e.time, app:e.app, t:e.t, p:e.p, code:e.code, wind:e.wind, day:e.day, mm:e.mm, gust:e.gust, rl:e.rl}; }),
                uvMax: di >= 0 && w0.daily.uv_index_max ? w0.daily.uv_index_max[di] : null,
                uvDay: exps.some(function(e){ var h = +String(e.time).slice(11,13); return h >= 10 && h <= 16 && String(e.time).slice(0,10) === String(first.time).slice(0,10); }), sunset:null};
     var coldest = exps.slice().sort(function(a, b){ return a.app - b.app; })[0];
@@ -1779,7 +1818,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var m = S.manual, sky = SKY[m.sky] || SKY.partly, w = WIND[m.wind] || WIND.breezy, t = m.temp;
     var app = t - w.chill * (t < 20 ? 1 : 0.5);
     return {kind:"manual", now:{t:t, app:app, code:sky.code, isDay:1, wind:w.kmh, gust:w.gust, dir:null, rh:sky.rh, precip:sky.rain ? 1 : 0},
-            window:[{time:null, app:app, t:t, p:sky.p, code:sky.code, wind:w.kmh, day:1, mm:null}], uvMax:sky.uv(t), uvDay:true, sunset:null};
+            window:[{time:null, app:app, t:t, p:sky.p, code:sky.code, wind:w.kmh, day:1, mm:null, gust:w.gust, rl:0}], uvMax:sky.uv(t), uvDay:true, sunset:null};
   }
   function liveInput(){
     var lv = S.live; if (!lv || !lv.wx) return null;
@@ -1797,9 +1836,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       : {t:pk(H.temperature_2m, idx), app:appAt(idx), code:H.weather_code[idx], isDay:pk(H.is_day, idx), wind:pk(H.wind_speed_10m, idx), gust:0, dir:pk(H.wind_direction_10m, idx), rh:null, precip:0};
     if (!fin(now.app)) return null;
     if (!fin(now.t)) now.t = now.app;
-    var win = [];
+    var win = [], RL = rainLevels(H);
     for (var k = 0; k <= S.hours && idx + k < H.time.length; k++) { var j = idx + k;
-      win.push({time:H.time[j], app:appAt(j), t:pk(H.temperature_2m, j), p:(H.precipitation_probability && H.precipitation_probability[j]) || 0, code:H.weather_code[j], wind:pk(H.wind_speed_10m, j), day:pk(H.is_day, j), mm:fin(pk(H.precipitation, j)) ? pk(H.precipitation, j) : null}); }
+      win.push({time:H.time[j], app:appAt(j), t:pk(H.temperature_2m, j), p:(H.precipitation_probability && H.precipitation_probability[j]) || 0, code:H.weather_code[j], wind:pk(H.wind_speed_10m, j), day:pk(H.is_day, j), mm:fin(pk(H.precipitation, j)) ? pk(H.precipitation, j) : null,
+        gust:pk(H.wind_gusts_10m, j) || 0, rl:RL[j]}); }
     var today = nowKey.slice(0,10), di = (D.time || []).indexOf(today);
     var sunset = di >= 0 && D.sunset ? D.sunset[di] : null;
     return {kind:"live", now:now, window:win, uvMax: di >= 0 && D.uv_index_max ? D.uv_index_max[di] : null,
@@ -1811,13 +1851,29 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   // Same rules as Alerts.kt (widget strip and notifications); tests/parity compares the two.
   // The next 24 hours from the current hour. Levels: 1 "Dikkat", 2 "Tehlikeli". Per kind: first and last hour, and the peak.
   var SEVERE_KINDS = ["storm","thunder","rain","snow","ice","heat","cold","fog"];
+  // How heavy the rain is, hour by hour (0; 1 "Dikkat"; 2 "Tehlikeli"): an hour of 6 (15) mm, or every wet hour (1 mm or
+  // more) of a six-hour spell bringing 20 (40) mm, so a warning lasts as long as the rain. Only amounts count, never
+  // the symbol (MET Norway calls 1 mm an hour "heavy rain" already). The warning and the outfit both use it.
+  function rainLevels(H){
+    var P = H && Array.isArray(H.precipitation) ? H.precipitation : [], C = H && Array.isArray(H.weather_code) ? H.weather_code : [];
+    var n = H && Array.isArray(H.time) ? H.time.length : 0, lv = [], j, q;
+    var mm = function(k){ var v = P[k]; return typeof v === "number" && isFinite(v) ? v : null; };
+    var snowAt = function(k){ var c = C[k]; c = typeof c === "number" && isFinite(c) ? Math.round(c) : -1; return (c >= 71 && c <= 77) || c === 85 || c === 86; };
+    for (j = 0; j < n; j++) { var v = mm(j); lv.push(v == null || snowAt(j) ? 0 : v >= 15 ? 2 : v >= 6 ? 1 : 0); }
+    for (j = 0; j < n; j++) {
+      var sum = 0; for (q = j; q < Math.min(n, j + 6); q++) sum += mm(q) || 0;
+      if (sum < 20) continue;
+      for (q = j; q < Math.min(n, j + 6); q++) { var w = mm(q); if (w != null && w >= 1 && !snowAt(q)) lv[q] = Math.max(lv[q], sum >= 40 ? 2 : 1); }
+    }
+    return lv;
+  }
   function severe(wx, nowMs){
     var H = wx && wx.hourly; if (!H || !Array.isArray(H.time) || !H.time.length) return [];
     var key = new Date(nowMs + ((wx.utc_offset_seconds) || 0) * 1000).toISOString().slice(0,13), i0 = -1, i, j, q;
     for (i = 0; i < H.time.length; i++) if (String(H.time[i]).slice(0,13) === key) { i0 = i; break; }
     if (i0 < 0) { if (key < String(H.time[0]).slice(0,13)) i0 = 0; else return []; }
     var num = function(a, k){ var v = Array.isArray(a) ? a[k] : null; return typeof v === "number" && isFinite(v) ? v : null; };
-    var found = {};
+    var found = {}, RL = rainLevels(H);
     function hit(k, lv, at, peak){
       var a = found[k];
       if (!a) { found[k] = {lv:lv, i:at, j:at, peak:peak}; return; }
@@ -1827,20 +1883,15 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     }
     for (j = i0; j < Math.min(H.time.length, i0 + 24); j++) {
       var T = num(H.temperature_2m, j), A = num(H.apparent_temperature, j), c = num(H.weather_code, j);
-      var W = num(H.wind_speed_10m, j), G = num(H.wind_gusts_10m, j), P = num(H.precipitation, j), p6 = 0;
+      var W = num(H.wind_speed_10m, j), G = num(H.wind_gusts_10m, j), P = num(H.precipitation, j);
       if (A == null) A = T;
       c = c == null ? -1 : Math.round(c);
-      for (q = j; q < Math.min(H.time.length, j + 6); q++) p6 += num(H.precipitation, q) || 0;
       var snow = (c >= 71 && c <= 77) || c === 85 || c === 86;
       if (A != null && A >= 34) hit("heat", A >= 40 ? 2 : 1, j, A);
       if (A != null && A <= -10) hit("cold", A <= -20 ? 2 : 1, j, A);
       if ((c === 56 || c === 57 || c === 66 || c === 67) && (T == null || T <= 2)) hit("ice", 2, j, T);
       else if (T != null && T <= 0.5 && ((c >= 51 && c <= 67) || (c >= 80 && c <= 82) || snow)) hit("ice", 1, j, T);
-      // Only the amount counts, never the symbol: MET Norway calls 1 mm an hour "heavy rain" already.
-      // A six-hour total counts only in hours that are wet themselves (so the warning doesn't start before the rain).
-      var wet = P != null && P >= 1;
-      if (!snow && ((P != null && P >= 15) || (wet && p6 >= 40))) hit("rain", 2, j, P);
-      else if (!snow && ((P != null && P >= 6) || (wet && p6 >= 20))) hit("rain", 1, j, P);
+      if (RL[j]) hit("rain", RL[j], j, P);
       if (c === 96 || c === 99) hit("thunder", 2, j, null); else if (c === 95) hit("thunder", 1, j, null);
       var gust = Math.max(W || 0, G || 0);
       if ((G != null && G >= 95) || (W != null && W >= 70)) hit("storm", 2, j, gust);
@@ -1928,11 +1979,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (tc) tc.setAttribute("content", dark ? "#15171f" : LV[p.L].color);
     if (window.NeGiysemAndroid) { try { window.NeGiysemAndroid.setTheme(dark ? "#15171f" : LV[p.L].color, !!dark); } catch (e) {} }
 
-    var pname = live ? nm(S.live.place.name) : tx("Elle ayar");
+    var pname = live ? nm(livePlaceName()) : tx("Elle ayar");
     $("placeLabel").textContent = pname; $("placeBtn").title = pname;
     $("placeBtn").setAttribute("aria-label", tx("Yer: {0}. Değiştir", pname));
     var soft = [lvName(p.L)]; if (useDay) soft.unshift(tx(day.offset ? "Yarınki günüme göre" : "Günüme göre"));
-    if (S.profiles.length > 1) soft.unshift(tx("{0} için", personName(curProf())));
+    if (S.profiles.length > 1) soft.unshift(forWhom(curProf()));
     $("pills").innerHTML = soft.map(function(x){ return '<span class="pill soft">' + esc(x) + '</span>'; }).join("") + p.pills.map(function(x){ return '<span class="pill">' + esc(x) + '</span>'; }).join("");
     $("headline").innerHTML = headHTML(p.head);
     $("bigTemp").textContent = deg(inp.now.t);
@@ -1961,7 +2012,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     }).join("");
     var tips = (useDay ? dayNotes(day, p) : []).concat(p.notes).slice(0, 3);
     $("tips").innerHTML = tips.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join("");
-    SHOWN = {p:p, inp:inp, soft:soft, night:night, place:pname, cond:$("nowCond").textContent, offset:useDay ? day.offset : 0}; // what the share picture draws
+    // What the share picture draws. A plan for tomorrow shows tomorrow's first outdoor moment, under tomorrow's date.
+    var shInp = inp, shCond = $("nowCond").textContent, shAt = "";
+    if (useDay && day.offset && day.exps && day.exps.length) { shInp = day.inp; shCond = tx(COND[day.inp.now.code] || ""); shAt = hmOf(day.exps[0].ms); }
+    SHOWN = {p:p, inp:shInp, soft:soft, night:night, place:pname, cond:shCond, at:shAt, offset:useDay ? day.offset : 0};
     p = pc; // the hourly strip and facts below describe the current place
 
     $("dayCard").hidden = !live; $("manualCard").hidden = live;
@@ -1976,7 +2030,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       }).join("");
       var n = inp.now, f = [];
       f.push(LANG === "en" ? (p.wi >= 0 ? '<b>' + WN_EN[p.wi] + ' wind</b> · ' : 'Wind ') + rnd(n.wind || 0) + ' km/h'
-        : (p.wi >= 0 ? '<b>' + WN[p.wi] + '</b> · ' : 'Rüzgar ') + rnd(n.wind || 0) + ' km/sa');
+        : (p.wi >= 0 ? '<b>' + WN[p.wi] + '</b> · ' : 'Rüzgâr ') + rnd(n.wind || 0) + ' km/sa');
       f.push(tx("Yağış <b>%{0}</b>", p.pMax));
       if (n.rh != null) f.push(tx("Nem <b>%{0}</b>", rnd(n.rh)));
       if (inp.uvMax != null) f.push('UV <b>' + num(inp.uvMax, 1) + '</b>');
@@ -2179,21 +2233,21 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 
   // The engine's input for one local date: its daytime hours (08–20). Today only the hours still ahead, or the evening once those are over.
   function dayInput(wx, ds, today){
-    var H = wx.hourly, D = wx.daily || {}, nowKey = wxKey(wx, Date.now()), all = [];
+    var H = wx.hourly, D = wx.daily || {}, nowKey = wxKey(wx, Date.now()), all = [], RL = rainLevels(H);
     for (var j = 0; j < H.time.length; j++) {
       var t = String(H.time[j]); if (t.slice(0,10) !== ds || (today && t.slice(0,13) < nowKey)) continue;
       var a = ix(H.apparent_temperature, j), tt = ix(H.temperature_2m, j), app = fin(a) ? a : fin(tt) ? tt : null;
       if (app == null) continue;
       var mm = ix(H.precipitation, j);
       all.push({time:t, app:app, t:fin(tt) ? tt : app, p:ix(H.precipitation_probability, j) || 0, code:ix(H.weather_code, j),
-                wind:ix(H.wind_speed_10m, j) || 0, day:ix(H.is_day, j), hr:+t.slice(11,13), mm:fin(mm) ? mm : null});
+                wind:ix(H.wind_speed_10m, j) || 0, day:ix(H.is_day, j), hr:+t.slice(11,13), mm:fin(mm) ? mm : null, gust:ix(H.wind_gusts_10m, j) || 0, rl:RL[j]});
     }
     var win = all.filter(function(h){ return h.hr >= 8 && h.hr <= 20; }), evening = false;
     if (!win.length && today && all.length) { win = all; evening = true; }
     if (!win.length) return null;
     var f = win[0], di = Array.isArray(D.time) ? D.time.indexOf(ds) : -1, uv = di >= 0 ? ix(D.uv_index_max, di) : null;
     return {kind:"live", now:{t:f.t, app:f.app, code:f.code, isDay:evening && f.day === 0 ? 0 : 1, wind:f.wind, gust:0, dir:null, rh:null, precip:0},
-            window:win.map(function(h){ return {time:h.time, app:h.app, t:h.t, p:h.p, code:h.code, wind:h.wind, day:h.day, mm:h.mm}; }),
+            window:win.map(function(h){ return {time:h.time, app:h.app, t:h.t, p:h.p, code:h.code, wind:h.wind, day:h.day, mm:h.mm, gust:h.gust, rl:h.rl}; }),
             uvMax:fin(uv) ? uv : null, uvDay:win.some(function(h){ return h.hr >= 10 && h.hr <= 16; }), sunset:null, evening:evening};
   }
   // The sky that best describes a day: the roughest weather that lasts a while (two hours or a sixth of the day), else the most common.
@@ -2244,7 +2298,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var facts = [tx("Hissedilen {0} – {1}", deg(d.lo), deg(d.hi))];
       if (p.pMax >= 20) facts.push(tx(isSnow(d.code) ? "Kar ihtimali %{0}" : "Yağış ihtimali %{0}", p.pMax));
       if (d.uv != null && d.uv >= 3) facts.push("UV " + num(d.uv, 1));
-      if (p.windMax >= 25) facts.push(tx("Rüzgar {0} km/sa", p.windMax));
+      if (p.windMax >= 25) facts.push(tx("Rüzgâr {0} km/sa", p.windMax));
       return '<li><button type="button" class="wk-row" data-wk="' + d.date + '" aria-expanded="' + open + '" aria-controls="' + id + '" style="--wl:' + LV[p.L].color + '">' +
         '<span class="wk-day"><b>' + name + '</b><small>' + esc(lvName(p.L)) + (d.inp.evening ? " · " + tx("akşam") : "") + '</small></span>' +
         '<span class="wk-ic">' + icon(kindOf(d.code, 1)) + '<small>' + (rainy ? '<span class="sr">' + tx("yağış ihtimali") + ' </span>' + pct(p.pMax) : '') + '</small></span>' +
@@ -2265,23 +2319,25 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (isRain(inp.now.code) || isSnow(inp.now.code) || (inp.now.precip || 0) >= 0.2) return null; // already falling: the pills say so
     var i0 = wxIdx(wx, now); if (i0 < 0) return null;
     if (wetHour(ix(H.weather_code, i0), ix(H.precipitation_probability, i0))) return null; // due this very hour: the pills say so too
-    var hit = null;
+    var hit = null, RL = rainLevels(H);
     for (var k = 1; k <= 3 && i0 + k < H.time.length; k++) {
-      if (wetHour(ix(H.weather_code, i0 + k), ix(H.precipitation_probability, i0 + k))) { hit = {ms:wxMs(wx, H.time[i0 + k]), at:hm(H.time[i0 + k]), wind:ix(H.wind_speed_10m, i0 + k) || 0}; break; }
+      if (wetHour(ix(H.weather_code, i0 + k), ix(H.precipitation_probability, i0 + k))) { hit = {ms:wxMs(wx, H.time[i0 + k]), at:hm(H.time[i0 + k]), wind:ix(H.wind_speed_10m, i0 + k) || 0, heavy:RL[i0 + k] >= 1}; break; }
     }
     if (day && day.offset === 0 && day.items) day.items.forEach(function(it){
       if (it.offset || !it.chosen) return;
       var found = null, a = placeById(it.trip.from), b = placeById(it.trip.to);
-      if (it.start > now) { var pre = wxAt(it.trip.from, it.start - 30 * 60000); if (pre && wetHour(pre.code, pre.p)) found = {ms:it.start - 30 * 60000, at:hm(pre.time), wind:pre.wind, before:true}; }
-      if (!found) it.chosen.ex.out.some(function(e){ if (e.end > now && wetHour(e.code, e.p)) { found = {ms:e.ms, at:hm(e.time), wind:e.wind}; return true; } return false; });
+      if (it.start > now) { var pre = wxAt(it.trip.from, it.start - 30 * 60000); if (pre && wetHour(pre.code, pre.p)) found = {ms:it.start - 30 * 60000, at:hm(pre.time), wind:pre.wind, heavy:pre.rl >= 1, before:true}; }
+      if (!found) it.chosen.ex.out.some(function(e){ if (e.end > now && wetHour(e.code, e.p)) { found = {ms:e.ms, at:hm(e.time), wind:e.wind, heavy:e.rl >= 1}; return true; } return false; });
       if (!found) return;
       found.route = (a ? nm(a.name) : "?") + " → " + (b ? nm(b.name) : "?"); found.dep = it.trip.time;
       if (!hit || found.ms < hit.ms) hit = found;
     });
     return hit;
   }
-  function rainMsg(r){
-    var adv = tx(S.act === "sport" ? "su itici bir üst al" : r.wind >= 28 ? "kapüşonlu bir dış katman giy" : "şemsiyeni al");
+  // The advice agrees with the outfit shown: a hood when the wind is up while out, a raincoat too when the rain is heavy.
+  function rainMsg(r, sp){
+    var adv = tx(S.act === "sport" ? "su itici bir üst al" : r.wind >= 28 || (sp && sp.windy) ? "kapüşonlu bir dış katman giy"
+      : r.heavy || (sp && sp.heavy) ? "yağmurluğunu giy, şemsiyeni de al" : "şemsiyeni al");
     if (!r.route) return tx("<b>Yağmur {0} civarı</b> başlıyor; {1}.", esc(r.at), adv);
     return r.before ? tx("<b>Yağmur {0} civarı</b> başlıyor; {1} yolunda ({2}) {3}.", esc(r.at), esc(r.route), esc(r.dep), adv)
       : tx("<b>Yağmur {0} civarı</b> {1} yolunda; {2}.", esc(r.at), esc(r.route), adv);
@@ -2290,7 +2346,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   function renderRain(live, inp, day){
     var el = $("rainAlert"), r = live && S.rainOff !== dateKey(Date.now()) ? rainAhead(inp, day) : null;
     if (!r) { el.hidden = true; return; }
-    var html = icon("rain") + '<p>' + rainMsg(r) + '</p><button type="button" class="x" data-rain-off aria-label="' + esc(tx("Yağmur uyarısını bugünlük kapat")) + '">×</button>';
+    var html = icon("rain") + '<p>' + rainMsg(r, SHOWN && SHOWN.p) + '</p><button type="button" class="x" data-rain-off aria-label="' + esc(tx("Yağmur uyarısını bugünlük kapat")) + '">×</button>';
     if (html !== RAIN_HTML) { el.innerHTML = html; RAIN_HTML = html; }
     el.hidden = false;
   }
@@ -2422,7 +2478,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       if (other) add("bottom", "shoe:" + other, other, lab(shoes.map[other], other), 1, tx("{0} için", names(shoes.map[other])));
     }
 
-    var umb = days.filter(function(d){ return d.p.wet || has(d.p, "semsiye"); });
+    var noUmb = (prefs().missing || []).indexOf("semsiye") >= 0;
+    var umb = noUmb ? [] : days.filter(function(d){ return d.p.wet || has(d.p, "semsiye"); });
     if (umb.length) add("acc", "acc:semsiye", "semsiye", tx("Katlanır şemsiye"), 1, tx("Yağmur ihtimali: {0}", umb.map(function(d){ return tx("{0} %{1}", d.short, d.p.pMax); }).join(", ")));
     ["bere","atki","eldiven","sapka","gozluk","krem","su"].forEach(function(g){
       var ds = days.filter(function(d){ return has(d.p, g); }); if (!ds.length) return;
@@ -2473,7 +2530,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var why = busy ? esc(tx("Hava alınıyor…")) : tx(wx ? "{0} için kayıtlı tahmin eski; listeyi hazırlamak için güncel tahmin gerekiyor." : "{0} için hava tahmini henüz alınmadı; listeyi hazırlamak için önce havasını al.", esc(cur.name));
       var st = !busy && PACK.tried === pk.place ? $("status").textContent.trim() : "";
       return done(h + '<div class="pk-note" role="status"><p>' + why + '</p>' + (st ? '<p>' + esc(st) + '</p>' : '') +
-        (busy ? '' : '<button type="button" class="btn" data-pk-fetch="' + esc(pk.place) + '">' + tx("{0} havasını al", esc(cur.name)) + '</button>') + '</div>');
+        (busy ? '' : '<button type="button" class="btn" data-pk-fetch="' + esc(pk.place) + '">' + tx("{0} için havayı al", esc(cur.name)) + '</button>') + '</div>');
     }
     var key = pk.place + "|" + res.from + "|" + pk.days, ticks = S.pack.ticks[key] || [];
     var n = res.items.filter(function(it){ return ticks.indexOf(it.key) >= 0; }).length;
@@ -2541,7 +2598,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var box = $("people"); if (!box) return;
     box.innerHTML = S.profiles.map(function(pr){
       return '<button type="button" class="chip" data-person="' + esc(pr.id) + '" aria-pressed="' + (pr.id === S.prof) + '">' + esc(personName(pr)) +
-        (pr.who !== "me" ? '<span class="who">' + esc(tx(WHO[pr.who].label)) + '</span>' : '') + '</button>';
+        (pr.who !== "me" ? '<span class="sr"> · </span><span class="who">' + esc(tx(WHO[pr.who].label)) + '</span>' : '') + '</button>';
     }).join("") + '<button type="button" class="chip" data-person-edit>' + esc(tx(S.profiles.length > 1 || curProf().who !== "me" || curProf().name !== "Ben" ? "Düzenle" : "Adını değiştir")) + '</button>' +
       (S.profiles.length < 8 ? '<button type="button" class="chip" data-person-add>' + esc(tx("+ Kişi ekle")) + '</button>' : '');
     var miss = curProf().missing.filter(function(g){ return G[g]; });
@@ -2557,7 +2614,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (id === S.prof || !S.profiles.some(function(p){ return p.id === id; })) return;
     curProf().feel = S.feel; S.prof = id; S.feel = curProf().feel;
     save(); render();
-    setStatus(tx("Öneri artık {0} için{1}.", personName(curProf()), whoNote(curProf())));
+    var cp = curProf(), meDef = cp.id === "me" && cp.name === "Ben";
+    setStatus(meDef ? tx("Öneri artık senin için{0}.", whoNote(cp)) : tx("Öneri artık {0} için{1}.", personName(cp), whoNote(cp)));
   }
   var PERSON = {edit:null, who:"me"};
   function openPerson(editId, opener){
@@ -2570,7 +2628,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   function renderPerson(name){
     var canDel = PERSON.edit && S.profiles.length > 1;
     $("personBody").innerHTML = '<div class="pf-form">' +
-      '<label class="rl" for="pfName">' + esc(tx("Adı")) + '</label><input id="pfName" maxlength="24" autocomplete="off" value="' + esc(name) + '" placeholder="' + esc(tx("Ör. Deniz")) + '">' +
+      '<label class="rl" for="pfName">' + esc(tx("Adı")) + '</label><input id="pfName" maxlength="24" autocomplete="off" value="' + esc(name) + '" placeholder="' + esc(tx("Ör. Deniz")) + '" aria-describedby="pfErr"><p class="warn" id="pfErr" role="alert" hidden>' + esc(tx("Bir ad yaz.")) + '</p>' +
       '<span class="rl" id="lPfWho">' + esc(tx("Yaş grubu")) + '</span><div class="seg" role="group" aria-labelledby="lPfWho">' +
       Object.keys(WHO).map(function(k){ return '<button type="button" data-pf-who="' + k + '" aria-pressed="' + (PERSON.who === k) + '">' + esc(tx(WHO[k].label)) + '</button>'; }).join("") + '</div>' +
       '<p class="src">' + esc(tx("Çocuklar ve 65 yaş üstü kişiler daha çabuk üşür; onlar için bir kat daha sıcak giyim önerilir. Soğuğa karşı ayarını ve dolabını bu kişiyi seçince ayrıca belirleyebilirsin.")) + '</p>' +
@@ -2589,7 +2647,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       save(); closeSheet(); render(); setStatus(tx("{0} silindi.", personName(gone))); return;
     }
     var name = $("pfName").value.trim().slice(0, 24);
-    if (!name) { $("pfName").focus(); $("pfName").setAttribute("aria-invalid", "true"); return; }
+    if (!name) { $("pfName").focus(); $("pfName").setAttribute("aria-invalid", "true"); $("pfErr").hidden = false; return; }
     if (PERSON.edit) {
       var pr = S.profiles.filter(function(p){ return p.id === PERSON.edit; })[0]; if (!pr) return;
       if (name !== personName(pr)) pr.name = name; // an untouched default name stays the app's own ("Ben" / "Me")
@@ -2600,7 +2658,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       S.profiles.push(np); S.prof = np.id; S.feel = np.feel;
     }
     save(); closeSheet(); render();
-    setStatus(tx("Öneri {0} için{1}.", personName(curProf()), whoNote(curProf())));
+    var cq = curProf();
+    setStatus(cq.id === "me" && cq.name === "Ben" ? tx("Öneri senin için{0}.", whoNote(cq)) : tx("Öneri {0} için{1}.", personName(cq), whoNote(cq)));
   }
   function renderWardrobe(){
     var pr = curProf();
@@ -2788,7 +2847,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (ic) x.drawImage(ic, rx, 404, 132, 132);
     x.font = "700 44px " + FB; if (x.measureText(sh.cond).width > rw) x.font = "700 36px " + FB;
     x.fillText(fitText(x, sh.cond, rw), rx, 594);
-    x.fillStyle = ink2; x.font = "500 36px " + FB; x.fillText(fitText(x, tx("Hissedilen {0}", deg(inp.now.app)), rw), rx, 642);
+    x.fillStyle = ink2; x.font = "500 36px " + FB; x.fillText(fitText(x, (sh.at ? sh.at + " · " : "") + tx("Hissedilen {0}", deg(inp.now.app)), rw), rx, 642);
     drawHead(x, head, M, HEAD_TOP, FD, ink, hlBg, hlInk);
     // the sticker board
     x.fillStyle = board; rrect(x, M - 28, boardTop, W - 2 * M + 56, boardBottom - boardTop, 46); x.fill();
@@ -2870,8 +2929,17 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 
   /* ================= routine editor ================= */
   function openRoutine(){ var r = $("routine"); r.hidden = false; renderEditor(); if (r.scrollIntoView) r.scrollIntoView({behavior:smooth(), block:"start"}); }
+  // The same control again after a redraw (by its data attributes), or the nearest "add" button when it is gone.
+  var FOCUS_KEYS = ["act","trip","day","place","route","step","k","m","from","to"];
+  function focusSel(n){
+    if (!n || !n.dataset) return null;
+    var sel = n.tagName.toLowerCase(), any = false;
+    FOCUS_KEYS.forEach(function(k){ var v = n.dataset[k]; if (v != null) { sel += '[data-' + k + '="' + String(v).replace(/["\\]/g, "\\$&") + '"]'; any = true; } });
+    return any ? sel : null;
+  }
   function renderEditor(){
     var el = $("routine"); if (el.hidden) return;
+    var ae = document.activeElement, fsel = ae && ae !== el && el.contains(ae) ? focusSel(ae) : null, fact = ae && ae.dataset ? ae.dataset.act : null;
     var pl = S.places;
     function opts(sel){ return pl.map(function(p){ return '<option value="' + esc(p.id) + '"' + (p.id === sel ? ' selected' : '') + '>' + esc(nm(p.name)) + '</option>'; }).join("") + (sel && !placeById(sel) ? '<option value="' + esc(sel) + '" selected>' + esc(tx("(silinmiş yer)")) + '</option>' : ''); }
     var h = '<h2>' + esc(tx("Rutinim")) + '</h2><p class="lead">' + esc(tx("Gün içinde gittiğin yerleri, saatlerini ve o yollarda kullandığın rotaları ekle. Kıyafet yalnızca dışarıda geçireceğin anlara göre seçilir. Bu bilgiler sadece bu cihazda saklanır.")) + '</p>';
@@ -2886,10 +2954,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     h += '<h3>' + esc(tx("Yolculuklar")) + '</h3>';
     if (!S.trips.length) h += '<p class="empty">' + esc(tx("Henüz yolculuk yok.")) + '</p>';
     S.trips.forEach(function(t){
-      h += '<div class="ed-row"><input type="time" value="' + esc(t.time) + '" data-trip="' + esc(t.id) + '" data-k="time" aria-label="' + esc(tx("Çıkış saati")) + '">' +
+      var tf = placeById(t.from), tt = placeById(t.to), tName = (tf ? nm(tf.name) : "?") + " → " + (tt ? nm(tt.name) : "?");
+      h += '<div class="ed-row"><input type="time" value="' + esc(t.time) + '" data-trip="' + esc(t.id) + '" data-k="time" aria-label="' + esc(tx("Çıkış saati") + ": " + tName) + '">' +
         '<select data-trip="' + esc(t.id) + '" data-k="from" aria-label="' + esc(tx("Nereden")) + '">' + opts(t.from) + '</select><span class="lbl">→</span>' +
         '<select data-trip="' + esc(t.id) + '" data-k="to" aria-label="' + esc(tx("Nereye")) + '">' + opts(t.to) + '</select>' +
-        '<div class="days">' + DAYS.map(function(d){ return '<button type="button" data-trip="' + esc(t.id) + '" data-day="' + d[1] + '" aria-pressed="' + (t.days.indexOf(d[1]) >= 0) + '">' + esc(tx(d[0])) + '</button>'; }).join("") + '</div>' +
+        '<div class="days">' + DAYS.map(function(d){ return '<button type="button" data-trip="' + esc(t.id) + '" data-day="' + d[1] + '" aria-pressed="' + (t.days.indexOf(d[1]) >= 0) + '" aria-label="' + esc(tx(d[0]) + ", " + tName) + '">' + esc(tx(d[0])) + '</button>'; }).join("") + '</div>' +
         '<button type="button" class="x" data-act="deltrip" data-trip="' + esc(t.id) + '" aria-label="' + esc(tx("{0} yolculuğunu sil", t.time)) + '">×</button></div>';
       if (t.from === t.to) h += '<p class="warn">' + esc(tx("Başlangıç ve varış aynı; “Nereye”yi değiştir.")) + '</p>';
       else if (!t.days.length) h += '<p class="warn">' + esc(tx("Bu yolculuk için gün seçilmedi.")) + '</p>';
@@ -2920,6 +2989,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     });
     h += '<div class="ed-foot"><button type="button" class="btn" data-act="done">' + esc(tx("Bitti, havayı al")) + '</button><button type="button" class="btn soft" data-act="close">' + esc(tx("Kapat")) + '</button></div>';
     el.innerHTML = h;
+    if (fsel || fact) {
+      var nf = (fsel && el.querySelector(fsel)) || el.querySelector(fact === "deltrip" ? '[data-act="addtrip"]' : fact === "delroute" || fact === "delstep" ? '[data-act="addroute"]' : '[data-act="addplace"]');
+      if (nf) nf.focus({preventScroll:true});
+    }
   }
   function routeById(id){ for (var i = 0; i < S.routes.length; i++) if (S.routes[i].id === id) return S.routes[i]; return null; }
   function tripById(id){ for (var i = 0; i < S.trips.length; i++) if (S.trips[i].id === id) return S.trips[i]; return null; }
@@ -3029,8 +3102,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   /* ================= data sources ================= */
   // One request for several places: the answer is a list in the same order (the app's server answers in Open-Meteo's shape).
   function forecastURL(pts){
-    var q = "latitude=" + pts.map(function(p){ return (+p.lat).toFixed(4); }).join(",") +
-      "&longitude=" + pts.map(function(p){ return (+p.lon).toFixed(4); }).join(",");
+    // The app's server works at 2 decimals (about 1 km) anyway: home and work aren't sent any more precisely than that.
+    var dp = API ? 2 : 4;
+    var q = "latitude=" + pts.map(function(p){ return (+p.lat).toFixed(dp); }).join(",") +
+      "&longitude=" + pts.map(function(p){ return (+p.lon).toFixed(dp); }).join(",");
     if (API) return API + "/api/forecast?" + q;
     return "https://api.open-meteo.com/v1/forecast?" + q +
       "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day" +
@@ -3211,7 +3286,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     // service instead (when there is one); later requests go there directly for a while (api()).
     fetchJSON: function(url, ms){
       return WEB.rawJSON(url, ms).catch(function(e){
-        if (!(e && e.code === "network" && API && url.indexOf(API + "/api/") === 0 && navigator.onLine !== false)) throw e;
+        var down = e && (e.code === "network" || (e.code === "http" && (e.status === 429 || e.status >= 500)));
+        if (!(down && API && url.indexOf(API + "/api/") === 0 && navigator.onLine !== false)) throw e;
         apiDown();
         var alt = directURL(url);
         if (!alt) throw e;
@@ -3251,7 +3327,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         try { var g = await WEB.fetchJSON(reverseURL(c.latitude, c.longitude), 8000); place.name = g.locality || g.city || g.principalSubdivision || place.name; } catch (e) {}
         var fix = {lat:c.latitude, lon:c.longitude, name:place.name, at:Date.now()};
         if ((await geoState()) !== "granted" && !nearSaved(fix))
-          return {place:place, fix:fix, note:tx("Tarayıcın izni hatırlamıyor; bundan sonra bu konum kullanılır, tekrar sorulmaz. Kaydedersen hep hazır olur."), action:{label:tx("Bu konumu kaydet"), fn:saveFix}};
+          return {place:place, fix:fix, note:tx("Tarayıcın konum iznini hatırlamıyor; bundan sonra bu konum kullanılır, tekrar sorulmaz. Kaydedersen hep hazır olur."), action:{label:tx("Bu konumu kaydet"), fn:saveFix}};
         return {place:place, fix:fix, note:null};
       } catch (e) {
         if (!/^geo_/.test(e.code || "")) throw e;
@@ -3260,11 +3336,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           var r = await fromFix(tx(blocked ? "Bu sitenin konum izni kapalı; izin vermek için tarayıcının site ayarlarını ya da telefon ayarlarını aç. Son bilinen konumun kullanıldı ({0})."
             : e.code === "geo_off" ? "Telefonunun konumu kapalı; son bilinen konumun kullanıldı ({0})."
             : e.code === "geo_denied" ? "Konum izni verilmedi; son bilinen konumun kullanıldı ({0})." : "Konum şu an bulunamadı; son bilinen konumun kullanıldı ({0}).", fixWhen(S.fix.at)));
-          if (geoFix(e.code)) r.action = geoFix(e.code);
+          r.action = geoFix(e.code) || (blocked ? null : r.action);
           return r;
         }
-        var ip = await WEB.fetchJSON(ipURL(), 8000);
-        if (!isFinite(ip.latitude) || !isFinite(ip.longitude)) throw {code:"geo_none"};
+        var ip; try { ip = await WEB.fetchJSON(ipURL(), 8000); } catch (e2) { throw navigator.onLine === false ? e2 : {code:"geo_none"}; }
+        if (!ip || !isFinite(ip.latitude) || !isFinite(ip.longitude)) throw {code:"geo_none"};
         return {place:{name: ip.city || ip.locality || ip.principalSubdivision || "Konumun", sub:"Yaklaşık konum", lat:+ip.latitude, lon:+ip.longitude},
                 note: tx(e.code === "geo_denied" ? "Konum izni olmadığı için yaklaşık konum kullanıldı. Daha isabetli sonuç için konum izni ver ya da yer ekle."
                   : e.code === "geo_off" ? "Telefonunun konumu kapalı; yaklaşık konum kullanıldı." : "Konum bulunamadı; yaklaşık konum kullanıldı."), action:geoFix(e.code)};
@@ -3274,7 +3350,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var list = function(j){ return Array.isArray(j) ? j : [j]; };
       if (!API) return WEB.fetchJSON(forecastURL(pts)).then(list);
       if (!api()) return metForecasts(pts);
-      return WEB.fetchJSON(forecastURL(pts)).then(list, function(e){ if (!api()) return metForecasts(pts); throw e; });
+      var parts = []; for (var i = 0; i < pts.length; i += 8) parts.push(pts.slice(i, i + 8)); // the server takes 8 points a request
+      return Promise.all(parts.map(function(ps){ return WEB.fetchJSON(forecastURL(ps)).then(list); }))
+        .then(function(a){ return [].concat.apply([], a); }, function(e){ if (!api()) return metForecasts(pts); throw e; });
     },
     search: function(q){ return findPlaces(function(u){ return WEB.fetchJSON(u, 8000); }, q); }
   };
@@ -3383,7 +3461,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       return true;
     } catch (e) {
       if (my !== liveSeq) return;
-      setStatus(errMsg(e) + (S.mode === "live" ? tx(" Son alınan hava gösteriliyor.") : ""), mcpState === "no" ? null : {label:tx("Tekrar dene"), fn:function(){ fetchLive(force === true, true); }});
+      setStatus(errMsg(e) + (S.mode === "live" ? tx(" Son alınan hava gösteriliyor.") : ""), mcpState === "no" ? null
+        : e && e.code === "geo_none" && !IS_ART ? {label:tx("Yer ekle"), fn:function(){ togglePanel(true); openSearch(); }}
+        : {label:tx("Tekrar dene"), fn:function(){ fetchLive(force === true, true); }});
       render();
     } finally { if (my === liveSeq) setBusy(false); }
   }
@@ -3419,15 +3499,21 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (S.trips.some(function(x){ return x.from === id || x.to === id; })) {
       setStatus(tx("{0} bir yolculukta kullanılıyor; önce o yolculuğu sil ya da değiştir.", nm(S.places[i].name)), {label:tx("Rutinimi aç"), fn:openRoutine}); return;
     }
-    var p = S.places.splice(i, 1)[0], wasSel = S.sel === id;
-    if (wasSel) S.sel = "auto";
+    var p = S.places.splice(i, 1)[0], wasSel = S.sel === id, shownIt = !!(S.live && S.live.placeKey === id);
+    // Its weather may still be on its way: that request is dropped. The place whose weather is on screen stays selected.
+    if (wasSel) { cancelLive(); S.sel = S.live && !shownIt && (S.live.placeKey === "auto" || placeById(S.live.placeKey)) ? S.live.placeKey : "auto"; }
+    var goneRoutes = S.routes.filter(function(r){ return r.from === id || r.to === id; });
     S.routes = S.routes.filter(function(r){ return r.from !== id && r.to !== id; });
     save(); render();
-    // The weather on screen stays (it's still that place's); no chip is marked until another place is chosen.
-    setStatus(tx("{0} silindi.", nm(p.name)) + (wasSel ? tx(" Gösterilen hava hâlâ onun; başka bir yer seç.") : ""), {label:tx("Geri al"), fn:function(){
+    // The weather on screen stays (if it was that place's, no chip is marked until another place is chosen).
+    setStatus(tx("{0} silindi.", nm(p.name)) + (shownIt ? tx(" Gösterilen hava hâlâ onun; başka bir yer seç.") : ""), {label:tx("Geri al"), fn:function(){
       if (!placeById(p.id)) S.places.splice(Math.min(i, S.places.length), 0, p);
+      goneRoutes.forEach(function(r){ if (!routeById(r.id)) S.routes.push(r); });
       if (wasSel) S.sel = p.id; save(); render(); setStatus("");
+      if (wasSel && !shownIt) fetchLive(false, true);
     }});
+    // Focus goes to "Geri al" (it also brings the message into view when the place was removed further down the page).
+    var undo = $("status").querySelector("button"); if (undo) undo.focus();
   }
   /* ---- search box: suggestions while typing (installed app and website); in the Claude preview only on "Ara" ---- */
   var SEARCH = {seq:0, timer:null, cache:{}, list:[], active:-1, shownFor:"", forEditor:false};
@@ -3445,7 +3531,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var add = r.querySelector('[data-act="addplace"]'); if (add) add.focus({preventScroll:true});
     return true;
   }
-  function samePlace(r){ return S.places.filter(function(p){ return fold(p.name) === fold(r.name) && km(p, r) < 1; })[0] || null; }
+  function samePlace(r){ return S.places.filter(function(p){ return km(p, r) < 0.15 || (fold(p.name) === fold(r.name) && km(p, r) < 1); })[0] || null; }
   function fold1(c){
     var l = c.toLocaleLowerCase("tr"); if (l.length !== 1) l = c.toLowerCase().charAt(0);
     return {"ı":"i", "ş":"s", "ç":"c", "ğ":"g", "ö":"o", "ü":"u", "â":"a", "î":"i", "û":"u"}[l] || l;
@@ -3478,16 +3564,17 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var known = samePlace(r), id = known ? known.id : "p" + uid(), forEditor = SEARCH.forEditor;
     if (!known) S.places.push({id:id, name:String(r.name), sub:String(r.sub || ""), lat:+r.lat, lon:+r.lon});
     closeSearch();
-    if (forEditor) { save(); render(); backToEditor(); setStatus(tx(known ? "{0} zaten kayıtlı." : "{0} yerlerine eklendi.", r.name)); return; }
+    if (forEditor) { save(); render(); backToEditor(); setStatus(tx(known ? "{0} zaten kayıtlı." : "{0} kayıtlı yerlerine eklendi.", r.name)); return; }
     S.sel = id; save(); togglePanel(false); $("placeBtn").focus({preventScroll:true});
-    if (known) setStatus(tx("{0} zaten kayıtlı; o seçildi.", r.name));
-    fetchLive(false, true);
+    var again = known ? tx("{0} zaten kayıtlı; o seçildi.", nm(known.name)) : "";
+    if (again) setStatus(again);
+    fetchLive(false, true).then(function(ok){ if (ok && again && !$("status").textContent) setStatus(again); });
   }
   function queueSearch(){
     var q = $("q").value.trim();
     clearTimeout(SEARCH.timer);
     if (IS_ART) return;
-    if (q.length < 3) { SEARCH.seq++; showResults([], q); return; }
+    if (q.length < 3) { SEARCH.seq++; showResults([], q); if ($("status").textContent === tx(NO_RESULTS)) setStatus(""); return; }
     SEARCH.timer = setTimeout(function(){ runSearch(q, false); }, 400);
   }
   async function runSearch(q, explicit){
@@ -3511,7 +3598,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (IS_ART && c !== "http" && c !== "network" && c !== "parse") return errMsg(e);
     return tx("Yer arama servisine ulaşılamadı. İnternet bağlantını kontrol edip tekrar dene.");
   }
-  function noResults(res){ setStatus(res.length ? "" : tx("Sonuç bulunamadı. Daha kısa yaz ya da yanına semtini ekle (ör. “kütüphane kadıköy”).")); }
+  var NO_RESULTS = "Sonuç bulunamadı. Daha kısa yaz ya da yanına semtini ekle (ör. “kütüphane kadıköy”).";
+  function noResults(res){ setStatus(res.length ? "" : tx(NO_RESULTS)); }
   async function saveHere(){
     cancelLive();
     var saved = null, my = liveSeq;
@@ -3547,7 +3635,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   // Search words for each piece in the shops; a child gets children's sizes.
   var SHOPQ = {tshirt:"tişört", longsleeve:"uzun kollu tişört", thermal:"termal içlik", sweatshirt:"sweatshirt", hirka:"hırka", kazak:"kazak",
-    ceket:"ince ceket", mont:"mont", kaban:"kaban", sisme:"şişme mont", parka:"parka", yagmurluk:"yağmurluk", ruzgarlik:"rüzgarlık",
+    ceket:"ince ceket", mont:"mont", kaban:"kaban", sisme:"şişme mont", parka:"parka", yagmurluk:"yağmurluk", ruzgarlik:"rüzgârlık",
     jean:"jean pantolon", pantolon:"kışlık pantolon", sort:"şort", tayt:"spor tayt", sneaker:"sneaker", spor:"koşu ayakkabısı",
     bot:"su geçirmez bot", yuruyus:"yürüyüş botu", sandalet:"sandalet", bere:"bere", sapka:"şapka", semsiye:"katlanır şemsiye",
     gozluk:"güneş gözlüğü", atki:"atkı", eldiven:"eldiven", su:"su matarası", krem:"güneş kremi", corap:"yün çorap"};
@@ -3742,7 +3830,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (pk) {
       if (!S.choice || S.choice.date !== pk.dataset.pickDate) S.choice = {date:pk.dataset.pickDate, picks:{}};
       S.choice.picks[pk.dataset.pickTrip] = pk.dataset.pickRoute;
-      save(); render(); return;
+      var pkSel = '[data-pick-trip="' + pk.dataset.pickTrip + '"][data-pick-route="' + pk.dataset.pickRoute + '"]';
+      save(); render();
+      var npk = document.querySelector(pkSel); if (npk) npk.focus({preventScroll:true});
+      return;
     }
     if (e.target.closest("#dayToggle")) { S.dayMode = !S.dayMode; save(); render(); }
   });
@@ -3797,6 +3888,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     else if (b.hasAttribute("data-person-edit")) openPerson(S.prof, b);
   });
   $("personBody").addEventListener("click", personClick);
+  $("personBody").addEventListener("input", function(e){ if (e.target.id === "pfName" && e.target.value.trim()) { e.target.removeAttribute("aria-invalid"); $("pfErr").hidden = true; } });
   $("personBody").addEventListener("keydown", function(e){ if (e.key === "Enter" && e.target.id === "pfName") { e.preventDefault(); $("personBody").querySelector("[data-pf-save]").click(); } });
   $("wardBtn").addEventListener("click", function(){ renderWardrobe(); openSheet("wardSheet", $("wardBtn")); });
   $("wardBody").addEventListener("click", wardClick);
@@ -3955,7 +4047,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     window.addEventListener("appinstalled", function(){ deferredPrompt = null; $("installBtn").hidden = !isAndroid; $("pwaBtn").hidden = true; });
     $("installBtn").addEventListener("click", function(){ if (isAndroid) apkHint($("apkHint").hidden); else webInstall(); });
     $("pwaBtn").addEventListener("click", webInstall);
-    $("apkHintClose").addEventListener("click", function(){ apkHint(false); try { localStorage.setItem(KEY + ":apkhint", "1"); } catch (e) {} });
+    $("apkHintClose").addEventListener("click", function(){ apkHint(false); $("placeBtn").focus({preventScroll:true}); try { localStorage.setItem(KEY + ":apkhint", "1"); } catch (e) {} });
     var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     var seen = false; try { seen = localStorage.getItem(KEY + ":ioshint") === "1"; } catch (e) {}
     if (isIOS && !standalone && !seen) $("iosHint").hidden = false;
@@ -3966,7 +4058,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   /* ================= boot ================= */
   async function maybeRefresh(){
     if (busy) return;
-    if (!navigator.onLine) { setStatus(tx(S.live ? "Çevrimdışısın; son alınan hava gösteriliyor." : "Çevrimdışısın; hava durumu için internete bağlan.")); return; }
+    if (!navigator.onLine) {
+      var showing = S.mode === "live" && S.live && liveInput();
+      setStatus(tx(showing ? "Çevrimdışısın; son alınan hava gösteriliyor." : S.live ? "Çevrimdışısın; kayıtlı hava tahmini eskidi, elle ayar gösteriliyor." : "Çevrimdışısın; hava durumu için internete bağlan."));
+      return;
+    }
     if (S.mode === "manual" && S.live) return;
     var age = S.live ? Date.now() - S.live.fetchedAt : Infinity;
     // A place chosen while offline (or while a request failed) is loaded as soon as possible, however fresh the old weather is.

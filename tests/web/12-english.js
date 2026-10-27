@@ -238,7 +238,7 @@ H.run({
         note("routine editor:", ed.slice(0, 300));
         check("routine editor in English", /^My routine/.test(ed) && /Places/.test(ed) && /Trips/.test(ed) && /Routes/.test(ed) && /Add a step:/.test(ed) && /Gentle uphill|Steep uphill|Flat/.test(ed) && /Mon/.test(ed) && /Done, get the weather/.test(ed), ed.slice(0, 400));
         const attrs = await s.page.$$eval("#routine [aria-label], #routine [placeholder]", (l) => l.map((e) => e.getAttribute("aria-label") || e.getAttribute("placeholder")));
-        check("routine editor aria-labels / placeholders in English", attrs.includes("Departure time") && attrs.includes("From") && attrs.includes("To") && attrs.includes("Minutes") && attrs.some((a) => /^Delete the \d\d:\d\d trip$/.test(a)) && attrs.includes("Where you get on"), attrs.slice(0, 12));
+        check("routine editor aria-labels / placeholders in English", attrs.some((a) => /^Departure time: .+ → .+$/.test(a)) && attrs.some((a) => /^Mon, .+ → .+$/.test(a)) && attrs.includes("From") && attrs.includes("To") && attrs.includes("Minutes") && attrs.some((a) => /^Delete the \d\d:\d\d trip$/.test(a)) && attrs.includes("Where you get on"), attrs.slice(0, 12));
         await s.page.tap('#routine [data-act="addroute"]'); await sleep(250);
         check("a new route gets an English name", (await s.page.$$eval('#routine input[data-k="name"][data-route]', (l) => l.map((e) => e.value))).includes("Route 3"), await s.page.$$eval('#routine input[data-k="name"][data-route]', (l) => l.map((e) => e.value)));
         await scrollTo(s, "#routine"); await s.shot("12-routine-light");
@@ -265,7 +265,7 @@ H.run({
       const after = await s.page.evaluate(() => ({ pills: document.getElementById("pills").textContent, status: document.getElementById("status").textContent, chips: [...document.querySelectorAll("#people .chip")].map((e) => e.textContent) }));
       if (theme === "light") {
         note("after adding Deniz:", JSON.stringify(after));
-        check("child added: 'For Deniz' pill, English status, age group on the chip", /For Deniz/.test(after.pills) && after.status === "The suggestion is for Deniz (child)." && after.chips.includes("DenizChild") && after.chips.includes("Me"), after);
+        check("child added: 'For Deniz' pill, English status, age group on the chip", /For Deniz/.test(after.pills) && after.status === "The suggestion is for Deniz (child)." && after.chips.includes("Deniz · Child") && after.chips.includes("Me"), after);
       }
       // the coat the child is dressed in, to take out of the wardrobe
       const COATS = { "Puffer jacket": "sisme", "Wool coat": "kaban", "Jacket": "mont", "Parka": "parka" };

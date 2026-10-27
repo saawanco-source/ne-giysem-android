@@ -78,7 +78,7 @@ class WidgetLookTest {
         ),
         Case(
             "uyari", plan(
-                "tr", 5, 19.0, 17.0, "Kapalı", "Beşiktaş", "Kapüşonlu yağmurluğunu giy; rüzgarda şemsiye uçar.",
+                "tr", 5, 19.0, 17.0, "Kapalı", "Beşiktaş", "Kapüşonlu yağmurluğunu giy; rüzgârda şemsiye uçar.",
                 garments("longsleeve" to "Uzun kollu", "yagmurluk" to "Yağmurluk", "jean" to "Jean", "bot" to "Bot"),
                 garments("su" to "Su"), listOf("Fırtına", "Yağmur %90"),
                 alert = warning(2, "Fırtına", "Fırtına", "14:00–18:00")

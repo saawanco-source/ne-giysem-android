@@ -3,14 +3,12 @@ package com.negiysem.app.wear
 import android.app.Activity
 import android.graphics.Typeface
 import android.os.Bundle
-import android.text.format.DateFormat
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import java.util.Date
 
 /** Today's outfit on the watch: the card, what to take along, the warning, when it was updated. Opened by the complication. */
 class PlanActivity : Activity() {
@@ -24,18 +22,24 @@ class PlanActivity : Activity() {
             gravity = Gravity.CENTER_HORIZONTAL
             setPadding(pad, pad, pad, pad)
         }
-        setContentView(ScrollView(this).apply {
+        val scroll = ScrollView(this).apply {
             setBackgroundColor(Art.BG)
             isVerticalScrollBarEnabled = false
+            // Focused, it takes the turning bezel / crown too.
+            isFocusable = true
+            isFocusableInTouchMode = true
             addView(box, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-        })
+        }
+        setContentView(scroll)
+        scroll.requestFocus()
         show()
     }
 
     override fun onResume() {
         super.onResume()
-        // Something newer may be waiting on the phone side.
+        // Something newer may be waiting on the phone side; when what there is is missing or old, the phone is asked.
         PhoneListener.pull(this) { if (!isFinishing) runOnUiThread { show() } }
+        PhoneListener.ask(this)
     }
 
     private fun line(text: String, sp: Float, bold: Boolean = false, color: Int = 0xFFFFFFFF.toInt()) {
@@ -69,8 +73,7 @@ class PlanActivity : Activity() {
         if (plan.next.isNotBlank()) line(plan.next, 12f, color = 0xB3FFFFFF.toInt())
         val age = System.currentTimeMillis() - plan.updated
         line(
-            if (age > PlanStore.MAX_AGE_MS) getString(R.string.old)
-            else getString(R.string.updated, DateFormat.getTimeFormat(this).format(Date(plan.updated))),
+            getString(R.string.updated, PlanStore.stamp(this, plan.updated)) + (if (age > PlanStore.MAX_AGE_MS) "\n" + getString(R.string.old) else ""),
             11f, color = 0x80FFFFFF.toInt()
         )
     }

@@ -132,7 +132,7 @@ private object Words {
     private val EN = mapOf(
         "Uygulamayı aç ve konumunu seç." to "Open the app and choose your location.",
         "Bugünün kıyafeti bir bakışta" to "Today's outfit at a glance",
-        "Son güncelleme" to "Last updated",
+        "Son güncelleme" to "Last updated", "dün" to "yesterday",
         "Sıradaki: " to "Next: ",
         "Hissedilen " to "Feels like ",
         "Yanına al: " to "Take along: ",
@@ -202,9 +202,12 @@ private data class WidgetData(
                             .takeIf { it.title.isNotBlank() && it.live }
                     }
                 ).let { d ->
-                    // The warning's pill already says "Fırtına"; the outfit's own pill for it would only repeat it.
+                    // The warning's pill already says "Fırtına" or "Gök gürültülü sağanak"; the outfit's own pill would only repeat it.
                     val w = d.warning ?: return@let d
-                    d.copy(pills = d.pills.filter { p -> p != w.short && !w.title.startsWith(p) })
+                    val thunder = w.title.contains("gürültü", ignoreCase = true) || w.title.contains("thunder", ignoreCase = true)
+                    d.copy(pills = d.pills.filter { p ->
+                        p != w.short && !w.title.startsWith(p) && !(thunder && (p == "Gök gürültüsü" || p == "Thunder"))
+                    })
                 }
             }.getOrDefault(empty(lang, hint))
         }
@@ -326,10 +329,20 @@ private fun subLine(d: WidgetData) = when {
 private fun takeLine(d: WidgetData) =
     if (d.take.isEmpty()) "" else d.w("Yanına al: ") + d.take.take(3).joinToString(", ") { it.label }
 
-/** "Son güncelleme 08:10" when the snapshot is more than two hours old (the phone may have put the app to sleep). */
+/**
+ * "Son güncelleme 08:10" when the snapshot is more than two hours old (the phone may have put the app to sleep);
+ * "Son güncelleme dün 22:40" or "… 24 Eki 08:10" when it is from another day.
+ */
 private fun staleText(d: WidgetData): String? {
     if (!d.ok || d.updated <= 0 || System.currentTimeMillis() - d.updated < 2 * 3_600_000L) return null
-    return d.w("Son güncelleme") + " " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(d.updated))
+    val at = java.time.Instant.ofEpochMilli(d.updated).atZone(java.time.ZoneId.systemDefault())
+    val days = java.time.temporal.ChronoUnit.DAYS.between(at.toLocalDate(), java.time.LocalDate.now())
+    val day = when (days) {
+        0L -> ""
+        1L -> d.w("dün") + " "
+        else -> at.format(java.time.format.DateTimeFormatter.ofPattern("d MMM", if (d.lang == "en") Locale.ENGLISH else Locale.forLanguageTag("tr"))) + " "
+    }
+    return d.w("Son güncelleme") + " " + day + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(d.updated))
 }
 
 /** The sizes for this widget: [width] × [height] dp, measured with the phone's font. */

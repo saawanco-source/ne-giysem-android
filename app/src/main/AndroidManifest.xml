@@ -57,5 +57,15 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/negiysem_widget_info" />
         </receiver>
+
+        <!-- The watch app asks for the outfit (wear: PhoneListener.ask); only paired devices with the same signing key reach it. -->
+        <service
+            android:name=".work.WatchRequestListener"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/negiysem/refresh" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

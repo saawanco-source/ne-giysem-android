@@ -94,6 +94,26 @@ object Alerts {
 
     private class Acc(var lv: Int, val i: Int, var j: Int, var peak: Double?)
 
+    /**
+     * How heavy the rain is, hour by hour (0; 1 "Dikkat"; 2 "Tehlikeli"): an hour of 6 (15) mm, or every wet hour (1 mm or
+     * more) of a six-hour spell bringing 20 (40) mm, so a warning lasts as long as the rain. Only amounts count, never the
+     * symbol (MET Norway calls 1 mm an hour "heavy rain" already). The warning and the outfit both use it (as the app
+     * screen's rainLevels()).
+     */
+    fun rainLevels(h: JSONObject): IntArray {
+        val n = h.optJSONArray("time")?.length() ?: 0
+        val prec = h.optJSONArray("precipitation"); val code = h.optJSONArray("weather_code")
+        fun snowAt(k: Int): Boolean { val c = code.num(k)?.let { Math.round(it).toInt() } ?: -1; return c in 71..77 || c == 85 || c == 86 }
+        val lv = IntArray(n) { k -> val v = prec.num(k); if (v == null || snowAt(k)) 0 else if (v >= 15) 2 else if (v >= 6) 1 else 0 }
+        for (j in 0 until n) {
+            var sum = 0.0
+            for (q in j until minOf(n, j + 6)) sum += prec.num(q) ?: 0.0
+            if (sum < 20) continue
+            for (q in j until minOf(n, j + 6)) { val w = prec.num(q); if (w != null && w >= 1 && !snowAt(q)) lv[q] = maxOf(lv[q], if (sum >= 40) 2 else 1) }
+        }
+        return lv
+    }
+
     /** The warnings for the next 24 hours from the current hour, most dangerous first. */
     fun find(wx: JSONObject, nowMs: Long): List<Alert> {
         val h = wx.optJSONObject("hourly") ?: return emptyList()
@@ -108,6 +128,7 @@ object Alerts {
         val code = h.optJSONArray("weather_code"); val wind = h.optJSONArray("wind_speed_10m")
         val gusts = h.optJSONArray("wind_gusts_10m"); val prec = h.optJSONArray("precipitation")
         val found = HashMap<String, Acc>()
+        val rl = rainLevels(h)
         fun hit(k: String, lv: Int, at: Int, peak: Double?) {
             val a = found[k]
             if (a == null) { found[k] = Acc(lv, at, at, peak); return }
@@ -120,16 +141,12 @@ object Alerts {
             val a = app.num(j) ?: tt
             val c = code.num(j)?.let { Math.round(it).toInt() } ?: -1
             val w = wind.num(j); val g = gusts.num(j); val p = prec.num(j)
-            var p6 = 0.0
-            for (q in j until minOf(n, j + 6)) p6 += prec.num(q) ?: 0.0
             val snow = c in 71..77 || c == 85 || c == 86
             if (a != null && a >= 34) hit("heat", if (a >= 40) 2 else 1, j, a)
             if (a != null && a <= -10) hit("cold", if (a <= -20) 2 else 1, j, a)
             if ((c == 56 || c == 57 || c == 66 || c == 67) && (tt == null || tt <= 2)) hit("ice", 2, j, tt)
             else if (tt != null && tt <= 0.5 && (c in 51..67 || c in 80..82 || snow)) hit("ice", 1, j, tt)
-            val wet = p != null && p >= 1
-            if (!snow && ((p != null && p >= 15) || (wet && p6 >= 40))) hit("rain", 2, j, p)
-            else if (!snow && ((p != null && p >= 6) || (wet && p6 >= 20))) hit("rain", 1, j, p)
+            if (rl[j] > 0) hit("rain", rl[j], j, p)
             if (c == 96 || c == 99) hit("thunder", 2, j, null) else if (c == 95) hit("thunder", 1, j, null)
             val gust = maxOf(w ?: 0.0, g ?: 0.0)
             if ((g != null && g >= 95) || (w != null && w >= 70)) hit("storm", 2, j, gust)

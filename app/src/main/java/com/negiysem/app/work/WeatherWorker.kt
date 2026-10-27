@@ -14,6 +14,12 @@ import com.negiysem.app.data.Store
 import com.negiysem.app.data.Updater
 import com.negiysem.app.widget.NeGiysemWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import com.google.android.gms.tasks.Tasks
+import com.google.android.gms.wearable.CapabilityClient
+import com.google.android.gms.wearable.Wearable
+import com.negiysem.app.data.WatchSync
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 class WeatherWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
@@ -40,8 +46,19 @@ object Scheduler {
     suspend fun hasWidgets(context: Context): Boolean =
         runCatching { GlanceAppWidgetManager(context).getGlanceIds(NeGiysemWidget::class.java).isNotEmpty() }.getOrDefault(false)
 
-    /** Background refresh is needed while a widget is on the home screen or weather warnings are turned on. */
-    suspend fun needed(context: Context): Boolean = Store(context).alertsOn || hasWidgets(context)
+    /** The Ne Giysem? watch app is on a paired watch (reachable now or not); false without Google Play services. */
+    suspend fun hasWatch(context: Context): Boolean = withContext(Dispatchers.IO) {
+        runCatching {
+            val task = Wearable.getCapabilityClient(context.applicationContext).getCapability(WatchSync.CAPABILITY, CapabilityClient.FILTER_ALL)
+            Tasks.await(task, 5, TimeUnit.SECONDS).nodes.isNotEmpty()
+        }.getOrDefault(false)
+    }
+
+    /** Something outside the app shows the forecast: a widget on the home screen or the watch. */
+    suspend fun shows(context: Context): Boolean = hasWidgets(context) || hasWatch(context)
+
+    /** Background refresh is needed while a widget or the watch shows the outfit, or weather warnings are turned on. */
+    suspend fun needed(context: Context): Boolean = Store(context).alertsOn || shows(context)
 
     /**
      * Keeps the widget fresh: every 30 minutes, with or without a connection (without one it moves on to the current

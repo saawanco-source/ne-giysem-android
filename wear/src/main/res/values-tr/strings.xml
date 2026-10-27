@@ -6,4 +6,5 @@
     <string name="updated">Güncellendi %1$s</string>
     <string name="take">Yanına al: %1$s</string>
     <string name="old">Bir süredir güncellenmedi: telefondaki uygulamayı aç.</string>
+    <string name="yesterday_at">dün %1$s</string>
 </resources>

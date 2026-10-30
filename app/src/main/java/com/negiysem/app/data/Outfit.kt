@@ -113,6 +113,8 @@ object Outfit {
         "Yağmur var: su itici {rüzgârlık} giy, kaymayan taban seç." to "Rain today: wear a water-repellent {windbreaker} and shoes that grip.",
         "{Kapüşonlu yağmurluğunu} giy; rüzgârda şemsiye uçar." to "Wear your {hooded raincoat}; umbrellas fly away in this wind.",
         "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgârda şemsiye uçar." to "Wear a waterproof, {hooded} outer layer; umbrellas fly away in this wind.",
+        "Arazide yağmur: {kapüşonlu yağmurluğunu} giy; şemsiye yerine kapüşon." to "Rain in the field: wear your {hooded raincoat}; a hood, not an umbrella.",
+        "Arazide yağmur: su geçirmez, {kapüşonlu} bir dış katman giy." to "Rain in the field: wear a waterproof, {hooded} outer layer.",
         "{Yağmurluğunu} giy, şemsiyeni al." to "Wear your {raincoat}, take your umbrella.",
         "Kuvvetli yağmur: {yağmurluğunu} giy, şemsiye tek başına yetmez." to "Heavy rain: wear your {raincoat}, an umbrella alone won't do.",
         "Kuvvetli yağmur: {şemsiyeni} al, dış katmanın su geçirmez olsun." to "Heavy rain: take your {umbrella} and wear a waterproof outer layer.",
@@ -333,6 +335,8 @@ object Outfit {
         val drizzle = wet && !heavy && !thunder && mmMax != null && mmMax < 0.5 && (mmMax >= 0.1 || lightOnly) && codes.none { it == 65 || it == 67 || it == 82 }
         val windy = windMax >= 28 || gust >= 45
         val stormy = windMax >= 50 || gust >= 70 // as the storm warning
+        // In the field the hands are busy and branches catch an umbrella: rain gear is worn, with a hood.
+        val field = act == "field"
         val hasOuter = wear.any { it.g in OUTER }
 
         if (act == "field") {
@@ -377,7 +381,7 @@ object Outfit {
                 }
             }
             pills.add(cap(t(dp, lang), en) + " " + deg(rawLow))
-        } else if (lHigh > level && highAt != null) {
+        } else if (!trip && lHigh > level && highAt != null) {
             pills.add(cap(t(daypart(highAt), lang), en) + " " + deg(rawHigh))
         }
 
@@ -389,12 +393,12 @@ object Outfit {
                 if (!has("ruzgarlik")) wear.add(Item("ruzgarlik", t("Su itici rüzgârlık", lang)))
                 headT = "Yağmur var: su itici {rüzgârlık} giy, kaymayan taban seç."; head = t(headT, lang)
             } else if (drizzle) {
-                // Just drizzle: an umbrella in the bag, or a hood in the wind; no raincoat, no boots.
-                if (!windy) addTake("semsiye")
+                // Just drizzle: an umbrella in the bag, or a hood in the wind or the field; no raincoat, no boots.
+                if (!windy && !field) addTake("semsiye")
             } else {
                 var addedCoat = false
                 val hot = level >= 6
-                if (!hasOuter && !(hot && !windy && !heavy)) {
+                if (!hasOuter && !(hot && !windy && !heavy && !field)) {
                     // Something waterproof is worn, not carried: a raincoat replaces the jacket to take along.
                     val dropped = takesOuter()
                     take = take.filter { it.g !in OUTER }.toMutableList()
@@ -402,7 +406,10 @@ object Outfit {
                     if (dropped && carry != null && carry in OUTER) lowPool.firstOrNull { it in MID && !has(it) }?.let { addTake(it, first = true) }
                 }
                 if (act == "city" && (!hot || heavy) && wear.any { it.g == "sneaker" || it.g == "sandalet" }) swap(SHOES, "bot", t("Su geçirmez ayakkabı", lang))
-                if (windy) {
+                if (field) {
+                    headT = if (addedCoat) "Arazide yağmur: {kapüşonlu yağmurluğunu} giy; şemsiye yerine kapüşon." else "Arazide yağmur: su geçirmez, {kapüşonlu} bir dış katman giy."
+                    head = t(headT, lang)
+                } else if (windy) {
                     headT = if (addedCoat) "{Kapüşonlu yağmurluğunu} giy; rüzgârda şemsiye uçar." else "Su geçirmez, {kapüşonlu} bir dış katman giy; rüzgârda şemsiye uçar."
                     head = t(headT, lang)
                 } else {
@@ -421,7 +428,7 @@ object Outfit {
             }
         } else if (maybe) {
             pills.add(if (en) "Chance of rain $pMax%" else "Yağmur ihtimali %$pMax")
-            if (!windy && !sport) addTake("semsiye", if (en) "Umbrella ($pMax%)" else "Şemsiye (%$pMax)")
+            if (!windy && !sport && !field) addTake("semsiye", if (en) "Umbrella ($pMax%)" else "Şemsiye (%$pMax)")
         }
         if (snowy) {
             pills.add(0, t(if (snowNow) "Kar yağıyor" else "Kar", lang))
@@ -464,14 +471,17 @@ object Outfit {
         }
         val rainAllDay = wet && w.isNotEmpty() && w.all { isRain(it.code) }
         val uv = inp.uvMax
-        if (inp.uvDay && uv != null && !rainAllDay && !heavy) {
+        // No sunglasses in fog: none at all on a day of fog, and not for moderate UV when fog is due while out.
+        val foggy = codes.any { it == 45 || it == 48 }
+        val fogAll = w.isNotEmpty() && w.all { it.code == 45 || it.code == 48 }
+        if (inp.uvDay && uv != null && !rainAllDay && !heavy && !fogAll) {
             if (uv >= 6) { addTake("gozluk"); addTake("krem"); addTake("sapka"); pills.add(t("UV yüksek", lang)) }
-            else if (uv >= 3 && rawNow >= 15) addTake("gozluk")
+            else if (uv >= 3 && rawNow >= 15 && !foggy) addTake("gozluk")
         }
         // No cap in a storm: it flies off.
         if (stormy) { wear.removeAll { it.g == "sapka" }; take.removeAll { it.g == "sapka" } }
-        if (codes.any { it == 45 || it == 48 }) pills.add(t("Sis", lang))
-        if (act == "field" && wet) addTake("corap")
+        if (foggy) pills.add(t("Sis", lang))
+        if (field && wet) addTake("corap")
 
         // Wardrobe: a missing piece becomes the closest one the person has; clothes with no stand-in stay (marked), accessories go.
         val lost = ArrayList<String>()

@@ -93,10 +93,10 @@ object Alerts {
     private fun JSONArray.str(i: Int): String = opt(i)?.takeIf { it != JSONObject.NULL }?.toString() ?: "null"
     private fun offset(wx: JSONObject): Long = (wx.opt("utc_offset_seconds") as? Number)?.toLong() ?: 0L
 
-    private class Acc(var lv: Int, val i: Int, var j: Int, var peak: Double?, var total: Double?)
+    private class Acc(var lv: Int, val i: Int, var j: Int, var peak: Double?, var total: Double?, var n: Int = 1)
 
     /**
-     * How heavy the rain is, hour by hour (0; 1 "Dikkat"; 2 "Tehlikeli"): an hour of 6 (15) mm, or every wet hour (1 mm or
+     * How heavy the rain is, hour by hour (0; 1 "Dikkat"; 2 "Tehlikeli"): an hour of 8 (15) mm, or every wet hour (1 mm or
      * more) of a six-hour spell bringing 20 (40) mm, so a warning lasts as long as the rain. Only amounts count, never the
      * symbol (MET Norway calls 1 mm an hour "heavy rain" already). The warning and the outfit both use it (as the app
      * screen's rainLevels()).
@@ -105,7 +105,7 @@ object Alerts {
         val n = h.optJSONArray("time")?.length() ?: 0
         val prec = h.optJSONArray("precipitation"); val code = h.optJSONArray("weather_code")
         fun snowAt(k: Int): Boolean { val c = code.num(k)?.let { Math.round(it).toInt() } ?: -1; return c in 71..77 || c == 85 || c == 86 }
-        val lv = IntArray(n) { k -> val v = prec.num(k); if (v == null || snowAt(k)) 0 else if (v >= 15) 2 else if (v >= 6) 1 else 0 }
+        val lv = IntArray(n) { k -> val v = prec.num(k); if (v == null || snowAt(k)) 0 else if (v >= 15) 2 else if (v >= 8) 1 else 0 }
         // Spells: 20 (40) mm in six hours, or 40 (60) mm in a day of steady rain.
         for ((len, lo, hi) in listOf(Triple(6, 20.0, 40.0), Triple(24, 40.0, 60.0))) {
             for (j in 0 until n) {
@@ -131,14 +131,17 @@ object Alerts {
         val temp = h.optJSONArray("temperature_2m"); val app = h.optJSONArray("apparent_temperature")
         val code = h.optJSONArray("weather_code"); val wind = h.optJSONArray("wind_speed_10m")
         val gusts = h.optJSONArray("wind_gusts_10m"); val prec = h.optJSONArray("precipitation")
-        val found = HashMap<String, Acc>()
+        // Each kind's hours form episodes: hours at most two quiet hours apart belong together. The warning is the most
+        // dangerous episode (the earliest of equals), so morning fog and the next night's aren't one "04:00–23:00".
+        val found = HashMap<String, MutableList<Acc>>()
         val rl = rainLevels(h)
         fun hit(k: String, lv: Int, at: Int, peak: Double?) {
-            val a = found[k]
-            if (a == null) { found[k] = Acc(lv, at, at, peak, if (k == "rain") peak ?: 0.0 else null); return }
+            val eps = found.getOrPut(k) { mutableListOf() }
+            val a = eps.lastOrNull()
+            if (a == null || at - a.j > 3) { eps.add(Acc(lv, at, at, peak, if (k == "rain") peak ?: 0.0 else null)); return }
             if (k == "rain") a.total = (a.total ?: 0.0) + (peak ?: 0.0)
             if (lv > a.lv) a.lv = lv
-            a.j = at
+            a.j = at; a.n++
             if (peak != null && (a.peak == null || (if (k == "cold" || k == "ice") peak < a.peak!! else peak > a.peak!!))) a.peak = peak
         }
         for (j in i0 until minOf(n, i0 + 24)) {
@@ -160,7 +163,8 @@ object Alerts {
             if (c == 45 || c == 48) hit("fog", 1, j, null)
         }
         return KINDS.mapNotNull { k ->
-            found[k]?.let { a -> Alert(k, a.lv, time.str(a.i).take(16), time.str(a.j).take(16), a.peak?.let { Math.round(it).toInt() },
+            // A single hour of fog is a passing patch, not a warning.
+            found[k]?.filter { k != "fog" || it.n >= 2 }?.maxByOrNull { it.lv }?.let { a -> Alert(k, a.lv, time.str(a.i).take(16), time.str(a.j).take(16), a.peak?.let { Math.round(it).toInt() },
                 a.total?.let { Math.round(it).toInt() }) }
         }.sortedWith(compareByDescending<Alert> { it.lv }.thenBy { it.from }.thenBy { KINDS.indexOf(it.k) })
     }

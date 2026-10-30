@@ -134,11 +134,18 @@ H.run({
     let c = await cards(s);
     check("1.4 mm an hour marked heavy by the symbol: no heavy-rain warning", !c.items.some((x) => x.k === "rain"), c.items.map((x) => x.k));
     await s.close();
+    // A shower of 7 mm is ordinary in autumn; from 8 mm an hour it's a warning.
     h.precipitation[i + 3] = 7;
     s = await t.open({ seed: seed(wx) });
     await s.goto(); await sleep(400);
     c = await cards(s);
-    check("7 mm in an hour: heavy-rain warning with its amount", c.items.some((x) => x.k === "rain" && x.lv === "Dikkat" && /saatte 7 mm'ye kadar/.test(x.when)), c.items);
+    check("7 mm in an hour: no heavy-rain warning", !c.items.some((x) => x.k === "rain"), c.items);
+    await s.close();
+    h.precipitation[i + 3] = 9;
+    s = await t.open({ seed: seed(wx) });
+    await s.goto(); await sleep(400);
+    c = await cards(s);
+    check("9 mm in an hour: heavy-rain warning with its amount", c.items.some((x) => x.k === "rain" && x.lv === "Dikkat" && /saatte 9 mm'ye kadar/.test(x.when)), c.items);
     pageOk(s, "ordinary rain");
     await s.close();
   },

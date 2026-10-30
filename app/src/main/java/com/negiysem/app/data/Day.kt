@@ -21,9 +21,10 @@ object Day {
                        val choiceDate: String = "", val picks: Map<String, String> = emptyMap())
 
     private data class W(val time: String, val app: Double, val t: Double, val p: Double, val code: Int, val wind: Double, val day: Boolean,
-                         val mm: Double, val gust: Double, val rl: Int)
+                         val mm: Double, val gust: Double, val rl: Int, val dir: Double?)
     private data class Out(val time: String, val end: Long, val min: Int, val app: Double, val t: Double, val p: Double,
-                           val code: Int, val wind: Double, val day: Boolean, val place: String, val mm: Double, val gust: Double, val rl: Int)
+                           val code: Int, val wind: Double, val day: Boolean, val place: String, val mm: Double, val gust: Double, val rl: Int,
+                           val dir: Double?)
     private data class Ex(val out: List<Out>, val total: Int, val outMin: Int, val start: Long, val end: Long)
 
     data class Result(val input: Outfit.Input?, val next: String?)
@@ -98,7 +99,8 @@ object Day {
             day = (h.optJSONArray("is_day")?.optInt(i, 1) ?: 1) == 1,
             mm = h.optJSONArray("precipitation").dbl(i),
             gust = h.optJSONArray("wind_gusts_10m").dbl(i).let { if (it.isNaN()) 0.0 else it },
-            rl = Alerts.rainLevels(h).getOrElse(i) { 0 }
+            rl = Alerts.rainLevels(h).getOrElse(i) { 0 },
+            dir = h.optJSONArray("wind_direction_10m").dbl(i).takeIf { !it.isNaN() }
         )
     }
 
@@ -119,7 +121,7 @@ object Day {
                 if (w != null) {
                     val heat = if (st.m == "walk") slopeHeat(st.slope) else WAIT_HEAT
                     out.add(Out(w.time, end, st.min, w.app + heat, w.t, w.p, w.code, if (st.m == "wait") w.wind else w.wind * 0.6, w.day, pid, w.mm,
-                        w.gust, w.rl)) // a gust is a gust, sheltered street or not
+                        w.gust, w.rl, w.dir)) // a gust is a gust, sheltered street or not
                 }
             }
             t = end
@@ -206,7 +208,8 @@ object Day {
         // home doesn't change on the metro (finished trips aren't in items any more).
         val exps = items.flatMap { it.ex?.out ?: emptyList() }
         if (exps.isEmpty()) return Result(null, next)
-        val e0 = exps.first()
+        // The outfit is put on for the first trip: its coldest outdoor moment (a windy pier, not the short walk to it) is "now".
+        val e0 = items.first { it.ex?.out?.isNotEmpty() == true }.ex!!.out.minByOrNull { it.app }!!
         val daily = byPlace[e0.place]?.optJSONObject("daily")
         val dTimes = daily?.optJSONArray("time")
         var di = -1
@@ -214,7 +217,7 @@ object Day {
         val uv = if (di >= 0) daily?.optJSONArray("uv_index_max").dbl(di).takeIf { !it.isNaN() } else null
         val input = Outfit.Input(
             now = Outfit.Now(t = if (e0.t.isNaN()) e0.app else e0.t, app = e0.app, code = e0.code, isDay = e0.day,
-                wind = e0.wind, gust = 0.0, dir = null, rh = null, precip = 0.0),
+                wind = e0.wind, gust = 0.0, dir = e0.dir, rh = null, precip = 0.0),
             window = exps.map { Outfit.Hour(it.time, it.app, it.p, it.code, it.wind, it.mm, it.t, it.gust, it.rl) },
             uvMax = uv,
             uvDay = exps.any { (it.time.substring(11, 13).toIntOrNull() ?: 0) in 10..16 && it.time.take(10) == e0.time.take(10) },

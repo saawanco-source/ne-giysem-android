@@ -91,6 +91,17 @@ Bilmen gerekenler:
 - **Sürüm numarası (versionCode)** her bulut derlemesinin çalıştırma numarasıdır (Releases’taki “Ne Giysem? N”deki N). Play aynı ya da daha küçük numaralı dosyayı kabul etmez: hep en yeni sürümü yükle. `.github/workflows/build-apk.yml` dosyasının adını değiştirme; değişirse numaralar 1’den başlar ve Play yeni dosyaları reddeder.
 - Play’e yalnızca `.aab` yüklenir; `.apk` Play için değil.
 
+## 5a. Deneme sürümü (dev dalı)
+
+Değişiklikler önce `dev` dalına gider; yayına ancak denendikten sonra çıkar.
+
+- `dev` dalına her yüklemede bulut derlemesi **“Ne Giysem? deneme N”** adlı bir **ön sürüm** (pre-release) çıkarır.
+  İçindeki `NeGiysem.apk` telefona, kurulu uygulamanın üstüne kurulur (aynı anahtarla imzalı).
+- Deneme uygulaması deneme sitesinin sunucusunu kullanır: **https://dev.ne-giysem.pages.dev** (Cloudflare Pages
+  `dev` dalı için kendiliğinden kurar). Sitedeki “Uygulamayı indir” düğmesi ve Play deneme sürümlerini görmez.
+- Yalnızca son üç deneme sürümü tutulur. Deneme geçince `dev`, `main`'e alınır ve gerçek sürüm çıkar; gerçek sürüm
+  numarası her zaman denemeden büyüktür, telefona üstüne kurulur.
+
 ## 6. Teknik notlar (geliştirici için)
 
 - İmza bilgisi yalnızca ortam değişkenlerinden okunur (`NG_KEYSTORE_FILE`, `NG_KEYSTORE_PASSWORD`, `NG_KEY_ALIAS`, `NG_KEY_PASSWORD`); iş akışı `NG_KEYSTORE_BASE64`’ü geçici bir dosyaya çözer. Yerel derleme: bu dört değişkeni verip `gradle bundleRelease assembleRelease`.

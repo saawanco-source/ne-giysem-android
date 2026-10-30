@@ -6,6 +6,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+/** The live site's server (web/functions); Config.API unless a test build says otherwise. */
+val LIVE_API = "https://ne-giysem.pages.dev"
+
 // Google Play upload key: only from the environment (GitHub secrets in the cloud build, see RELEASE.md).
 // Nothing secret is in the repository. Without it the release build is unsigned and the cloud build makes the debug APK.
 val releaseKeyFile = System.getenv("NG_KEYSTORE_FILE")?.takeIf { it.isNotBlank() }?.let { file(it) }
@@ -23,6 +26,8 @@ android {
         // (and Play accepts it: each upload needs a higher versionCode than the last).
         versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 7
         versionName = "2.0"
+        // The app's server: the live site, or the preview site of the "dev" branch for a test build (NG_API, set by CI).
+        buildConfigField("String", "NG_API", "\"" + (System.getenv("NG_API")?.takeIf { it.isNotBlank() } ?: LIVE_API) + "\"")
         // AdMob: Google's sample app ID until the real one is given to the cloud build (ADMOB_APP_ID secret);
         // the banner stays off until ADMOB_BANNER_ID is given too (and Config.API is set).
         manifestPlaceholders["admobAppId"] = System.getenv("ADMOB_APP_ID")?.takeIf { it.isNotBlank() } ?: "ca-app-pub-3940256099942544~3347511713"
@@ -65,6 +70,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -94,8 +100,12 @@ dependencies {
 // The app screen is the web app in ../web (the same files the website serves).
 // They are copied into the APK's assets on every build, so there is only one copy to edit.
 val syncWeb by tasks.registering(Sync::class) {
+    // A test build talks to the preview site's server; the page bundled in the app is told so too.
+    val api = System.getenv("NG_API")?.takeIf { it.isNotBlank() } ?: LIVE_API
+    inputs.property("api", api)
     from(rootProject.file("web")) {
         include("index.html", "forecast-lib.js", "manifest.webmanifest", "icons/**")
+        filesMatching("index.html") { filter { line -> line.replace("api: \"$LIVE_API\"", "api: \"$api\"") } }
     }
     into(layout.projectDirectory.dir("src/main/assets/www"))
 }

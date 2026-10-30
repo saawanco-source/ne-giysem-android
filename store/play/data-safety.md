@@ -57,6 +57,7 @@ Kısaltmalar: **T** = toplanıyor, **P** = paylaşılıyor, **Geçici** = “ge�
 - Ortaklık linkleri ve diğer dış linkler tarayıcıda açılır; uygulama kullanıcı verisi göndermez (linkte yalnızca ortaklık kodu var).
 - Bağış: Play uygulamasında yok.
 - Kilitlenme günlükleri: uygulamada çökme raporlama SDK’sı yok. Play Console’un kendi “Android vitals” verisi uygulamanın topladığı veri sayılmaz. İleride Crashlytics vb. eklenirse formu güncelle.
+- “Sorun bildir” (30 Ekim 2026): son hata/çökme kayıtları ve sürüm, cihaz modeli gibi teknik bilgiler cihazda durur ve **yalnızca kullanıcı kendi e-posta uygulamasından göndermeyi seçerse** bize ulaşır; uygulama kendisi hiçbir şey göndermez, metni kullanıcı gönderilmeden önce görür ve değiştirebilir. Google’ın tanımında kullanıcının başlattığı, her seferinde açıkça onayladığı bu aktarım “toplama” sayılmaz. Daha temkinli istersen: *Uygulama bilgileri ve performansı → Kilitlenme günlükleri* ve *Teşhis* için “Toplanıyor, isteğe bağlı, amaç: Uygulama işlevselliği” işaretle.
 - Google Fonts: Uygulama sayfası yazı tiplerini `fonts.googleapis.com`’dan indiriyor; bu istek IP adresini Google’a iletir ama uygulama bir veri türü göndermez. Yazı tiplerini APK’nın içine koymak (README’deki öneri) bu konuyu tamamen kapatır.
 
 ## 4. Değişince formu yeniden gönder

@@ -629,6 +629,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         </div>
       </div>
       <div class="row">
+        <span class="rl" data-i18n>Sorun bildir</span>
+        <div class="chips"><button type="button" class="chip" id="reportBtn" data-i18n>E-postayla bildir</button></div>
+        <p class="src" data-i18n>E-posta uygulaman açılır; ne olduğunu yazman yeterli. Uygulamanın sürümü ve son hata kayıtları eklenir, konumun ve yerlerin eklenmez. Göndermeden önce görüp değiştirebilirsin.</p>
+      </div>
+      <div class="row">
         <span class="rl" data-i18n>Verilerim</span>
         <div class="chips"><button type="button" class="chip" id="resetBtn">Tüm verilerimi sil</button></div>
         <p class="src" data-i18n>Kayıtlı yerlerin, rutinin ve ayarların yalnızca bu cihazda durur. Silince uygulama ilk açıldığı haline döner.</p>
@@ -683,6 +688,19 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 (function(){
   "use strict";
   var KEY = "negiysem:v2";
+  // The page's own errors (newest 15), kept on this device only, for "Sorun bildir". Numbers that look like
+  // coordinates are cut out before anything is kept.
+  var ERRLOG = KEY + ":errlog";
+  function logError(msg){
+    try {
+      var m = String(msg == null ? "" : msg).replace(/-?\d{1,3}\.\d{3,}/g, "…").replace(/\s+/g, " ").slice(0, 240);
+      var a = JSON.parse(localStorage.getItem(ERRLOG) || "[]"); if (!Array.isArray(a)) a = [];
+      a.push({at:Date.now(), m:m}); localStorage.setItem(ERRLOG, JSON.stringify(a.slice(-15)));
+    } catch (e) {}
+  }
+  window.addEventListener("error", function(e){ logError((e.message || "error") + (e.filename ? " (" + String(e.filename).split("/").pop() + ":" + e.lineno + ")" : "")); });
+  window.addEventListener("unhandledrejection", function(e){ var r = e.reason; logError("promise: " + (r && (r.message || r.code) || r)); });
+  (function(){ var ce = console.error; console.error = function(){ logError([].slice.call(arguments).map(function(x){ return x && x.stack ? x.stack.split("\n").slice(0, 2).join(" ") : String(x); }).join(" ")); return ce.apply(console, arguments); }; })();
   var IS_ART = !!(window.claude && typeof window.claude.use === "function");
 
   /* ================= configuration (filled in when the app goes live) ================= */
@@ -699,7 +717,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     // The Android app (with the home-screen widget) for Android browsers; the newest release of the public repository.
     androidApk: "https://github.com/saawanco-source/ne-giysem-android/releases/latest/download/NeGiysem.apk",
     // Donation page, website only (Google Play doesn't allow outside payments in the app).
-    donate: ""
+    donate: "",
+    // Where "Sorun bildir" sends its e-mail (also on the privacy pages).
+    contact: "saawanco@gmail.com"
   };
   if (window.NG_CONFIG && typeof window.NG_CONFIG === "object") Object.keys(window.NG_CONFIG).forEach(function(k){ CONFIG[k] = window.NG_CONFIG[k]; }); // tests
   var API = (function(){
@@ -906,6 +926,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Seyahat": "Travel", "Gideceğin yerin hava tahminine göre kaç gün için ne alacağını listeler.": "Lists what to pack and for how many days, from the forecast where you're going.",
     "Destek ol": "Support", "Ne Giysem?’i destekle": "Support Ne Giysem?",
     "Uygulama ücretsiz; beğendiysen küçük bir bağışla sunucu masrafına katkıda bulunabilirsin.": "The app is free; if you like it, a small donation helps with the server costs.",
+    "Sorun bildir": "Report a problem", "E-postayla bildir": "Report by e-mail",
+    "E-posta uygulaman açılır; ne olduğunu yazman yeterli. Uygulamanın sürümü ve son hata kayıtları eklenir, konumun ve yerlerin eklenmez. Göndermeden önce görüp değiştirebilirsin.": "Your e-mail app opens; just write what happened. The app's version and its latest error records are added, never your location or places. You can see and change everything before sending.",
+    "Ne Giysem? sorun bildirimi": "Ne Giysem? problem report", "Ne oldu? Kısaca yaz:": "What happened? Write it briefly:",
+    "Teknik bilgi (konumun ve yerlerin yok)": "Technical details (no location, no places)", "Son hatalar": "Latest errors", "Çökme kayıtları": "Crash records",
+    "Widget'ın son sorunu": "The widget's last problem", "kayıt yok": "none",
     "Verilerim": "My data", "Tüm verilerimi sil": "Delete all my data", "Emin misin? Silmek için tekrar bas": "Are you sure? Press again to delete",
     "Kayıtlı yerlerin, rutinin ve ayarların yalnızca bu cihazda durur. Silince uygulama ilk açıldığı haline döner.": "Your saved places, routine and settings stay on this device only. Deleting them resets the app to how it was the first time you opened it.",
     "Tüm veriler silindi; uygulama ilk açıldığı haline döndü.": "All data deleted; the app is back to how it was the first time you opened it.",
@@ -3872,6 +3897,33 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 
   /* ---- wipe everything stored on this device (two taps, no browser dialog) ---- */
   var resetTimer = null;
+  // "Sorun bildir": an e-mail the person writes and sends themselves; the app adds what helps to find the problem
+  // (version, device, settings that matter, its own error records) and never the location, places or routine.
+  function reportText(){
+    var A = window.NeGiysemAndroid, d = {};
+    if (A && typeof A.diagnostics === "function") { try { d = JSON.parse(A.diagnostics()) || {}; } catch (e) { d = {}; } }
+    var errs = []; try { errs = JSON.parse(localStorage.getItem(ERRLOG) || "[]"); } catch (e) {}
+    var ago = S.live ? Math.round((Date.now() - S.live.fetchedAt) / 60000) : null;
+    var stamp = function(ms){ var t = new Date(ms); return isoDate(t) + " " + hmOf(ms); };
+    var lines = [tx("Ne oldu? Kısaca yaz:"), "", "", "", "— " + tx("Teknik bilgi (konumun ve yerlerin yok)") + " —",
+      (A ? "Android " + (d.app || "?") + " · " + (d.model || "?") + " · Android " + (d.android || "?") : "Web · " + (document.lastModified || "?") + " · " + navigator.userAgent.replace(/^Mozilla\/5\.0 /, "").slice(0, 120)),
+      // (the technical lines are for the developer: always in English)
+      "lang " + S.lang + " · " + (S.mode === "live" ? "live" : "manual") + " · " + window.innerWidth + "×" + window.innerHeight + " · " + S.feel + "/" + S.act + "/" + curProf().who +
+        " · trips " + S.trips.length + " · routine " + (S.dayMode ? "on" : "off") + (API && !api() ? " · server down" : ""),
+      ago == null ? "no forecast" : "forecast " + ago + " min ago" + (S.outdated ? " (outdated)" : "")];
+    if (d.lastFail) lines.push(tx("Widget'ın son sorunu") + ": " + d.lastFail + (d.lastFailAt ? " (" + stamp(d.lastFailAt) + ")" : ""));
+    lines.push(tx("Son hatalar") + ": " + (errs.length ? "" : tx("kayıt yok")));
+    errs.slice(-8).forEach(function(x){ lines.push("  " + stamp(x.at) + " " + x.m); });
+    if (Array.isArray(d.crashes) && d.crashes.length) { lines.push(tx("Çökme kayıtları") + ":"); d.crashes.slice(-3).forEach(function(c){ lines.push("  " + c); }); }
+    return lines.join("\n");
+  }
+  function sendReport(){
+    var url = "mailto:" + CONFIG.contact + "?subject=" + encodeURIComponent(tx("Ne Giysem? sorun bildirimi")) + "&body=" + encodeURIComponent(reportText());
+    if (typeof window.__ngMail === "function") { window.__ngMail(url); return; } // tests
+    location.href = url;
+  }
+  $("reportBtn").addEventListener("click", sendReport);
+
   $("resetBtn").addEventListener("click", function(){
     var b = $("resetBtn");
     if (b.dataset.armed !== "1") {
@@ -3883,7 +3935,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     clearTimeout(resetTimer);
     cancelLive(); SEARCH.seq++;
     b.dataset.armed = ""; b.setAttribute("aria-pressed", "false"); b.textContent = tx("Tüm verilerimi sil");
-    try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + ":ioshint"); localStorage.removeItem("negiysem:v1"); localStorage.removeItem(KEY + ":ads"); } catch (e) {}
+    try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + ":ioshint"); localStorage.removeItem("negiysem:v1"); localStorage.removeItem(KEY + ":ads"); localStorage.removeItem(ERRLOG); } catch (e) {}
     S.places = []; S.sel = "auto"; S.hours = 6; S.feel = "normal"; S.act = "city";
     S.profiles = [{id:"me", name:"Ben", who:"me", feel:"normal", missing:[]}]; S.prof = "me";
     S.manual = {temp:17, sky:"partly", wind:"breezy"}; S.mode = "manual"; S.live = null;

@@ -373,6 +373,7 @@ class MainActivity : Activity() {
         fun reset() {
             val ctx = applicationContext
             Store(ctx).clear()
+            CrashLog.clear(ctx)
             Scheduler.cancel(ctx)
             AlertNotifier.clear(ctx)
             com.negiysem.app.data.WatchSync.clear(ctx)
@@ -446,6 +447,24 @@ class MainActivity : Activity() {
         /** Lets the page tell whether asking for the position would show Android's permission dialog. */
         @JavascriptInterface
         fun hasLocation(): Boolean = this@MainActivity.hasLocation()
+
+        /**
+         * For "Sorun bildir": the app's version, the phone model and Android version, the widget's last problem and the
+         * last crashes. Nothing about the location, places or routine.
+         */
+        @JavascriptInterface
+        fun diagnostics(): String {
+            val ctx = applicationContext
+            val store = Store(ctx)
+            val pi = runCatching { packageManager.getPackageInfo(packageName, 0) }.getOrNull()
+            val ver = if (pi == null) "?" else "${pi.versionName ?: "?"} (${androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(pi)})"
+            return JSONObject()
+                .put("app", ver).put("model", Build.MODEL ?: "?").put("android", Build.VERSION.RELEASE ?: "?")
+                .put("alerts", store.alertsOn)
+                .put("lastFail", store.lastFail ?: "").put("lastFailAt", store.lastFailAt)
+                .put("crashes", org.json.JSONArray(CrashLog.read(ctx)))
+                .toString()
+        }
 
         @JavascriptInterface
         fun setTheme(color: String, dark: Boolean) {

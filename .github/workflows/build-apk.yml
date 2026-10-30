@@ -2,7 +2,9 @@ name: APK oluştur
 
 on:
   push:
-    branches: [main]
+    # main: the real release ("Ne Giysem? N", the site's download). dev: a test build ("Ne Giysem? deneme N", a
+    # pre-release: the site and Play never pick it up) for the phone, talking to the dev branch's preview site.
+    branches: [main, dev]
     # Pages that only the website serves (privacy texts) and store/docs notes don't change the APK.
     paths-ignore:
       - "web/gizlilik.html"
@@ -18,6 +20,11 @@ on:
 
 permissions:
   contents: write
+
+env:
+  REL_TAG: ${{ github.ref == 'refs/heads/main' && format('surum-{0}', github.run_number) || format('deneme-{0}', github.run_number) }}
+  # A dev build's app (and the page inside it) uses the dev branch's preview site; Cloudflare Pages makes it.
+  NG_API: ${{ github.ref == 'refs/heads/dev' && 'https://dev.ne-giysem.pages.dev' || '' }}
 
 jobs:
   # Testers that run on every change: the app in a real browser (phone size), and web vs widget engine parity.
@@ -386,7 +393,15 @@ jobs:
         env:
           MODE: ${{ steps.key.outputs.mode }}
         run: |
-          if [ "$MODE" = debug ]; then
+          if [ "$GITHUB_REF" = refs/heads/dev ]; then
+            {
+              echo "**Deneme sürümü** (dev dalı): yayına çıkmadan önce denemek için. Site ve Play bunu görmez."
+              echo
+              echo "**NeGiysem.apk**: telefona, kurulu uygulamanın üstüne kur. Deneme sitesinin sunucusunu kullanır: https://dev.ne-giysem.pages.dev"
+              echo
+              echo "Sonraki gerçek sürüm (Ne Giysem? N) bunun üstüne kurulur."
+            } > notes.md
+          elif [ "$MODE" = debug ]; then
             echo "Telefonuna kurmak için aşağıdaki NeGiysem.apk dosyasını indir." > notes.md
           else
             {
@@ -401,21 +416,31 @@ jobs:
           fi
 
       - name: Sürümler sayfasında yayınla
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: surum-${{ github.run_number }}
+          tag_name: ${{ env.REL_TAG }}
           target_commitish: ${{ github.sha }}
-          name: Ne Giysem? ${{ github.run_number }}
+          name: ${{ github.ref == 'refs/heads/main' && format('Ne Giysem? {0}', github.run_number) || format('Ne Giysem? deneme {0}', github.run_number) }}
+          prerelease: ${{ github.ref != 'refs/heads/main' }}
           body_path: notes.md
           files: out/*
+
+      # Only the newest three test builds are kept (the real releases all stay).
+      - name: Eski deneme sürümlerini temizle
+        if: github.ref == 'refs/heads/dev'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --limit 100 --json tagName --jq '.[].tagName' | grep '^deneme-' | sort -t- -k2 -n -r | tail -n +4 |
+            while read -r t; do gh release delete "$t" --cleanup-tag -y || true; done
 
   # The widget drawn on an emulator at many sizes, texts and font sizes: nothing may overlap, stick out or be clipped.
   # Its pictures and report are added to the release. For now it only reports; it doesn't stop the release.
   widget-look:
     name: Widget görünümü (emülatör)
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -453,5 +478,5 @@ jobs:
           pip install -q pillow
           python3 .github/scripts/widget_sheet.py widget-look
           files=$(ls widget-look/gorunum-*.png widget-look/rapor.txt 2>/dev/null)
-          [ -n "$files" ] && gh release upload "surum-${{ github.run_number }}" $files --clobber
+          [ -n "$files" ] && gh release upload "$REL_TAG" $files --clobber
 

@@ -688,19 +688,26 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 (function(){
   "use strict";
   var KEY = "negiysem:v2";
-  // The page's own errors (newest 15), kept on this device only, for "Sorun bildir". Numbers that look like
-  // coordinates are cut out before anything is kept.
+  // The page's own errors (newest 15), kept on this device only, for "Sorun bildir". Before anything is kept, web
+  // addresses shrink to their host, query strings and any number with a decimal part (coordinates, "41,04") go.
   var ERRLOG = KEY + ":errlog";
+  function scrub(t){
+    return String(t == null ? "" : t)
+      .replace(/https?:\/\/[^\s)"']+/g, function(u){ try { return new URL(u).host; } catch (e) { return "url"; } })
+      .replace(/\?[^\s)"']*/g, "?…").replace(/\b([A-Za-z_]+)=[^\s&)"']*/g, "$1=…").replace(/\d+[.,]\d+/g, "…").replace(/\s+/g, " ");
+  }
   function logError(msg){
     try {
-      var m = String(msg == null ? "" : msg).replace(/-?\d{1,3}\.\d{3,}/g, "…").replace(/\s+/g, " ").slice(0, 240);
+      var m = scrub(msg).slice(0, 240);
       var a = JSON.parse(localStorage.getItem(ERRLOG) || "[]"); if (!Array.isArray(a)) a = [];
       a.push({at:Date.now(), m:m}); localStorage.setItem(ERRLOG, JSON.stringify(a.slice(-15)));
     } catch (e) {}
   }
   window.addEventListener("error", function(e){ logError((e.message || "error") + (e.filename ? " (" + String(e.filename).split("/").pop() + ":" + e.lineno + ")" : "")); });
-  window.addEventListener("unhandledrejection", function(e){ var r = e.reason; logError("promise: " + (r && (r.message || r.code) || r)); });
-  (function(){ var ce = console.error; console.error = function(){ logError([].slice.call(arguments).map(function(x){ return x && x.stack ? x.stack.split("\n").slice(0, 2).join(" ") : String(x); }).join(" ")); return ce.apply(console, arguments); }; })();
+  window.addEventListener("unhandledrejection", function(e){ var r = e.reason; logError("promise: " + (r && r.code && !r.message ? r.code + (r.status ? " " + r.status : "") : errText(r))); });
+  // An Error keeps its name and message (Firefox and Safari leave them out of the stack) and where it happened.
+  function errText(x){ if (!(x && (x.stack || x.message))) return String(x); var at = String(x.stack || "").split("\n").filter(function(l){ return /:\d+/.test(l); })[0] || ""; return (x.name || "Error") + ": " + (x.message || "") + (at ? " @ " + at.trim().split(/[\/ (]/).pop() : ""); }
+  (function(){ var ce = console.error; console.error = function(){ logError([].slice.call(arguments).map(errText).join(" ")); return ce.apply(console, arguments); }; })();
   var IS_ART = !!(window.claude && typeof window.claude.use === "function");
 
   /* ================= configuration (filled in when the app goes live) ================= */
@@ -931,6 +938,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Ne Giysem? sorun bildirimi": "Ne Giysem? problem report", "Ne oldu? Kısaca yaz:": "What happened? Write it briefly:",
     "Teknik bilgi (konumun ve yerlerin yok)": "Technical details (no location, no places)", "Son hatalar": "Latest errors", "Çökme kayıtları": "Crash records",
     "Widget'ın son sorunu": "The widget's last problem", "kayıt yok": "none",
+    "E-posta uygulaman açılmadıysa: bilgiler panoya kopyalandı, {0} adresine yapıştırıp gönderebilirsin.": "If your e-mail app didn't open: the details were copied, paste them into an e-mail to {0}.",
+    "E-posta uygulaman açılmadıysa {0} adresine yazabilirsin.": "If your e-mail app didn't open, you can write to {0}.",
     "Verilerim": "My data", "Tüm verilerimi sil": "Delete all my data", "Emin misin? Silmek için tekrar bas": "Are you sure? Press again to delete",
     "Kayıtlı yerlerin, rutinin ve ayarların yalnızca bu cihazda durur. Silince uygulama ilk açıldığı haline döner.": "Your saved places, routine and settings stay on this device only. Deleting them resets the app to how it was the first time you opened it.",
     "Tüm veriler silindi; uygulama ilk açıldığı haline döndü.": "All data deleted; the app is back to how it was the first time you opened it.",
@@ -3911,14 +3920,29 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       "lang " + S.lang + " · " + (S.mode === "live" ? "live" : "manual") + " · " + window.innerWidth + "×" + window.innerHeight + " · " + S.feel + "/" + S.act + "/" + curProf().who +
         " · trips " + S.trips.length + " · routine " + (S.dayMode ? "on" : "off") + (API && !api() ? " · server down" : ""),
       ago == null ? "no forecast" : "forecast " + ago + " min ago" + (S.outdated ? " (outdated)" : "")];
-    if (d.lastFail) lines.push(tx("Widget'ın son sorunu") + ": " + d.lastFail + (d.lastFailAt ? " (" + stamp(d.lastFailAt) + ")" : ""));
-    lines.push(tx("Son hatalar") + ": " + (errs.length ? "" : tx("kayıt yok")));
-    errs.slice(-8).forEach(function(x){ lines.push("  " + stamp(x.at) + " " + x.m); });
-    if (Array.isArray(d.crashes) && d.crashes.length) { lines.push(tx("Çökme kayıtları") + ":"); d.crashes.slice(-3).forEach(function(c){ lines.push("  " + c); }); }
-    return lines.join("\n");
+    if (d.lastFail) lines.push(tx("Widget'ın son sorunu") + ": " + scrub(d.lastFail) + (d.lastFailAt ? " (" + stamp(d.lastFailAt) + ")" : ""));
+    var crashes = Array.isArray(d.crashes) ? d.crashes.slice(-3).map(scrub) : [];
+    // Chrome on Windows drops a mailto: link of 2048 characters or more: the oldest records go first until it fits.
+    function build(nErr, nCrash){
+      var out = lines.concat([tx("Son hatalar") + ": " + (nErr ? "" : tx("kayıt yok"))]);
+      errs.slice(-nErr || errs.length).slice(0, nErr).forEach(function(x){ out.push("  " + stamp(x.at) + " " + scrub(x.m)); });
+      if (nCrash) { out.push(tx("Çökme kayıtları") + ":"); crashes.slice(-nCrash).forEach(function(c){ out.push("  " + c); }); }
+      return out.join("\n");
+    }
+    var nE = Math.min(8, errs.length), nC = crashes.length, text = build(nE, nC);
+    while (mailURL(text).length > 1800 && (nE || nC)) { if (nE > 1 || !nC) nE--; else nC--; text = build(nE, nC); }
+    return mailURL(text).length > 1800 ? text.slice(0, 600) : text;
   }
+  function mailURL(text){ return "mailto:" + CONFIG.contact + "?subject=" + encodeURIComponent(tx("Ne Giysem? sorun bildirimi")) + "&body=" + encodeURIComponent(text); }
   function sendReport(){
-    var url = "mailto:" + CONFIG.contact + "?subject=" + encodeURIComponent(tx("Ne Giysem? sorun bildirimi")) + "&body=" + encodeURIComponent(reportText());
+    var text = reportText(), url = mailURL(text);
+    // In case no mail program opens (a computer without one): the same text is copied, with the address to send it to.
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function(){
+        setStatus(tx("E-posta uygulaman açılmadıysa: bilgiler panoya kopyalandı, {0} adresine yapıştırıp gönderebilirsin.", CONFIG.contact));
+      }, function(){ setStatus(tx("E-posta uygulaman açılmadıysa {0} adresine yazabilirsin.", CONFIG.contact)); });
+      else setStatus(tx("E-posta uygulaman açılmadıysa {0} adresine yazabilirsin.", CONFIG.contact));
+    } catch (e) {}
     if (typeof window.__ngMail === "function") { window.__ngMail(url); return; } // tests
     location.href = url;
   }

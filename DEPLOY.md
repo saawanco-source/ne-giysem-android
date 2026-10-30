@@ -76,7 +76,9 @@ Sunucu ayrıca her ziyaretçiye (IPv6'da bir hat = /64) saatte en fazla 30 rota 
 
 GitHub'da `main` dalına her yüklemede site kendiliğinden yeniden yayınlanır. Başka dallar ayrı bir deneme adresi alır:
 `dev` dalı **https://dev.ne-giysem.pages.dev** (Settings → Builds → **Preview branch**: *All non-production branches*,
-varsayılan ayar). Deneme uygulaması bu adresin sunucusunu kullanır (RELEASE.md §5a).
+varsayılan ayar). Deneme uygulaması bu adresin sunucusunu kullanır (RELEASE.md §5a). Değişkenler ve secret'lar
+**Production** ve **Preview** için ayrı tutulur: deneme sitesinin canlıyla aynı çalışması için `MET_USER_AGENT`,
+`ALLOWED_ORIGINS` ve (açıksa) `GOOGLE_ROUTES_KEY`'i **Preview** ortamına da ekle.
 
 ## Bilmen gerekenler
 

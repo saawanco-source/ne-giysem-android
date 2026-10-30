@@ -21,6 +21,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   REL_TAG: ${{ github.ref == 'refs/heads/main' && format('surum-{0}', github.run_number) || format('deneme-{0}', github.run_number) }}
   # A dev build's app (and the page inside it) uses the dev branch's preview site; Cloudflare Pages makes it.
@@ -147,9 +151,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      # Optional repository secrets. Empty: Google's sample AdMob app ID and no banner.
-      ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
-      ADMOB_BANNER_ID: ${{ secrets.ADMOB_BANNER_ID }}
+      # Optional repository secrets. Empty: Google's sample AdMob app ID and no banner. Test builds (not main) always
+      # show Google's test banner instead of real ads, so testers' taps never count as invalid traffic.
+      ADMOB_APP_ID: ${{ github.ref == 'refs/heads/main' && secrets.ADMOB_APP_ID || '' }}
+      ADMOB_BANNER_ID: ${{ github.ref == 'refs/heads/main' && secrets.ADMOB_BANNER_ID || (secrets.ADMOB_BANNER_ID != '' && 'ca-app-pub-3940256099942544/6300978111' || '') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -415,8 +420,10 @@ jobs:
             } > notes.md
           fi
 
+      # A test build (dev) is published only when signed with the real upload key (it must install over the app), and
+      # only as APKs: the .aab files Play takes are never next to a test build, so one can't be uploaded by mistake.
       - name: Sürümler sayfasında yayınla
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || (github.ref == 'refs/heads/dev' && steps.key.outputs.mode == 'release'))
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.REL_TAG }}
@@ -424,16 +431,7 @@ jobs:
           name: ${{ github.ref == 'refs/heads/main' && format('Ne Giysem? {0}', github.run_number) || format('Ne Giysem? deneme {0}', github.run_number) }}
           prerelease: ${{ github.ref != 'refs/heads/main' }}
           body_path: notes.md
-          files: out/*
-
-      # Only the newest three test builds are kept (the real releases all stay).
-      - name: Eski deneme sürümlerini temizle
-        if: github.ref == 'refs/heads/dev'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release list --limit 100 --json tagName --jq '.[].tagName' | grep '^deneme-' | sort -t- -k2 -n -r | tail -n +4 |
-            while read -r t; do gh release delete "$t" --cleanup-tag -y || true; done
+          files: ${{ github.ref == 'refs/heads/main' && 'out/*' || 'out/*.apk' }}
 
   # The widget drawn on an emulator at many sizes, texts and font sizes: nothing may overlap, stick out or be clipped.
   # Its pictures and report are added to the release. For now it only reports; it doesn't stop the release.
@@ -478,5 +476,14 @@ jobs:
           pip install -q pillow
           python3 .github/scripts/widget_sheet.py widget-look
           files=$(ls widget-look/gorunum-*.png widget-look/rapor.txt 2>/dev/null)
-          [ -n "$files" ] && gh release upload "$REL_TAG" $files --clobber
+          [ -n "$files" ] && gh release upload "$REL_TAG" $files --clobber || true
+
+      # Only the newest three test builds are kept (the real releases all stay). Done last, after this run's own upload.
+      - name: Eski deneme sürümlerini temizle
+        if: always() && github.ref == 'refs/heads/dev'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --limit 100 --json tagName --jq '.[].tagName' | grep '^deneme-' | sort -t- -k2 -n -r | tail -n +4 |
+            while read -r t; do gh release delete "$t" --cleanup-tag -y || true; done
 

@@ -461,7 +461,7 @@ class MainActivity : Activity() {
             return JSONObject()
                 .put("app", ver).put("model", Build.MODEL ?: "?").put("android", Build.VERSION.RELEASE ?: "?")
                 .put("alerts", store.alertsOn)
-                .put("lastFail", store.lastFail ?: "").put("lastFailAt", store.lastFailAt)
+                .put("lastFail", CrashLog.scrub(store.lastFail ?: "")).put("lastFailAt", store.lastFailAt)
                 .put("crashes", org.json.JSONArray(CrashLog.read(ctx)))
                 .toString()
         }

@@ -96,11 +96,16 @@ Bilmen gerekenler:
 Değişiklikler önce `dev` dalına gider; yayına ancak denendikten sonra çıkar.
 
 - `dev` dalına her yüklemede bulut derlemesi **“Ne Giysem? deneme N”** adlı bir **ön sürüm** (pre-release) çıkarır.
-  İçindeki `NeGiysem.apk` telefona, kurulu uygulamanın üstüne kurulur (aynı anahtarla imzalı).
+  İçindeki `NeGiysem.apk` telefona, GitHub'dan kurulmuş uygulamanın üstüne kurulur (aynı anahtarla imzalı). Play'den
+  kurulmuş uygulamanın üstüne kurulmaz (Play kendi anahtarıyla imzalar): Play testçileri deneme sürümünü kurmaz.
+- Deneme sürümlerinde **`.aab` yoktur**: Play'e yalnızca gerçek sürümün (“Ne Giysem? N”, ön sürüm olmayan) `.aab`'si
+  yüklenir. Deneme uygulaması gerçek reklam yerine Google'ın deneme reklamını gösterir.
 - Deneme uygulaması deneme sitesinin sunucusunu kullanır: **https://dev.ne-giysem.pages.dev** (Cloudflare Pages
   `dev` dalı için kendiliğinden kurar). Sitedeki “Uygulamayı indir” düğmesi ve Play deneme sürümlerini görmez.
-- Yalnızca son üç deneme sürümü tutulur. Deneme geçince `dev`, `main`'e alınır ve gerçek sürüm çıkar; gerçek sürüm
-  numarası her zaman denemeden büyüktür, telefona üstüne kurulur.
+- Yalnızca son üç deneme sürümü tutulur. Deneme geçince `dev`, `main`'e alınır ve gerçek sürüm çıkar. Gerçek sürüm
+  denemeden **sonra** başlatıldığı için numarası denemeden büyüktür ve üstüne kurulur; aynı anda ikisi birden
+  başlatılmışsa ve gerçek sürümün numarası küçük kaldıysa Android “sürüm düşürme”yi reddeder: o zaman deneme
+  uygulamasını kaldırıp gerçek sürümü kur ya da `main`'e yeni bir yükleme yap.
 
 ## 6. Teknik notlar (geliştirici için)
 

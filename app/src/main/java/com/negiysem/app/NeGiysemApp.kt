@@ -14,7 +14,8 @@ class NeGiysemApp : Application() {
 
 /**
  * The last five crashes on this phone (time, what went wrong, where in the app's own code), kept in the app's private
- * files and only sent if the person sends a "Sorun bildir" e-mail. Numbers that look like coordinates are cut out.
+ * files and only sent if the person sends a "Sorun bildir" e-mail. Addresses, query strings and numbers with a decimal
+ * part (coordinates) are cut out.
  */
 object CrashLog {
     private const val FILE = "crashes.txt"
@@ -29,13 +30,24 @@ object CrashLog {
     }
 
     private fun write(context: Context, e: Throwable) {
-        val where = e.stackTrace.filter { it.className.startsWith("com.negiysem") }.take(4)
-            .joinToString(" < ") { it.className.substringAfterLast('.') + "." + it.methodName + ":" + it.lineNumber }
-        val what = (e.javaClass.simpleName + ": " + (e.message ?: "")).replace(Regex("-?\\d{1,3}\\.\\d{3,}"), "…").replace('\n', ' ').take(160)
+        // The real cause: a crash while starting a screen arrives wrapped ("Unable to start activity …: …").
+        var root = e
+        while (root.cause != null && root.cause !== root) root = root.cause!!
+        val frames = root.stackTrace.filter { it.className.startsWith("com.negiysem") }.ifEmpty { e.stackTrace.filter { it.className.startsWith("com.negiysem") } }
+        val where = frames.take(4).joinToString(" < ") { it.className.substringAfterLast('.') + "." + it.methodName + ":" + it.lineNumber }
+        val what = scrub(root.javaClass.simpleName + ": " + (root.message ?: "")).take(160)
         val f = File(context.filesDir, FILE)
         val old = if (f.exists()) f.readLines() else emptyList()
         f.writeText((old + (System.currentTimeMillis().toString() + "\t" + what + "\t" + where)).takeLast(5).joinToString("\n"))
     }
+
+    /** As the page's scrub(): web addresses shrink to their host; query strings and numbers with a decimal part go. */
+    fun scrub(t: String): String = t
+        .replace(Regex("https?://[^\\s)\"']+")) { m -> runCatching { java.net.URI(m.value).host }.getOrNull() ?: "url" }
+        .replace(Regex("\\?[^\\s)\"']*"), "?…")
+        .replace(Regex("\\b([A-Za-z_]+)=[^\\s&)\"']*"), "$1=…")
+        .replace(Regex("\\d+[.,]\\d+"), "…")
+        .replace(Regex("\\s+"), " ")
 
     /** "2026-10-30 14:05 IllegalStateException: … @ Updater.fetch:120 < …", oldest first. */
     fun read(context: Context): List<String> = runCatching {

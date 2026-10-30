@@ -25,7 +25,8 @@ Kısaltmalar: **T** = toplanıyor, **P** = paylaşılıyor, **Geçici** = “ge�
 | Konum → **Kesin konum** *(Precise location)* | ✔ | ✘ | Hayır | İsteğe bağlı | Uygulama işlevselliği | — |
 | Uygulama etkinliği → **Uygulama içi arama geçmişi** *(In-app search history)* | ✔ | ✘ | Hayır | İsteğe bağlı | Uygulama işlevselliği | — |
 | Uygulama etkinliği → **Uygulama etkileşimleri** *(App interactions)* | ✔ | ✔ | Hayır | Zorunlu | Reklam veya pazarlama; Analiz; Sahtekârlığı önleme… | Reklam veya pazarlama; Analiz; Sahtekârlığı önleme… |
-| Uygulama bilgileri ve performansı → **Teşhis** *(Diagnostics)* | ✔ | ✔ | Hayır | Zorunlu | Analiz; Sahtekârlığı önleme… | Analiz; Sahtekârlığı önleme… |
+| Uygulama bilgileri ve performansı → **Kilitlenme günlükleri** *(Crash logs)* | ✔ | ✘ | Hayır | İsteğe bağlı | Uygulama işlevselliği | — |
+| Uygulama bilgileri ve performansı → **Teşhis** *(Diagnostics)* | ✔ | ✔ | Hayır | Zorunlu | Uygulama işlevselliği; Analiz; Sahtekârlığı önleme… | Analiz; Sahtekârlığı önleme… |
 | Cihaz veya diğer kimlikler *(Device or other IDs)* | ✔ | ✔ | Hayır | Zorunlu | Reklam veya pazarlama; Analiz; Sahtekârlığı önleme… | Reklam veya pazarlama; Analiz; Sahtekârlığı önleme… |
 
 **Toplanmayanlar (işaretleme):** Kişisel bilgiler (ad, e-posta, adres, telefon…), Finansal bilgiler, Sağlık ve fitness, Mesajlar, Fotoğraflar ve videolar, Ses, Dosyalar ve dokümanlar, Takvim, Kişiler, Web’de gezinme geçmişi, Kilitlenme günlükleri *(Crash logs)*, Diğer uygulama performans verileri.
@@ -57,7 +58,7 @@ Kısaltmalar: **T** = toplanıyor, **P** = paylaşılıyor, **Geçici** = “ge�
 - Ortaklık linkleri ve diğer dış linkler tarayıcıda açılır; uygulama kullanıcı verisi göndermez (linkte yalnızca ortaklık kodu var).
 - Bağış: Play uygulamasında yok.
 - Kilitlenme günlükleri: uygulamada çökme raporlama SDK’sı yok. Play Console’un kendi “Android vitals” verisi uygulamanın topladığı veri sayılmaz. İleride Crashlytics vb. eklenirse formu güncelle.
-- “Sorun bildir” (30 Ekim 2026): son hata/çökme kayıtları ve sürüm, cihaz modeli gibi teknik bilgiler cihazda durur ve **yalnızca kullanıcı kendi e-posta uygulamasından göndermeyi seçerse** bize ulaşır; uygulama kendisi hiçbir şey göndermez, metni kullanıcı gönderilmeden önce görür ve değiştirebilir. Google’ın tanımında kullanıcının başlattığı, her seferinde açıkça onayladığı bu aktarım “toplama” sayılmaz. Daha temkinli istersen: *Uygulama bilgileri ve performansı → Kilitlenme günlükleri* ve *Teşhis* için “Toplanıyor, isteğe bağlı, amaç: Uygulama işlevselliği” işaretle.
+- “Sorun bildir” (30 Ekim 2026): son hata/çökme kayıtları ve sürüm, cihaz modeli gibi teknik bilgiler cihazda durur ve **yalnızca kullanıcı kendi e-posta uygulamasından göndermeyi seçerse** bize ulaşır; uygulama kendisi hiçbir şey göndermez, metni kullanıcı gönderilmeden önce görür ve değiştirebilir. Google’ın “kullanıcının başlattığı işlem” istisnası **paylaşma** içindir, toplama için değil; bize ulaştığı için bu **toplama** sayılır. Formda: *Uygulama bilgileri ve performansı → **Kilitlenme günlükleri***: Toplanıyor ✔, Paylaşılıyor ✘, Geçici Hayır, **İsteğe bağlı**, amaç *Uygulama işlevselliği*. Mevcut **Teşhis** satırına (AdMob yüzünden zorunlu) amaç olarak *Uygulama işlevselliği*ni de ekle.
 - Google Fonts: Uygulama sayfası yazı tiplerini `fonts.googleapis.com`’dan indiriyor; bu istek IP adresini Google’a iletir ama uygulama bir veri türü göndermez. Yazı tiplerini APK’nın içine koymak (README’deki öneri) bu konuyu tamamen kapatır.
 
 ## 4. Değişince formu yeniden gönder

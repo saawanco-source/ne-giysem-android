@@ -87,6 +87,40 @@ H.run({
       await s.close();
     }
   },
+  // Already raining at school since 13:00, now 14:20, the trip home at 17:30 (wet): "since 13:00", not "starts at 15:00".
+  async rainAlreadyFalling(t) {
+    const T = todayAt(14, 20);
+    const dry = wx(15), kad = wx(15, wetHours(13, 20, 1.5));
+    const s = await at(t, T, dayState(T, dry, dry, kad));
+    const b = await banner(s);
+    check("banner: rain falling since 13:00 and still on the trip", !b.hidden && /^Yağmur 13:00 civarından beri yağıyor, Kadıköy → Beşiktaş yolunda \(17:30\) da sürüyor; /.test(b.text), b);
+    await s.close();
+    // Rain 13:00–16:59, the 17:00 trip itself dry (a 35% morning keeps an umbrella in the outfit): not "still falling on the trip".
+    const T2 = todayAt(7), kad2 = wx(15, wetHours(13, 16, 1.5)), bes2 = wx(15, (h) => { for (let k = 7; k <= 8; k++) h.precipitation_probability[k] = 35; });
+    const q = await at(t, T2, dayState(T2, bes2, bes2, kad2, null, { trips: [TRIPS[0], Object.assign({}, TRIPS[1], { time: "17:00" })] }));
+    const c = await banner(q);
+    note("rain until 17:00:", c.text);
+    check("banner: rain from 13:00, but no 'da sürüyor' when the trip itself is dry", !c.hidden && /^Yağmur 13:00 civarı başlıyor; Kadıköy → Beşiktaş yolunda \(17:00\) /.test(c.text) && !/sürüyor/.test(c.text), c);
+    await q.close();
+  },
+  // In the evening, tomorrow's plan leads: tonight's rain at the place is still announced.
+  async eveningBanner(t) {
+    const T = todayAt(18, 30);
+    const dry = wx(15), rainy = wx(15, wetHours(19, 21, 1.2));
+    const s = await at(t, T, dayState(T, rainy, dry, dry, null, { trips: TRIPS.map((x) => Object.assign({}, x, { days: [0, 1, 2, 3, 4, 5, 6] })) }));
+    const b = await banner(s);
+    check("evening: tonight's rain banner with tomorrow's plan shown", !b.hidden && /^Yağmur 19:00 civarı başlıyor/.test(b.text), b);
+    pageOk(s, "evening");
+    await s.close();
+  },
+  // Drizzle and no umbrella in the wardrobe: a hood, as the outfit (no raincoat for drizzle).
+  async drizzleNoUmbrella(t) {
+    const T = todayAt(9);
+    const s = await at(t, T, state(T, wx(15, wetHours(11, 13, 0.2, 51, 60)), { profiles: [{ id: "me", name: "Ben", who: "me", feel: "normal", missing: ["semsiye"] }], prof: "me" }));
+    const b = await banner(s);
+    check("drizzle without an umbrella: 'kapüşon yeter'", !b.hidden && /^Çiseleme 11:00 civarı başlıyor; kapüşon yeter\./.test(b.text), b);
+    await s.close();
+  },
   // A thunderstorm with 22 mm at 14:00 while the person is at school: the day plan's tips say so.
   async dangerBetweenTrips(t) {
     const T = todayAt(7);
@@ -95,11 +129,26 @@ H.run({
       const s = await at(t, T, dayState(T, dry, dry, kad, null, { lang }));
       const tp = await tips(s);
       note(lang, "tips:", JSON.stringify(tp));
+      // (one tip: the thunderstorm's has the umbrella in it)
       check(lang + ": a tip for the storm between the trips", lang === "tr"
-        ? tp.some((x) => /^Çok kuvvetli yağış bekleniyor \(14:00–15:00\); arada dışarı çıkacaksan şemsiyeni de al\.$/.test(x)) && tp.some((x) => /^Gök gürültülü sağanak bekleniyor \(14:00–15:00\)/.test(x))
-        : tp.some((x) => /^Very heavy rain expected \(14:00–15:00\); if you go out in between/.test(x)), tp);
+        ? tp.some((x) => /^Gök gürültülü sağanak bekleniyor \(14:00–15:00\); arada dışarı çıkacaksan şemsiyeni al, açık alanda kalma\.$/.test(x)) && !tp.some((x) => /yağış bekleniyor/.test(x))
+        : tp.some((x) => /^Thunderstorms expected \(14:00–15:00\); if you go out in between/.test(x)), tp);
       pageOk(s, lang + " storm between trips");
       await s.close();
+    }
+    // A worse storm after the last trip doesn't hide the one between the trips; heavy rain alone gets its own tip.
+    {
+      const k2 = wx(19, (h) => { h.precipitation[14] = 10; h.weather_code[14] = 95; h.precipitation_probability[14] = 80;
+        h.precipitation[22] = 20; h.weather_code[22] = 99; h.precipitation_probability[22] = 90; });
+      const q = await at(t, T, dayState(T, dry, dry, k2));
+      const tq = await tips(q);
+      check("tip for the 14:00 storm even with a worse one at 22:00", tq.some((x) => /^Gök gürültülü sağanak bekleniyor \(14:00–15:00\)/.test(x)), tq);
+      await q.close();
+      const k3 = wx(19, (h) => { h.precipitation[14] = 10; h.weather_code[14] = 63; h.precipitation_probability[14] = 90; });
+      const r = await at(t, T, dayState(T, dry, dry, k3));
+      const tr = await tips(r);
+      check("heavy rain alone between the trips: its own tip", tr.some((x) => /^Kuvvetli yağış bekleniyor \(14:00–15:00\); arada dışarı çıkacaksan şemsiyeni de al\.$/.test(x)), tr);
+      await r.close();
     }
     // Not when the trips themselves are in it (the outfit has the umbrella then).
     const wetAll = wx(19, (h) => { wetHours(7, 18, 2)(h); h.precipitation[14] = 22; });

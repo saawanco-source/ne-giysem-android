@@ -1114,6 +1114,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "<b>Çiseleme {0} civarı</b> başlıyor; {1}.": "<b>Drizzle starts around {0}</b>; {1}.",
     "<b>Çiseleme {0} civarı</b> başlıyor; {1} yolunda ({2}) {3}.": "<b>Drizzle starts around {0}</b>; on your {1} trip ({2}), {3}.",
     "<b>Çiseleme {0} civarı</b> {1} yolunda; {2}.": "<b>Drizzle around {0}</b> on your {1} trip; {2}.",
+    "<b>Yağmur {0} civarından beri</b> yağıyor; {1} yolunda ({2}) {3}.": "<b>It has been raining since about {0}</b>; on your {1} trip ({2}), {3}.",
+    "<b>Yağmur {0} civarından beri</b> yağıyor, {1} yolunda ({2}) da sürüyor; {3}.": "<b>It has been raining since about {0}</b> and is still falling on your {1} trip ({2}); {3}.",
+    "<b>{0} civarından beri</b> çiseliyor; {1} yolunda ({2}) {3}.": "<b>It has been drizzling since about {0}</b>; on your {1} trip ({2}), {3}.",
+    "<b>{0} civarından beri</b> çiseliyor, {1} yolunda ({2}) da sürüyor; {3}.": "<b>It has been drizzling since about {0}</b> and it keeps on during your {1} trip ({2}); {3}.",
     "{0} bekleniyor ({1}); arada dışarı çıkacaksan şemsiyeni de al.": "{0} expected ({1}); if you go out in between, take your umbrella too.",
     "{0} bekleniyor ({1}); arada dışarı çıkacaksan şemsiyeni al, açık alanda kalma.": "{0} expected ({1}); if you go out in between, take your umbrella and keep off open ground.",
     "{0} bekleniyor ({1}); arada dışarıda az kal, ağaç ve tabelalardan uzak dur.": "{0} expected ({1}); stay out as little as you can in between, away from trees and signs.",
@@ -1490,7 +1494,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     function outerNow(){ for (var i = 0; i < wear.length; i++) if (OUTER.indexOf(wear[i].g) >= 0) return wear[i].g; return null; }
     function takesOuter(){ return take.some(function(t){ return OUTER.indexOf(t.g) >= 0; }); }
 
-    var trip = inp.kind === "day"; // the "now" of a day plan is the first outdoor moment, not the present
+    var trip = inp.kind === "day"; // the "now" of a day plan is the first trip's coldest outdoor moment, not the present
     var codes = [inp.now.code].concat(W.map(function(h){ return h.code; }));
     var pMax = Math.round(Math.max.apply(null, [0].concat(W.map(function(h){ return h.p || 0; }))));
     var windMax = Math.round(Math.max.apply(null, [inp.now.wind || 0].concat(W.map(function(h){ return h.wind || 0; }))));
@@ -1509,7 +1513,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       (fin(inp.now.t) && inp.now.t <= 0.5 && iceCode(inp.now.code)) || W.some(function(h){ return fin(h.t) && h.t <= 0.5 && iceCode(h.code); });
     var thunder = codes.some(function(c){ return c >= 95; });
     // How hard it rains, in mm an hour: the wettest hour ahead (snow aside) or what is falling now. Drizzle (under
-    // 0.5 mm) needs no raincoat or boots; from 6 mm an umbrella alone won't do (the heavy-rain warning starts at 8).
+    // 0.5 mm) needs no raincoat or boots; from 6 mm an umbrella alone won't do (the heavy-rain warning starts at 8 mm).
     var mms = W.filter(function(h){ return fin(h.mm) && !isSnow(h.code); }).map(function(h){ return h.mm; });
     if (!trip && !snowNow && fin(inp.now.precip) && inp.now.precip > 0) mms.push(inp.now.precip);
     var mmMax = mms.length ? Math.max.apply(null, mms) : null;
@@ -1867,7 +1871,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
                uvMax: di >= 0 && w0.daily.uv_index_max ? w0.daily.uv_index_max[di] : null,
                uvDay: exps.some(function(e){ var h = +String(e.time).slice(11,13); return h >= 10 && h <= 16 && String(e.time).slice(0,10) === String(first.time).slice(0,10); }), sunset:null};
     var coldest = exps.slice().sort(function(a, b){ return a.app - b.app; })[0];
-    return {items:items, offset:offset, inp:inp, exps:exps, coldest:coldest, lead:lead, dayName:dayName, doneToday:doneToday};
+    return {items:items, offset:offset, inp:inp, exps:exps, first:first, coldest:coldest, lead:lead, dayName:dayName, doneToday:doneToday};
   }
   // Rain gear in a plan: an umbrella to take or a raincoat worn.
   function rainGear(p){ return !!p && (p.take.some(function(t){ return t.g === "semsiye"; }) || p.wear.some(function(w){ return w.g === "yagmurluk"; })); }
@@ -1884,16 +1888,16 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var a = its[n], b = its[n + 1], wx = S.dayWx && S.dayWx.byPlace && S.dayWx.byPlace[a.trip.to];
       var from = Math.max(a.chosen.ex.end, now), to = b.start;
       if (!wx || to - from < 3600000) continue;
-      severe(wx, from).forEach(function(al){
+      severe(wx, from, to).forEach(function(al){
         if (seen[al.k] || !GAP_TIP[al.k]) return;
-        if (wxMs(wx, al.to) + 3600000 <= from || wxMs(wx, al.from) >= to) return;
         // (already in the outfit: rain gear, the thunder tip, a windproof layer for the storm)
         if ((al.k === "rain" && (p.wet || rainGear(p))) || (al.k === "thunder" && p.thunder) || (al.k === "storm" && p.stormy)) return;
-        seen[al.k] = true;
-        notes.push(tx(GAP_TIP[al.k], tx(SEVERE_TEXT[al.k][al.lv - 1]), severeWhen(wx, al, now)));
+        seen[al.k] = {k:al.k, t:tx(GAP_TIP[al.k], tx(SEVERE_TEXT[al.k][al.lv - 1]), severeWhen(wx, al, now))};
+        notes.push(seen[al.k]);
       });
     }
-    return notes;
+    // The thunderstorm's tip has the umbrella in it already.
+    return notes.filter(function(n){ return !(n.k === "rain" && seen.thunder); }).map(function(n){ return n.t; });
   }
   function dayNotes(day, p){
     var notes = gapNotes(day, p), walk = 0, ride = 0, rainRide = false, steep = false, ferry = false, now = Date.now();
@@ -1964,7 +1968,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 
   /* ---- severe weather: the app's own reading of the forecast, not an official warning ---- */
   // Same rules as Alerts.kt (widget strip and notifications); tests/parity compares the two.
-  // The next 24 hours from the current hour. Levels: 1 "Dikkat", 2 "Tehlikeli". Per kind: first and last hour, and the peak.
+  // The next 24 hours from the current hour. Levels: 1 "Dikkat", 2 "Tehlikeli". Per kind: an episode's first and last hour,
+  // and its peak.
   var SEVERE_KINDS = ["storm","thunder","rain","snow","ice","heat","cold","fog"];
   // How heavy the rain is, hour by hour (0; 1 "Dikkat"; 2 "Tehlikeli"): an hour of 8 (15) mm, or every wet hour (1 mm or
   // more) of a six-hour spell bringing 20 (40) mm, so a warning lasts as long as the rain. Only amounts count, never
@@ -1985,24 +1990,29 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     });
     return lv;
   }
-  function severe(wx, nowMs){
+  // [endMs] (page only): look no further than that moment (the hours between two trips).
+  function severe(wx, nowMs, endMs){
     var H = wx && wx.hourly; if (!H || !Array.isArray(H.time) || !H.time.length) return [];
     var key = new Date(nowMs + ((wx.utc_offset_seconds) || 0) * 1000).toISOString().slice(0,13), i0 = -1, i, j, q;
+    var endKey = endMs ? new Date(endMs - 1 + ((wx.utc_offset_seconds) || 0) * 1000).toISOString().slice(0,13) : null;
     for (i = 0; i < H.time.length; i++) if (String(H.time[i]).slice(0,13) === key) { i0 = i; break; }
     if (i0 < 0) { if (key < String(H.time[0]).slice(0,13)) i0 = 0; else return []; }
     var num = function(a, k){ var v = Array.isArray(a) ? a[k] : null; return typeof v === "number" && isFinite(v) ? v : null; };
     // Each kind's hours form episodes: hours at most two quiet hours apart belong together. The card shows the most
-    // dangerous episode (the earliest of equals), so morning fog and the next night's aren't one "04:00–23:00".
+    // dangerous episode (the earliest of equals), so morning fog and the next night's aren't one "04:00–23:00"; and the
+    // one under way now as well when the most dangerous is a later one (the storm blowing now isn't hidden by tonight's).
     var found = {}, RL = rainLevels(H);
     function hit(k, lv, at, peak){
       var eps = found[k] || (found[k] = []), a = eps[eps.length - 1];
-      if (!a || at - a.j > 3) { eps.push({lv:lv, i:at, j:at, n:1, peak:peak, total:k === "rain" ? peak || 0 : null}); return; }
+      if (!a || at - a.j > 3) { eps.push({lv:lv, i:at, j:at, run:1, long:1, peak:peak, total:k === "rain" ? peak || 0 : null}); return; }
       if (k === "rain") a.total += peak || 0;
       if (lv > a.lv) a.lv = lv;
-      a.j = at; a.n++;
+      a.run = at === a.j + 1 ? a.run + 1 : 1; if (a.run > a.long) a.long = a.run; // the longest run of hours in a row
+      a.j = at;
       if (peak != null && (a.peak == null || (k === "cold" || k === "ice" ? peak < a.peak : peak > a.peak))) a.peak = peak;
     }
     for (j = i0; j < Math.min(H.time.length, i0 + 24); j++) {
+      if (endKey && String(H.time[j]).slice(0,13) > endKey) break;
       var T = num(H.temperature_2m, j), A = num(H.apparent_temperature, j), c = num(H.weather_code, j);
       var W = num(H.wind_speed_10m, j), G = num(H.wind_gusts_10m, j), P = num(H.precipitation, j);
       if (A == null) A = T;
@@ -2020,11 +2030,17 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       if (c === 75 || c === 86) hit("snow", 2, j, null); else if (c === 73 || c === 85) hit("snow", 1, j, null);
       if (c === 45 || c === 48) hit("fog", 1, j, null);
     }
-    return SEVERE_KINDS.map(function(k){
-      // A single hour of fog is a passing patch, not a warning.
-      var eps = (found[k] || []).filter(function(a){ return k !== "fog" || a.n >= 2; });
-      return eps.length ? {k:k, a:eps.reduce(function(x, y){ return y.lv > x.lv ? y : x; })} : null;
-    }).filter(Boolean).map(function(e){
+    // Fog is a warning when it lasts two hours in a row (one hour is a passing patch), counting the hour before now.
+    var fogAt = function(k){ var c = num(H.weather_code, k); c = c == null ? -1 : Math.round(c); return c === 45 || c === 48; };
+    var picked = [];
+    SEVERE_KINDS.forEach(function(k){
+      var eps = (found[k] || []).filter(function(a){ return k !== "fog" || a.long >= 2 || (a.i === i0 && i0 > 0 && fogAt(i0 - 1)); });
+      if (!eps.length) return;
+      var top = eps.reduce(function(x, y){ return y.lv > x.lv ? y : x; });
+      picked.push({k:k, a:top});
+      if (eps[0] !== top && eps[0].i === i0) picked.push({k:k, a:eps[0]});
+    });
+    return picked.map(function(e){
       var k = e.k, a = e.a;
       return {k:k, lv:a.lv, from:String(H.time[a.i]).slice(0,16), to:String(H.time[a.j]).slice(0,16), peak:a.peak == null ? null : Math.round(a.peak),
         total:a.total == null ? null : Math.round(a.total)};
@@ -2142,8 +2158,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var shInp = inp, shCond = $("nowCond").textContent, shAt = "";
     var shPlace = pname;
     if (useDay && day.offset && day.exps && day.exps.length) {
-      shInp = day.inp; shCond = tx(COND[day.inp.now.code] || ""); shAt = hmOf(day.exps[0].ms);
-      var shP = placeById(day.exps[0].place); if (shP) shPlace = nm(shP.name);
+      shInp = day.inp; shCond = tx(COND[day.inp.now.code] || ""); shAt = hmOf(day.first.ms);
+      var shP = placeById(day.first.place); if (shP) shPlace = nm(shP.name);
     }
     SHOWN = {p:p, inp:shInp, soft:soft, night:night, place:shPlace, cond:shCond, at:shAt, offset:useDay ? day.offset : 0};
     p = pc; // the hourly strip and facts below describe the current place
@@ -2461,8 +2477,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var found = null, a = placeById(it.trip.from), b = placeById(it.trip.to);
       if (it.start > now) { var pre = wxAt(it.trip.from, it.start - 30 * 60000); if (pre && wetHour(pre.code, pre.p)) {
         found = {ms:it.start - 30 * 60000, at:hm(pre.time), wind:pre.wind, heavy:pre.rl >= 1, before:true};
-        // Rain falling since 13:00 isn't "starting" at 17:00: the banner says when it really starts.
-        var st = spellStart(it.trip.from, found.ms); if (st) { found.ms = st.ms; found.at = st.at; found.cont = true; }
+        // Rain falling since 13:00 isn't "starting" at 17:00: the banner says when it really starts (or that it is
+        // falling there already), and that it's still falling on the trip only when the trip itself is wet.
+        var st = spellStart(it.trip.from, found.ms);
+        if (st) { found.ms = st.ms; found.at = st.at; found.since = st.now;
+          found.cont = it.chosen.ex.out.some(function(e){ return wetHour(e.code, e.p); }); }
       } }
       if (!found) it.chosen.ex.out.some(function(e){ if (e.end > now && wetHour(e.code, e.p)) { found = {ms:e.ms, at:hm(e.time), wind:e.wind, heavy:e.rl >= 1}; return true; } return false; });
       if (!found) return;
@@ -2471,13 +2490,21 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     });
     return hit;
   }
-  // The first hour of the wet spell that reaches [ms] at a routine place (from the next hour on).
+  var RAIN_MSG = {
+    rain:{local:"<b>Yağmur {0} civarı</b> başlıyor; {1}.", on:"<b>Yağmur {0} civarı</b> {1} yolunda; {2}.",
+      before:"<b>Yağmur {0} civarı</b> başlıyor; {1} yolunda ({2}) {3}.", cont:"<b>Yağmur {0} civarı</b> başlıyor, {1} yolunda ({2}) da sürüyor; {3}.",
+      since:"<b>Yağmur {0} civarından beri</b> yağıyor; {1} yolunda ({2}) {3}.", sinceCont:"<b>Yağmur {0} civarından beri</b> yağıyor, {1} yolunda ({2}) da sürüyor; {3}."},
+    drizzle:{local:"<b>Çiseleme {0} civarı</b> başlıyor; {1}.", on:"<b>Çiseleme {0} civarı</b> {1} yolunda; {2}.",
+      before:"<b>Çiseleme {0} civarı</b> başlıyor; {1} yolunda ({2}) {3}.", cont:"<b>Çiseleme {0} civarı</b> başlıyor, {1} yolunda ({2}) da sürüyor; {3}.",
+      since:"<b>{0} civarından beri</b> çiseliyor; {1} yolunda ({2}) {3}.", sinceCont:"<b>{0} civarından beri</b> çiseliyor, {1} yolunda ({2}) da sürüyor; {3}."}
+  };
+  // The first hour of the wet spell that reaches [ms] at a routine place (up to 12 hours back); now: it is falling already.
   function spellStart(pid, ms){
     var wx = S.dayWx && S.dayWx.byPlace && S.dayWx.byPlace[pid], H = wx && wx.hourly;
     var i = wxIdx(wx, ms), i0 = wxIdx(wx, Date.now()), j = i;
     if (!H || i < 0 || i0 < 0) return null;
-    while (j - 1 > i0 && wetHour(ix(H.weather_code, j - 1), ix(H.precipitation_probability, j - 1))) j--;
-    return j < i ? {ms:wxMs(wx, H.time[j]), at:hm(H.time[j])} : null;
+    while (j > 0 && i - j < 12 && wetHour(ix(H.weather_code, j - 1), ix(H.precipitation_probability, j - 1))) j--;
+    return j < i ? {ms:wxMs(wx, H.time[j]), at:hm(H.time[j]), now:j <= i0} : null;
   }
   // The advice agrees with the outfit shown: a hood when the wind is up while out (or in the field), a raincoat when the
   // outfit has one, the coat already worn made waterproof when the rain is heavy; drizzle is called drizzle.
@@ -2485,22 +2512,24 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var coat = !!(sp && sp.wear.some(function(w){ return w.g === "yagmurluk"; })), umb = !!(sp && sp.take.some(function(t){ return t.g === "semsiye"; }));
     var outer = !!(sp && sp.wear.some(function(w){ return OUTER.indexOf(w.g) >= 0; }));
     var noUmb = (prefs().missing || []).indexOf("semsiye") >= 0, drz = !!(sp && sp.drizzle && !r.heavy), heavy = r.heavy || (sp && sp.heavy);
-    var adv = tx(S.act === "sport" ? "su itici bir üst al" : S.act === "field" || r.wind >= 28 || (sp && sp.windy) ? (drz ? "kapüşon yeter" : "kapüşonlu bir dış katman giy")
+    var adv = tx(S.act === "sport" ? "su itici bir üst al"
+      : drz ? (umb ? "şemsiyeni al" : "kapüşon yeter") // drizzle: no raincoat; an umbrella when the outfit has one
+      : S.act === "field" || r.wind >= 28 || (sp && sp.windy) ? "kapüşonlu bir dış katman giy"
       : coat ? (umb ? "yağmurluğunu giy, şemsiyeni de al" : "yağmurluğunu giy")
       : noUmb ? "su geçirmez bir dış katman giy"
       : heavy && outer ? "şemsiyeni al, dış katmanın su geçirmez olsun"
       : heavy ? "yağmurluğunu giy, şemsiyeni de al" : "şemsiyeni al");
-    var k = function(t){ return drz ? t.replace("<b>Yağmur ", "<b>Çiseleme ") : t; };
-    if (!r.route) return tx(k("<b>Yağmur {0} civarı</b> başlıyor; {1}."), esc(r.at), adv);
-    if (r.cont) return tx(k("<b>Yağmur {0} civarı</b> başlıyor, {1} yolunda ({2}) da sürüyor; {3}."), esc(r.at), esc(r.route), esc(r.dep), adv);
-    return r.before ? tx(k("<b>Yağmur {0} civarı</b> başlıyor; {1} yolunda ({2}) {3}."), esc(r.at), esc(r.route), esc(r.dep), adv)
-      : tx(k("<b>Yağmur {0} civarı</b> {1} yolunda; {2}."), esc(r.at), esc(r.route), adv);
+    var M = drz ? RAIN_MSG.drizzle : RAIN_MSG.rain;
+    if (!r.route) return tx(M.local, esc(r.at), adv);
+    if (!r.before) return tx(M.on, esc(r.at), esc(r.route), adv);
+    return tx(r.since ? (r.cont ? M.sinceCont : M.since) : r.cont ? M.cont : M.before, esc(r.at), esc(r.route), esc(r.dep), adv);
   }
   var RAIN_HTML = "";
   function renderRain(live, inp, day){
     var el = $("rainAlert"), r = live && S.rainOff !== dateKey(Date.now()) ? rainAhead(inp, day) : null, sp = SHOWN && SHOWN.p;
-    // A day plan with no rain gear (the rain falls while the person is on the metro, or at school): no banner to contradict it.
-    if (r && day && day.inp && day.lead && sp && !sp.wet && !rainGear(sp)) r = null;
+    // Today's day plan with no rain gear (the rain falls while the person is on the metro, or at school): no banner to
+    // contradict it. (Tomorrow's plan in the evening leaves tonight's rain to the banner.)
+    if (r && day && day.inp && day.lead && day.offset === 0 && sp && !sp.wet && !rainGear(sp)) r = null;
     if (!r) { el.hidden = true; return; }
     var html = icon("rain") + '<p>' + rainMsg(r, sp) + '</p><button type="button" class="x" data-rain-off aria-label="' + esc(tx("Yağmur uyarısını bugünlük kapat")) + '">×</button>';
     if (html !== RAIN_HTML) { el.innerHTML = html; RAIN_HTML = html; }
@@ -2516,7 +2545,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var tr = wx.timezone === "Europe/Istanbul";
     var now = Date.now(), html = list.map(function(a, n){
       var f = severeInfo(wx, a, now);
-      return '<div class="sv sv' + a.lv + '" data-sv="' + a.k + '">' +
+      return '<div class="sv sv' + a.lv + '" data-sv="' + a.k + '" data-at="' + esc(a.from) + '">' +
         '<div class="sv-top">' + warn + '<b>' + esc(f.title) + '</b><span class="sv-lv">' + esc(f.level) + '</span></div>' +
         '<p class="sv-when">' + esc(f.when) + '</p>' +
         '<details' + (n === 0 && a.lv === 2 ? ' open' : '') + '><summary>' + esc(tx("Ne yapmalı?")) + '</summary><ul>' +
@@ -2529,9 +2558,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (alertsState() === "off") html += '<p class="sv-note"><button type="button" class="sv-on" data-alerts-on>' + esc(tx("Bu uyarıları bildirim olarak al")) + '</button></p>';
     if (html !== SEVERE_HTML) {
       // Keep the open/closed state of each tip list across redraws.
-      var open = {}; el.querySelectorAll(".sv").forEach(function(sv){ var d = sv.querySelector("details"); if (d) open[sv.dataset.sv] = d.open; });
+      var open = {}, id = function(sv){ return sv.dataset.sv + sv.dataset.at; };
+      el.querySelectorAll(".sv").forEach(function(sv){ var d = sv.querySelector("details"); if (d) open[id(sv)] = d.open; });
       el.innerHTML = html; SEVERE_HTML = html;
-      el.querySelectorAll(".sv").forEach(function(sv){ var d = sv.querySelector("details"); if (d && sv.dataset.sv in open) d.open = open[sv.dataset.sv]; });
+      el.querySelectorAll(".sv").forEach(function(sv){ var d = sv.querySelector("details"); if (d && id(sv) in open) d.open = open[id(sv)]; });
     }
     el.hidden = false;
   }

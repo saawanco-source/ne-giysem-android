@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter
  */
 object Alerts {
 
-    /** [k]: storm, thunder, rain, snow, ice, heat, cold or fog. [lv]: 1 "Dikkat", 2 "Tehlikeli". [from]/[to]: first and last hour. */
+    /** [k]: storm, thunder, rain, snow, ice, heat, cold or fog. [lv]: 1 "Dikkat", 2 "Tehlikeli". [from]/[to]: an episode's first and last hour. */
     /** [total]: for rain, the millimetres over the warning's hours (as the app screen's card says "toplam … mm"). */
     data class Alert(val k: String, val lv: Int, val from: String, val to: String, val peak: Int?, val total: Int? = null)
 
@@ -93,7 +93,7 @@ object Alerts {
     private fun JSONArray.str(i: Int): String = opt(i)?.takeIf { it != JSONObject.NULL }?.toString() ?: "null"
     private fun offset(wx: JSONObject): Long = (wx.opt("utc_offset_seconds") as? Number)?.toLong() ?: 0L
 
-    private class Acc(var lv: Int, val i: Int, var j: Int, var peak: Double?, var total: Double?, var n: Int = 1)
+    private class Acc(var lv: Int, val i: Int, var j: Int, var peak: Double?, var total: Double?, var run: Int = 1, var long: Int = 1)
 
     /**
      * How heavy the rain is, hour by hour (0; 1 "Dikkat"; 2 "Tehlikeli"): an hour of 8 (15) mm, or every wet hour (1 mm or
@@ -132,7 +132,8 @@ object Alerts {
         val code = h.optJSONArray("weather_code"); val wind = h.optJSONArray("wind_speed_10m")
         val gusts = h.optJSONArray("wind_gusts_10m"); val prec = h.optJSONArray("precipitation")
         // Each kind's hours form episodes: hours at most two quiet hours apart belong together. The warning is the most
-        // dangerous episode (the earliest of equals), so morning fog and the next night's aren't one "04:00–23:00".
+        // dangerous episode (the earliest of equals), so morning fog and the next night's aren't one "04:00–23:00"; and the
+        // one under way now as well when the most dangerous is a later one (the storm blowing now isn't hidden by tonight's).
         val found = HashMap<String, MutableList<Acc>>()
         val rl = rainLevels(h)
         fun hit(k: String, lv: Int, at: Int, peak: Double?) {
@@ -141,7 +142,8 @@ object Alerts {
             if (a == null || at - a.j > 3) { eps.add(Acc(lv, at, at, peak, if (k == "rain") peak ?: 0.0 else null)); return }
             if (k == "rain") a.total = (a.total ?: 0.0) + (peak ?: 0.0)
             if (lv > a.lv) a.lv = lv
-            a.j = at; a.n++
+            a.run = if (at == a.j + 1) a.run + 1 else 1; if (a.run > a.long) a.long = a.run // the longest run of hours in a row
+            a.j = at
             if (peak != null && (a.peak == null || (if (k == "cold" || k == "ice") peak < a.peak!! else peak > a.peak!!))) a.peak = peak
         }
         for (j in i0 until minOf(n, i0 + 24)) {
@@ -162,11 +164,18 @@ object Alerts {
             if (c == 75 || c == 86) hit("snow", 2, j, null) else if (c == 73 || c == 85) hit("snow", 1, j, null)
             if (c == 45 || c == 48) hit("fog", 1, j, null)
         }
-        return KINDS.mapNotNull { k ->
-            // A single hour of fog is a passing patch, not a warning.
-            found[k]?.filter { k != "fog" || it.n >= 2 }?.maxByOrNull { it.lv }?.let { a -> Alert(k, a.lv, time.str(a.i).take(16), time.str(a.j).take(16), a.peak?.let { Math.round(it).toInt() },
-                a.total?.let { Math.round(it).toInt() }) }
-        }.sortedWith(compareByDescending<Alert> { it.lv }.thenBy { it.from }.thenBy { KINDS.indexOf(it.k) })
+        // Fog is a warning when it lasts two hours in a row (one hour is a passing patch), counting the hour before now.
+        fun fogAt(k: Int): Boolean { val c = code.num(k)?.let { Math.round(it).toInt() } ?: -1; return c == 45 || c == 48 }
+        fun alert(k: String, a: Acc) = Alert(k, a.lv, time.str(a.i).take(16), time.str(a.j).take(16), a.peak?.let { Math.round(it).toInt() },
+            a.total?.let { Math.round(it).toInt() })
+        val picked = ArrayList<Alert>()
+        for (k in KINDS) {
+            val eps = found[k]?.filter { k != "fog" || it.long >= 2 || (it.i == i0 && i0 > 0 && fogAt(i0 - 1)) } ?: continue
+            val top = eps.maxByOrNull { it.lv } ?: continue
+            picked.add(alert(k, top))
+            if (eps[0] !== top && eps[0].i == i0) picked.add(alert(k, eps[0]))
+        }
+        return picked.sortedWith(compareByDescending<Alert> { it.lv }.thenBy { it.from }.thenBy { KINDS.indexOf(it.k) })
     }
 
     /** "15:00–21:00", "yarın 03:00–06:00": the last hour that applies ends an hour later. */

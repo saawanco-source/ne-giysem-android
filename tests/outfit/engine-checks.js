@@ -100,6 +100,14 @@ check("warnings: morning fog and the next night's are two episodes (the first sh
 check("warnings: two separate 16 mm showers aren't one 7-hour warning", rn, rn && rn.lv === 2 && rn.from === rn.to);
 const one = wx(14, (h, i) => { h.weather_code[i + 5] = 45; });
 check("warnings: one hour of fog is no warning", E.severe(one, NOW), !E.severe(one, NOW).some((a) => a.k === "fog"));
+const gaps = wx(14, (h, i) => { h.weather_code[i + 5] = 45; h.weather_code[i + 7] = 45; });
+check("warnings: two separate hours of fog are no warning", E.severe(gaps, NOW), !E.severe(gaps, NOW).some((a) => a.k === "fog"));
+const lastHour = wx(14, (h, i) => { h.weather_code[i - 1] = 45; h.weather_code[i] = 48; });
+check("warnings: fog in its last hour (it began an hour ago) is still shown", E.severe(lastHour, NOW), E.severe(lastHour, NOW).some((a) => a.k === "fog"));
+// A storm blowing now (Dikkat) and a worse one tonight (Tehlikeli): both cards, the worse first.
+const twoStorms = wx(14, (h, i) => { for (let k = 0; k <= 2; k++) h.wind_gusts_10m[i + k] = 75; for (let k = 10; k <= 11; k++) h.wind_gusts_10m[i + k] = 100; });
+const st2 = E.severe(twoStorms, NOW).filter((a) => a.k === "storm");
+check("warnings: the storm under way now isn't hidden by tonight's worse one", st2, st2.length === 2 && st2[0].lv === 2 && st2[1].lv === 1 && st2[1].from < st2[0].from);
 
 // Field work in the rain: rain gear with a hood, never an umbrella.
 const wetDay = (mm, code) => wx(12, (h, i) => { for (let k = 0; k < 12; k++) { h.precipitation[i + k] = mm; h.weather_code[i + k] = code; h.precipitation_probability[i + k] = 85; } });

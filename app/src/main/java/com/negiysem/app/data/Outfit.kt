@@ -323,11 +323,11 @@ object Outfit {
             (!inp.now.t.isNaN() && inp.now.t <= 0.5 && iceCode(inp.now.code)) || w.any { !it.t.isNaN() && it.t <= 0.5 && iceCode(it.code) }
         val thunder = codes.any { it >= 95 }
         // How hard it rains, in mm an hour (as the app screen): the wettest hour ahead (snow aside) or what is falling now.
-        // Drizzle (under 0.5 mm) needs no raincoat or boots; from 6 mm an umbrella alone won't do.
+        // Drizzle (under 0.5 mm) needs no raincoat or boots; from 6 mm an umbrella alone won't do (the warning starts at 8 mm).
         val mms = w.filter { !it.mm.isNaN() && !isSnow(it.code) }.map { it.mm }.toMutableList()
         if (!trip && !snowNow && inp.now.precip > 0) mms.add(inp.now.precip)
         val mmMax = mms.maxOrNull()
-        // Heavy as the warning counts it too: an hour of 6 mm, or any wet hour of a six-hour spell bringing 20 mm.
+        // Heavy whenever the warning counts it heavy too: an hour of 8 mm, or any wet hour of a six-hour spell bringing 20 mm.
         val heavy = wet && ((mmMax != null && mmMax >= 6) || w.any { it.rl >= 1 })
         // Drizzle: under 0.5 mm an hour, or no amount at all with only drizzle / light-rain codes.
         val rainCodes = codes.filter { isRain(it) }

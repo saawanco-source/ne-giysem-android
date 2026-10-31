@@ -19,6 +19,19 @@ async function tapSticker(s, i = 2) { await s.page.tap(`#wear .stk:nth-child(${i
 const visible = (s, sel) => s.page.$eval(sel, (e) => !e.hidden);
 
 H.run({
+  // The live page's Content-Security-Policy keeps AdSense out while it is off, and must list it once it is switched on
+  // (CONFIG.adsense filled in), or the ads would be blocked (DEPLOY.md, "Güvenlik"). The tests add it for themselves.
+  async policyFollowsAdsense() {
+    const html = require("fs").readFileSync(require("path").join(__dirname, "..", "..", "web", "index.html"), "utf8");
+    const on = /adsense:\s*\{\s*client:\s*"ca-pub-\d+"/.test(html);
+    const policy = (/Content-Security-Policy" content="([^"]*)/.exec(html) || [])[1] || "";
+    const part = (name) => ((new RegExp(name + " ([^;]*)")).exec(policy) || [])[1] || "";
+    // Its script, and the frames, pictures and requests its ads use.
+    const listed = /googlesyndication/.test(part("script-src")) && /googlesyndication|doubleclick/.test(part("frame-src")) &&
+      /googlesyndication|doubleclick|https:/.test(part("img-src")) && /googlesyndication|doubleclick/.test(part("connect-src"));
+    if (!on && /googlesyndication|doubleclick/.test(policy)) return check("AdSense is off, and the page's policy keeps Google's ad servers out", false, policy);
+    check(on ? "AdSense is on, and the page's policy lets its script load" : "AdSense is off, and the page's policy keeps Google's ad servers out", on === listed, { on, listed });
+  },
   async offByDefault(t) {
     const s = await open(t, {});
     const tip = await tapSticker(s);

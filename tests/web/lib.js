@@ -1,6 +1,7 @@
 // Shared harness for the "first-time user / location / place search" tests of Ne Giysem?
 // - serves the app folder over http://localhost (secure context, so geolocation works)
-// - mocks every external host (Open-Meteo forecast + geocoding, Photon, BigDataCloud, Google Fonts)
+// - mocks every external host (Open-Meteo forecast + geocoding, Photon, BigDataCloud, MET Norway); the page's own
+//   Content-Security-Policy and the site's headers (web/_headers) apply, as on the site
 // - fakes navigator.permissions / navigator.geolocation through a Node-side controller (counts permission prompts)
 // - phone context = Galaxy A56 (412x915, dpr 2.625, touch), tr-TR, Europe/Istanbul
 // Usage: const H = require('./lib'); const t = await H.start(); const s = await t.open({...}); ... await t.close();
@@ -101,15 +102,29 @@ function omGeoJSON(q) {
   return r.length ? { results: r } : { generationtime_ms: 0.1 };
 }
 
+/* ---------- the page under its own Content-Security-Policy (see page-csp.js) ---------- */
+const { checkHash, pageBody } = require("./page-csp.js");
+checkHash(APP_DIR);
+// The site's own headers (web/_headers, the "/*" block), sent with every file as Cloudflare Pages does.
+const SITE_HEADERS = (() => {
+  const out = {};
+  let on = false;
+  for (const line of fs.readFileSync(path.join(APP_DIR, "_headers"), "utf8").split("\n")) {
+    if (/^\S/.test(line) && !line.startsWith("#")) on = line.trim() === "/*";
+    else if (on && /^\s+\S/.test(line)) { const i = line.indexOf(":"); out[line.slice(0, i).trim().toLowerCase()] = line.slice(i + 1).trim(); }
+  }
+  return out;
+})();
+
 /* ---------- static server ---------- */
 function serve(dir = APP_DIR) {
-  const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml" };
+  const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2" };
   const srv = http.createServer((req, res) => {
     let p = decodeURIComponent(req.url.split("?")[0]); if (p.endsWith("/")) p += "index.html";
     const f = path.join(dir, path.normalize(p));
-    if (!f.startsWith(dir) || !fs.existsSync(f)) { res.writeHead(404); res.end("nf"); return; }
-    res.writeHead(200, { "content-type": types[path.extname(f)] || "application/octet-stream", "cache-control": "no-store" });
-    fs.createReadStream(f).pipe(res);
+    if (!f.startsWith(dir) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end("nf"); return; }
+    res.writeHead(200, { ...SITE_HEADERS, "content-type": types[path.extname(f)] || "application/octet-stream", "cache-control": "no-store" });
+    res.end(pageBody(f));
   });
   return new Promise((r) => srv.listen(0, "127.0.0.1", () => r({ url: `http://localhost:${srv.address().port}/`, close: () => srv.close() })));
 }
@@ -159,7 +174,7 @@ async function handleRoute(net, route) {
       if (net.offline) {
         let p = new URL(url).pathname; if (p.endsWith("/")) p += "index.html";
         const f = path.join(APP_DIR, path.normalize(p));
-        if (f.startsWith(APP_DIR) && fs.existsSync(f)) return route.fulfill({ status: 200, contentType: p.endsWith(".html") ? "text/html; charset=utf-8" : undefined, body: fs.readFileSync(f) });
+        if (f.startsWith(APP_DIR) && fs.existsSync(f)) return route.fulfill({ status: 200, contentType: p.endsWith(".html") ? "text/html; charset=utf-8" : undefined, body: pageBody(f) });
         return route.abort("internetdisconnected");
       }
       return route.continue();
@@ -280,7 +295,10 @@ async function start() {
     const page = await context.newPage();
     const errors = [], consoleErr = [];
     page.on("pageerror", (e) => errors.push(String(e && e.stack || e)));
-    page.on("console", (m) => { if (m.type() === "error") consoleErr.push(m.text()); });
+    page.on("console", (m) => {
+      if (m.type() === "error") consoleErr.push(m.text());
+      if (/Content Security Policy|Content-Security-Policy/.test(m.text())) cspViolations.push(m.text().slice(0, 300));
+    });
     const s = {
       context, page, net, geo, errors, consoleErr,
       async goto() { await page.goto(srv.url, { waitUntil: "load" }); await sleep(150); },
@@ -313,6 +331,9 @@ async function start() {
   return { url: srv.url, open, browser, async close() { await browser.close(); srv.close(); } };
 }
 
+// Requests or scripts the page's policy blocked, in any session (each one is a failed check at the end of the run).
+const cspViolations = [];
+
 /* ---------- tiny reporting helpers ---------- */
 const results = [];
 function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); console.log((ok ? "PASS " : "FAIL ") + name + (detail !== undefined ? "  :: " + (typeof detail === "string" ? detail : JSON.stringify(detail)) : "")); return ok; }
@@ -329,6 +350,7 @@ async function run(scenarios) {
       try { await fn(t); } catch (e) { check(name + " (no exception)", false, String(e && e.stack || e).split("\n").slice(0, 3).join(" / ")); }
     }
   } finally { await t.close(); }
+  check("the page's Content-Security-Policy blocked nothing", !cspViolations.length, [...new Set(cspViolations)].slice(0, 5));
   process.exitCode = summary() ? 1 : 0;
 }
 

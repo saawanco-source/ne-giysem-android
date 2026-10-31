@@ -2,8 +2,10 @@
 // Usage: const H = require('./harness'); const app = await H.open({hour:9}); await app.weather(fix); await app.prefs({feel,act,hours}); const r = await app.read();
 const http = require('http'), fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
+const { checkHash, pageBody } = require('../web/page-csp.js');
 const ROOT = process.env.APP_DIR || path.join(__dirname, '..', '..', 'web');
 const pad = n => String(n).padStart(2, '0');
+checkHash(ROOT);
 const DATE = '2026-10-24'; // local Istanbul date used for the fixed clock and the fixtures
 
 function serve() {
@@ -12,8 +14,8 @@ function serve() {
       let p = decodeURIComponent(q.url.split('?')[0]); if (p === '/') p = '/index.html';
       const f = path.join(ROOT, p);
       if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); r.end(); return; }
-      const ext = path.extname(f), ct = {'.html':'text/html; charset=utf-8', '.js':'text/javascript', '.webmanifest':'application/manifest+json', '.png':'image/png', '.svg':'image/svg+xml'}[ext] || 'application/octet-stream';
-      r.writeHead(200, {'content-type': ct}); fs.createReadStream(f).pipe(r);
+      const ext = path.extname(f), ct = {'.html':'text/html; charset=utf-8', '.js':'text/javascript', '.webmanifest':'application/manifest+json', '.png':'image/png', '.svg':'image/svg+xml', '.woff2':'font/woff2'}[ext] || 'application/octet-stream';
+      r.writeHead(200, {'content-type': ct}); r.end(pageBody(f)); // the page under its own policy (tests/web/page-csp.js)
     });
     srv.listen(0, '127.0.0.1', () => res(srv));
   });

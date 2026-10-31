@@ -136,10 +136,19 @@ test("a departure in the past asks from now on", async () => {
 });
 
 test("visitors: IPv6 counted per /64 (one line), the site's own domain and ALLOWED_ORIGINS may ask", async () => {
-  const { visitor, allowedOrigin } = routeApi;
+  const { visitor, visitorTag, allowedOrigin } = routeApi;
   assert.equal(visitor("1.2.3.4"), "1.2.3.4");
   assert.equal(visitor("2a02:1234:abcd:1::5"), visitor("2a02:1234:abcd:1:ffff:1:2:3"));
   assert.equal(visitor("2a02:1234::1"), "2a02:1234:0:0::/64");
+  // The rate counter's name: no IP address in it, the same for one visitor in one hour, different otherwise.
+  const a = await visitorTag("1.2.3.4", 100, "secret"), b = await visitorTag("1.2.3.4", 100, "secret");
+  assert.equal(a, b);
+  assert.match(a, /^[0-9a-f]{32}$/);
+  assert.ok(!a.includes("1.2.3.4"));
+  assert.notEqual(a, await visitorTag("1.2.3.5", 100, "secret"));
+  assert.notEqual(a, await visitorTag("1.2.3.4", 101, "secret"));
+  assert.notEqual(a, await visitorTag("1.2.3.4", 100, "other"));
+  assert.equal(await visitorTag("2a02:1234:abcd:1::5", 7, "s"), await visitorTag("2a02:1234:abcd:1:ffff:1:2:3", 7, "s"));
   assert.ok(allowedOrigin("https://negiysem.com", "https://negiysem.com", ""));
   assert.ok(allowedOrigin("https://www.negiysem.com", "https://ne-giysem.pages.dev", "https://negiysem.com, https://www.negiysem.com"));
   assert.ok(!allowedOrigin("https://evil.example", "https://negiysem.com", "https://negiysem.com"));

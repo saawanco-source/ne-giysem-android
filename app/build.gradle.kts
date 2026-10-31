@@ -103,10 +103,28 @@ val syncWeb by tasks.registering(Sync::class) {
     // A test build talks to the preview site's server; the page bundled in the app is told so too.
     val api = System.getenv("NG_API")?.takeIf { it.isNotBlank() } ?: LIVE_API
     inputs.property("api", api)
+    val page = layout.projectDirectory.file("src/main/assets/www/index.html").asFile
     from(rootProject.file("web")) {
-        include("index.html", "forecast-lib.js", "manifest.webmanifest", "icons/**")
-        filesMatching("index.html") { filter { line -> line.replace("api: \"$LIVE_API\"", "api: \"$api\"") } }
+        include("index.html", "forecast-lib.js", "manifest.webmanifest", "icons/**", "fonts/*.woff2", "fonts/OFL-*.txt")
+        filteringCharset = "UTF-8"
+        // Only the server-address meta (and, for another server, the page's connect-src) changes, never the script:
+        // its hash is in the page's Content-Security-Policy.
+        filesMatching("index.html") {
+            filter { line ->
+                val l = line.replace("<meta name=\"ng-api\" content=\"$LIVE_API\">", "<meta name=\"ng-api\" content=\"$api\">")
+                if (l.contains("Content-Security-Policy") && !l.contains(" $api ") && !l.contains(" $api;"))
+                    l.replace("connect-src 'self' ", "connect-src 'self' $api ")
+                else l
+            }
+        }
     }
     into(layout.projectDirectory.dir("src/main/assets/www"))
+    doLast {
+        // A page that would quietly use another server, or be blocked from reaching its own, must not get into the app.
+        val text = page.readText(Charsets.UTF_8)
+        check(text.contains("<meta name=\"ng-api\" content=\"$api\">")) { "syncWeb: <meta name=\"ng-api\"> could not be set to $api in index.html" }
+        val connect = Regex("connect-src ([^;\"]*)").find(text)?.groupValues?.get(1)?.split(" ") ?: emptyList()
+        check(api in connect) { "syncWeb: the page's Content-Security-Policy (connect-src) doesn't allow $api" }
+    }
 }
 tasks.named("preBuild") { dependsOn(syncWeb) }

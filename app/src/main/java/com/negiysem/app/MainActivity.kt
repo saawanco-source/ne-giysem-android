@@ -148,6 +148,11 @@ class MainActivity : Activity() {
         }
         web.webChromeClient = object : WebChromeClient() {
             override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
+                // Only the app's own bundled page may ask (nothing else is ever opened in this view; this makes sure).
+                if (Uri.parse(origin).host != "appassets.androidplatform.net") {
+                    callback.invoke(origin, false, false)
+                    return
+                }
                 // Answered fresh every time (retain = false), so a permission taken back in Android settings is asked again.
                 // With the permission in place this shows nothing to the person.
                 if (hasLocation()) {

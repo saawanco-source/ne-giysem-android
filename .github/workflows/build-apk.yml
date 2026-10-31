@@ -41,6 +41,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      # Before anything slow: with a wrong hash in its Content-Security-Policy the page's script wouldn't run at all.
+      - name: Sayfanın güvenlik politikası kodla eşleşiyor mu
+        run: |
+          node tools/csp.js --check \
+            || { echo "::error title=Güvenlik politikası::web/index.html kodunun özeti politikayla eşleşmiyor: node tools/csp.js çalıştır."; exit 1; }
       - name: Test araçlarını kur
         working-directory: tests
         run: |
@@ -200,7 +205,12 @@ jobs:
             keytool -list -keystore "$ks" -storepass "$pw" -alias "$alias" > /dev/null 2>&1 \
               || { if [ "${#b64}" -ne 5776 ]; then echo "::error title=İmza::Anahtar dosyası eksik ya da farklı görünüyor ($shape). NG_KEYSTORE_BASE64'e negiysem-upload.p12.b64 dosyasının tamamını yeniden yapıştır."; else echo "::error title=İmza::Anahtar açılamadı: NG_KEYSTORE_PASSWORD ya da NG_KEY_ALIAS yanlış (NG_KEY_ALIAS = negiysem-upload)."; fi; exit 1; }
           else
-            echo "::notice title=İmza::Yükleme anahtarı secret'ları yok: her zamanki gibi debug APK üretiliyor (RELEASE.md)."
+            # The debug key is public (app/debug.keystore): a real release signed with it could be "updated" by anyone.
+            if [ "$GITHUB_REF" = refs/heads/main ] && [ "$GITHUB_EVENT_NAME" = push ]; then
+              echo "::error title=İmza::Yükleme anahtarı secret'ları yok: gerçek sürüm debug anahtarıyla yayımlanmaz (RELEASE.md)."
+              exit 1
+            fi
+            echo "::notice title=İmza::Yükleme anahtarı secret'ları yok: yalnızca derleme denemesi (debug), yayımlanmaz (RELEASE.md)."
             echo "mode=debug" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -420,10 +430,10 @@ jobs:
             } > notes.md
           fi
 
-      # A test build (dev) is published only when signed with the real upload key (it must install over the app), and
-      # only as APKs: the .aab files Play takes are never next to a test build, so one can't be uploaded by mistake.
+      # Only builds signed with the real upload key are published (the debug key is public). A test build (dev) is
+      # published only as APKs: the .aab files Play takes are never next to a test build, so one can't be uploaded by mistake.
       - name: Sürümler sayfasında yayınla
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || (github.ref == 'refs/heads/dev' && steps.key.outputs.mode == 'release'))
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && steps.key.outputs.mode == 'release' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.REL_TAG }}

@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Security: the page may run only its own script (the one below, by its hash: after changing it run
+     `node tools/csp.js`; the web tests check) and talk only to its own server and, when that can't be reached, to MET
+     Norway, Photon and BigDataCloud directly. No other site gets anything from this page. AdSense, a custom domain or a
+     new service must be added here first. The site adds the rest (framing, HTTPS) in web/_headers. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-cBDQf+frFx9T81bk+pPFBltPU8EmoHVSJihqdJO2dXs='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
+<meta name="referrer" content="same-origin">
+<!-- The app's own server; the Android build puts the preview site's address here for a test build. -->
+<meta name="ng-api" content="https://ne-giysem.pages.dev">
 <title>Ne Giysem?</title>
 <!-- pwa:start -->
 <meta name="description" content="Bulunduğun yerin havasına göre bir bakışta bugünün kıyafeti." data-i18n-attr="content">
@@ -18,10 +26,14 @@
 <style>body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <!-- pwa:end -->
 <!-- shared:start -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
+/* Fonts from the app's own files (web/fonts, SIL Open Font License): no request to Google Fonts or anyone else. */
+@font-face{font-family:"Instrument Serif";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-regular.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Instrument Serif";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-ext-regular.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Instrument Serif";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-italic.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Instrument Serif";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-ext-italic.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(fonts/figtree-latin-wght.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(fonts/figtree-latin-ext-wght.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 /* Layout: the screen is today's sky (a light for each temperature band, deep blue at night) with film grain; a one-line
    verdict in a serif, the temperature on a hanging tag, and the outfit on a clothes rail answer "what do I wear" at a
    glance. Phone: verdict, rail, day strip, personal settings. Desktop: verdict and details left, the rail right. */
@@ -749,11 +761,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   var IS_ART = !!(window.claude && typeof window.claude.use === "function");
 
   /* ================= configuration (filled in when the app goes live) ================= */
-  // api: the app's own server (Cloudflare Pages Functions in web/functions), e.g. "https://negiysem.com".
+  // api: the app's own server (Cloudflare Pages Functions in web/functions), from <meta name="ng-api"> in the head.
   // On that site itself the server is the same origin. With no server the free, non-commercial services are called
   // directly (development, the Claude preview); ads and shop links stay off in that mode.
   var CONFIG = {
-    api: "https://ne-giysem.pages.dev",
+    api: (document.querySelector('meta[name="ng-api"]') || {}).content || "",
     // Shop links on clothing (affiliate programmes). "{q}" becomes the search words; only shops listed here are shown.
     //   {name:"Amazon", url:"https://www.amazon.com.tr/s?k={q}&tag=ETIKETIN-21"}, {name:"Trendyol", url:"..."}
     shops: [],
@@ -3755,7 +3767,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   function bdc(){ return "https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=" + LANG; }
   // Place name for coordinates, and a rough location from the connection when GPS isn't available.
   function reverseURL(lat, lon){
-    return api() ? API + "/api/reverse?lat=" + (+lat).toFixed(4) + "&lon=" + (+lon).toFixed(4) : bdc() + "&latitude=" + lat + "&longitude=" + lon;
+    // About 100 m (3 decimals) is enough for a place name; nothing more precise leaves the device, with or without the server.
+    return api() ? API + "/api/reverse?lat=" + (+lat).toFixed(3) + "&lon=" + (+lon).toFixed(3) : bdc() + "&latitude=" + (+lat).toFixed(3) + "&longitude=" + (+lon).toFixed(3);
   }
   function ipURL(){ return api() ? API + "/api/ip" : bdc(); }
   // The same request without the app's server (null: none; the forecast has its own way, metForecasts).

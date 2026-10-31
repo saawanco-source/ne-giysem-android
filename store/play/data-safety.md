@@ -59,7 +59,8 @@ Kısaltmalar: **T** = toplanıyor, **P** = paylaşılıyor, **Geçici** = “ge�
 - Bağış: Play uygulamasında yok.
 - Kilitlenme günlükleri: uygulamada çökme raporlama SDK’sı yok. Play Console’un kendi “Android vitals” verisi uygulamanın topladığı veri sayılmaz. İleride Crashlytics vb. eklenirse formu güncelle.
 - “Sorun bildir” (30 Ekim 2026): son hata/çökme kayıtları ve sürüm, cihaz modeli gibi teknik bilgiler cihazda durur ve **yalnızca kullanıcı kendi e-posta uygulamasından göndermeyi seçerse** bize ulaşır; uygulama kendisi hiçbir şey göndermez, metni kullanıcı gönderilmeden önce görür ve değiştirebilir. Google’ın “kullanıcının başlattığı işlem” istisnası **paylaşma** içindir, toplama için değil; bize ulaştığı için bu **toplama** sayılır. Formda: *Uygulama bilgileri ve performansı → **Kilitlenme günlükleri***: Toplanıyor ✔, Paylaşılıyor ✘, Geçici Hayır, **İsteğe bağlı**, amaç *Uygulama işlevselliği*. Mevcut **Teşhis** satırına (AdMob yüzünden zorunlu) amaç olarak *Uygulama işlevselliği*ni de ekle.
-- Google Fonts: Uygulama sayfası yazı tiplerini `fonts.googleapis.com`’dan indiriyor; bu istek IP adresini Google’a iletir ama uygulama bir veri türü göndermez. Yazı tiplerini APK’nın içine koymak (README’deki öneri) bu konuyu tamamen kapatır.
+- Yazı tipleri (31 Ekim 2026): uygulamanın ve sitenin kendi dosyaları (`web/fonts`, APK’nın içinde); Google Fonts’a ya da başka bir siteye istek gitmez. Sayfanın içerik güvenliği politikası (CSP) yalnızca gizlilik metninde sayılan servislere bağlanmaya izin verir.
+- Kapalı test grubu (Google Grupları): test kullanıcılarının e-posta adresleri uygulamadan değil, Google Grupları ve Play Console üzerinden gelir; uygulamanın topladığı veri sayılmaz, formu değiştirmez. Gizlilik metninde ayrıca anlatılıyor (`store/play/kapali-test.md`).
 
 ## 4. Değişince formu yeniden gönder
 

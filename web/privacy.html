@@ -3,43 +3,52 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Security: no scripts at all, and nothing loaded from other sites (fonts and icon are the site's own files). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="same-origin">
 <title>Privacy Policy · Ne Giysem?</title>
 <meta name="description" content="What data Ne Giysem? processes and why, who receives it and how to delete it: privacy policy, KVKK information notice, ads and affiliate link disclosure.">
-<meta name="theme-color" content="#FFD65E" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#37332a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F3BB6C" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0F21" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <link rel="canonical" href="https://ne-giysem.pages.dev/privacy.html">
 <link rel="alternate" hreflang="tr" href="https://ne-giysem.pages.dev/gizlilik.html">
 <link rel="alternate" hreflang="en" href="https://ne-giysem.pages.dev/privacy.html">
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
-/* Same look as the app (web/index.html): level-yellow field, ink text, translucent rounded cards, Bricolage Grotesque headings, Figtree body. */
+/* Fonts from the app's own files (web/fonts, SIL Open Font License): no request to Google Fonts or anyone else. */
+@font-face{font-family:"Instrument Serif";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-regular.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Instrument Serif";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-ext-regular.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Instrument Serif";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-italic.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Instrument Serif";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-ext-italic.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(fonts/figtree-latin-wght.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(fonts/figtree-latin-ext-wght.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+/* Same look as the app (web/index.html): a mild day's sky (deep blue in dark mode), ink text, translucent rounded cards,
+   Instrument Serif headings, Figtree body. */
 :root{
-  --lv:#FFD65E; --field:var(--lv);
+  --lv:#F3BB6C; --field:#F8DAAA; --sky:linear-gradient(180deg,#F3BB6C 0,#F8DAAA 380px,#FCEEDB 900px);
   --ink:#14161f; --ink2:rgba(20,22,31,.78); --card:rgba(255,255,255,.6); --card2:rgba(255,255,255,.78); --line:rgba(20,22,31,.14);
   --pill-bg:#14161f; --pill-ink:#ffffff; --hl-bg:#ffffff; --hl-ink:#14161f; --focus:#14161f; --dot:var(--lv);
-  --font-display:"Bricolage Grotesque","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-display:"Instrument Serif",Georgia,"Times New Roman",serif;
   --font-body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --field:#37332a; --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
-    --pill-bg:var(--lv); --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
+    --field:#131B37; --sky:linear-gradient(180deg,#0A0F21 0,#131B37 380px,#26305A 1400px);
+    --ink:#f3efe6; --ink2:rgba(243,239,230,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
+    --pill-bg:#F3EAD5; --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
     color-scheme:dark;
   }
-  @supports (color:color-mix(in oklab,red,blue)){ :root:not([data-theme="light"]){ --field:color-mix(in oklab,var(--lv) 22%,#0b0d16); } }
 }
 :root[data-theme="dark"]{
-  --field:#37332a; --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
-  --pill-bg:var(--lv); --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
+  --field:#131B37; --sky:linear-gradient(180deg,#0A0F21 0,#131B37 380px,#26305A 1400px);
+  --ink:#f3efe6; --ink2:rgba(243,239,230,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
+  --pill-bg:#F3EAD5; --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{background:var(--field);-webkit-text-size-adjust:100%;scroll-padding-top:16px}
-body{margin:0;background:var(--field);color:var(--ink);font:500 16.5px/1.6 var(--font-body);-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--sky,var(--field)) no-repeat,var(--field);color:var(--ink);font:500 16.5px/1.6 var(--font-body);-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration-thickness:1.5px;text-underline-offset:3px}
 a:hover{text-decoration-thickness:2.5px}
 :focus-visible{outline:2.5px solid var(--focus);outline-offset:3px;border-radius:6px}
@@ -47,19 +56,19 @@ a:hover{text-decoration-thickness:2.5px}
 .skip:focus{top:12px}
 .wrap{max-width:46rem;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:env(safe-area-inset-top,0px)}
-.logo{display:inline-flex;align-items:center;gap:8px;font:800 1.15rem/1 var(--font-display);letter-spacing:-.02em;text-decoration:none;min-height:44px}
+.logo{display:inline-flex;align-items:center;gap:8px;font:400 1.45rem/1 var(--font-display);letter-spacing:-.005em;text-decoration:none;min-height:44px}
 .logo svg{width:28px;height:28px;flex:none}
 .chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:9px 16px;border-radius:999px;background:var(--card2);font-weight:700;font-size:15px;text-decoration:none}
 .hero{margin:26px 0 18px}
 .pill{display:inline-block;background:var(--pill-bg);color:var(--pill-ink);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13.5px;line-height:1.3}
-h1{margin:14px 0 12px;font:800 clamp(2rem,8.4vw,3.1rem)/1.04 var(--font-display);letter-spacing:-.035em;text-wrap:balance}
-.hl{display:inline-block;background:var(--hl-bg);color:var(--hl-ink);padding:.02em .2em .06em;border-radius:.22em;transform:rotate(-2deg)}
+h1{margin:14px 0 12px;font:400 clamp(2.3rem,9.4vw,3.5rem)/1.02 var(--font-display);letter-spacing:-.01em;text-wrap:balance}
+.hl{font-style:italic;text-decoration-line:underline;text-decoration-style:dashed;text-decoration-color:#9C4A2A;text-decoration-thickness:2px;text-underline-offset:.14em;text-decoration-skip-ink:none}
 .lead{margin:0;font-size:17.5px;color:var(--ink2);max-width:40em}
 .card{background:var(--card);border-radius:24px;padding:18px 18px 8px;margin-top:14px}
 .card > :first-child{margin-top:0}
-h2{margin:0 0 10px;font:800 1.32rem/1.15 var(--font-display);letter-spacing:-.015em;scroll-margin-top:16px}
+h2{margin:0 0 10px;font:400 1.7rem/1.1 var(--font-display);letter-spacing:-.005em;scroll-margin-top:16px}
 h2 .n{display:inline-grid;place-items:center;min-width:1.7em;height:1.7em;margin-right:.35em;border-radius:999px;background:var(--pill-bg);color:var(--pill-ink);font:800 .7em/1 var(--font-body);vertical-align:.18em}
-h3{margin:18px 0 6px;font:800 1.06rem/1.25 var(--font-display);letter-spacing:-.01em}
+h3{margin:18px 0 6px;font:700 1.02rem/1.3 var(--font-body);letter-spacing:-.005em}
 p,ul,ol,dl{margin:0 0 12px}
 ul,ol{padding-left:1.25em}
 li{margin:4px 0}
@@ -97,7 +106,7 @@ footer .chip{color:var(--ink)}
 <div class="wrap">
   <header class="bar">
     <a class="logo" href="./" aria-label="Back to the Ne Giysem? app">
-      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#14161f"/><g transform="rotate(-12 32 34)"><path d="M18.5 22.5 25.5 15.5h13l7 7V52h-27z" fill="#ffffff"/><circle cx="32" cy="24" r="3" fill="#14161f"/><rect x="24" y="36" width="16" height="3" rx="1.5" fill="#14161f"/><rect x="24" y="42" width="10" height="3" rx="1.5" fill="#14161f"/></g></svg>
+      <svg aria-hidden="true" viewBox="0 0 108 108"><defs><filter id="nglb" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6"/></filter><linearGradient id="nglp" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#FBF4E4"/><stop offset="1" stop-color="#EADBBB"/></linearGradient><linearGradient id="ngls" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#131B37"/><stop offset="1" stop-color="#2C3766"/></linearGradient><radialGradient id="nglg" cx="0.85" cy="0.05" r="0.9"><stop offset="0" stop-color="#9DB4FF" stop-opacity=".35"/><stop offset="1" stop-color="#9DB4FF" stop-opacity="0"/></radialGradient></defs><clipPath id="nglc"><rect width="108" height="108" rx="24"/></clipPath><g clip-path="url(#nglc)"><rect width="108" height="108" fill="url(#ngls)"/><rect width="108" height="108" fill="url(#nglg)"/><g transform="translate(54 54) scale(1.4) translate(-54 -54) translate(54 56) rotate(-9)"><path d="M0 -16.5C-2 -30.5 6 -40.5 3 -66.5" fill="none" stroke="#E9DCC0" stroke-width="1.6" stroke-linecap="round"/><path d="M-11 -24H11L19 -16V21Q19 24 16 24H-16Q-19 24 -19 21V-16Z" fill="#0A0804" fill-opacity=".35" transform="translate(1.2 2.4)" filter="url(#nglb)"/><path d="M-11 -24H11L19 -16V21Q19 24 16 24H-16Q-19 24 -19 21V-16Z" fill="url(#nglp)"/><path d="M-11 -24H11L19 -16V21Q19 24 16 24H-16Q-19 24 -19 21V-16Z" fill="none" stroke="#D9C9A8" stroke-width=".8"/><path d="M-15.8 -15V20.6H15.8V-15" fill="none" stroke="#D9C9A8" stroke-width=".6" stroke-dasharray="1.6 1.4"/><circle cx="0" cy="-16.5" r="3.6" fill="#D9C9A8"/><circle cx="0" cy="-16.5" r="2.3" fill="#131B37"/><path d="M0 -16.5C-1.2 -21.5 1 -25.5 2 -29.5" fill="none" stroke="#E9DCC0" stroke-width="1.6" stroke-linecap="round"/><path d="M128 186Q124 186 120.5 190.0Q117 194 119 204L152 370Q157 397 165.5 414.0Q174 431 195 446L225 468Q278 506 306.5 550.5Q335 595 335 656Q335 685 320.0 701.0Q305 717 282 717Q243 717 214.0 688.5Q185 660 146 590Q139 577 130 578Q119 580 124 597L154 716Q158 729 170 736Q184 744 203.5 747.5Q223 751 246 751Q282 751 314.0 738.5Q346 726 366.5 699.5Q387 673 387 630Q387 559 350.5 504.5Q314 450 250 405L201 370Q191 363 186.0 352.5Q181 342 176 325L143 200Q139 186 128 186ZM95 -9Q74 -9 61.0 4.5Q48 18 48 38Q48 64 66.0 80.0Q84 96 104 96Q124 96 137.5 82.5Q151 69 151 49Q151 23 133.0 7.0Q115 -9 95 -9Z" fill="#9C4A2A" stroke="#9C4A2A" stroke-width="24.4" stroke-linejoin="round" transform="translate(-8.013 18.668) scale(0.03684 -0.03684)"/></g></g></svg>
       <span>Ne Giysem?</span>
     </a>
     <a class="chip" href="gizlilik.html" hreflang="tr" lang="tr">Türkçe</a>
@@ -105,7 +114,7 @@ footer .chip{color:var(--ink)}
 
   <main id="content">
     <div class="hero">
-      <p class="pill">Last updated: <time datetime="2026-10-30">30 October 2026</time></p>
+      <p class="pill">Last updated: <time datetime="2026-10-31">31 October 2026</time></p>
       <h1>Privacy <span class="hl">Policy</span></h1>
       <p class="lead">Ne Giysem? (“What should I wear?”) needs no account. Your settings, saved places, routine and wardrobe stay on your device. This page explains which data goes where, why, and how to delete it. It is also the information notice required by Article 10 of Türkiye’s Personal Data Protection Law No. 6698 (KVKK) and is written to meet the EU General Data Protection Regulation (GDPR). If the Turkish and English versions differ, the <a href="gizlilik.html" hreflang="tr">Turkish version</a> prevails.</p>
     </div>
@@ -147,7 +156,7 @@ footer .chip{color:var(--ink)}
       <p>The Ne Giysem? website (<a href="https://ne-giysem.pages.dev/">https://ne-giysem.pages.dev</a>) and Android app (Google Play package <code>com.negiysem.app</code>) are published by an individual developer living in Türkiye, who is the data controller (“veri sorumlusu” under KVKK, “controller” under GDPR):</p>
       <dl class="kv box">
         <dt>Controller</dt><dd>saawanco</dd>
-        <dt>Email</dt><dd><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a></dd>
+        <dt>Email</dt><dd><!--email_off--><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><!--/email_off--></dd>
         <dt>Web</dt><dd><a href="https://ne-giysem.pages.dev/">https://ne-giysem.pages.dev</a></dd>
       </dl>
     </section>
@@ -180,7 +189,8 @@ footer .chip{color:var(--ink)}
         <li><strong>Affiliate links:</strong> the affiliate code in the link when you tap one (<a href="#affiliate">section 7</a>).</li>
         <li><strong>Messages:</strong> your email address and message if you email us.</li>
         <li><strong>Problem reports:</strong> “For you → Report a problem” opens your email app; you write and send the email yourself. The app adds these technical details: the app version, your phone model and Android version (on the website, your browser details), language, screen size, a few settings (for example “I get cold easily”, the number of trips), when the weather was last fetched, the widget’s last problem and the latest error and crash records the app keeps on this device. <strong>Your location, places and routine are never added;</strong> numbers that look like coordinates are removed from the records. You can see and change everything before sending. Error and crash records stay on your device only, at most the latest 15 errors and 5 crashes; “Delete all my data” deletes them too.</li>
-        <li><strong>Fonts:</strong> the pages download their fonts from Google Fonts, which means your IP address and browser information reach Google.</li>
+        <li><strong>Fonts and icons:</strong> they are the site’s and the app’s own files. Opening a page sends no request to any other site (such as Google Fonts).</li>
+        <li><strong>Test programme (Google Play closed test):</strong> if you join the test group (Google Groups) to take part in the app’s closed test on Google Play, we see your Google account’s email address and the name shown on it. Group members cannot see each other. Google Play shows us the number of testers and the private feedback you leave through Play. We use this only to run the test, to meet Google Play’s testing requirement and to answer your feedback; we do not share it with anyone or use it for ads or marketing.</li>
         <li><strong>Google Play:</strong> when you install the app from Google Play, Google processes its own data under its own privacy policy. The Play Console shows us aggregate statistics, such as install counts and crash reports, that do not identify you.</li>
       </ul>
       <p>The app has no analytics or tracking tools of our own. We do not process special categories of personal data such as health or beliefs.</p>
@@ -219,6 +229,13 @@ footer .chip{color:var(--ink)}
         <dl class="kv">
           <dt>Data</dt><dd>IP address, request time and address, browser or device information (Cloudflare’s standard logs), technical error messages</dd>
           <dt>Legal basis</dt><dd>Legitimate interest in preventing abuse and fixing errors (GDPR Art. 6(1)(f); KVKK Art. 5(2)(f))</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Running the test programme (only if you join the closed test)</h3>
+        <dl class="kv">
+          <dt>Data</dt><dd>The email address and name of the Google account you join the test group with, and the private feedback you leave through Google Play</dd>
+          <dt>Legal basis</dt><dd>Necessary to run the test programme you asked to join (GDPR Art. 6(1)(b); KVKK Art. 5(2)(c)) and legitimate interest in testing the app before release (GDPR Art. 6(1)(f); KVKK Art. 5(2)(f)). You can leave the group at any time.</dd>
         </dl>
       </div>
       <div class="box">
@@ -265,12 +282,16 @@ footer .chip{color:var(--ink)}
       </div>
       <div class="box">
         <h3>When our server can't be reached: MET Norway, Photon and BigDataCloud (Australia) directly</h3>
-        <p>On some networks our server’s address (pages.dev) can be blocked. Then, for half an hour, the app and the widget send the same requests to these services directly instead of through our server: coordinates rounded to about 1 km to MET Norway for the weather, the search text and rough location to Photon for place search, and coordinates to BigDataCloud for place names and a rough location. In that case these services also see your IP address. Nothing else is added; the weather is worked out on the phone with the same code our server uses.</p>
+        <p>On some networks our server’s address (pages.dev) can be blocked. Then, for half an hour, the app and the widget send the same requests to these services directly instead of through our server: coordinates rounded to about 1 km to MET Norway for the weather, the search text and rough location to Photon for place search, and coordinates rounded to about 100 m to BigDataCloud for place names and a rough location. In that case these services also see your IP address. Nothing else is added; the weather is worked out on the phone with the same code our server uses.</p>
       </div>
       <div class="box">
         <h3>Google (Google LLC, USA; Google Ireland Limited for users in Europe)</h3>
-        <p>AdMob ads in the Android app, AdSense ads on the website, Google Fonts, and Google Play for distributing the app. Google also processes ad and Play data under its own <a href="https://policies.google.com/privacy?hl=en">privacy policy</a> and responsibility.</p>
+        <p>AdMob ads in the Android app, AdSense ads on the website, Google Play for distributing the app, and Google Groups for the closed test group. Google also processes ad and Play data under its own <a href="https://policies.google.com/privacy?hl=en">privacy policy</a> and responsibility.</p>
         <p><strong>Google Maps (Routes API), only if you turn route suggestions on:</strong> the start and end coordinates of your trips and their departure times go to Google through our server (your IP address is not passed on). The routes in Google’s answer are only shown while the page is open and are stored neither on your device nor on our server. By using this feature you agree to the <a href="https://maps.google.com/help/terms_maps.html">Google Maps/Google Earth Additional Terms of Service</a> and the <a href="https://policies.google.com/privacy?hl=en">Google Privacy Policy</a>.</p>
+      </div>
+      <div class="box">
+        <h3>GitHub, Inc. (USA)</h3>
+        <p>Only if you tap “Download the app” on the website: the Android app’s file (APK) is downloaded from GitHub, which then sees your IP address and browser information and processes them under its own <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">privacy statement</a>.</p>
       </div>
       <div class="box">
         <h3>Trendyol and Amazon.com.tr</h3>
@@ -281,7 +302,7 @@ footer .chip{color:var(--ink)}
         <p>Only where the law requires it, and only as much as required.</p>
       </div>
       <h3>International transfers</h3>
-      <p>Cloudflare, Google (including route suggestions), MET Norway, komoot and BigDataCloud run servers outside Türkiye (in the USA, Europe and other countries), so using the app transfers the data above abroad. These transfers rely on the safeguards listed in Article 9 of KVKK and Chapter V of the GDPR (such as the standard contractual clauses offered by the providers) or, where none is available, on the exceptions those rules allow. The rounded coordinates sent to MET Norway and Photon are not sent together with anything that identifies you.</p>
+      <p>Cloudflare, Google (including route suggestions and the test group), MET Norway, komoot, BigDataCloud and GitHub run servers outside Türkiye (in the USA, Europe and other countries), so using the app transfers the data above abroad. These transfers rely on the safeguards listed in Article 9 of KVKK and Chapter V of the GDPR (such as the standard contractual clauses offered by the providers) or, where none is available, on the exceptions those rules allow. The rounded coordinates sent to MET Norway and Photon are not sent together with anything that identifies you.</p>
     </section>
 
     <section class="card" aria-labelledby="ads">
@@ -324,6 +345,8 @@ footer .chip{color:var(--ink)}
         <li><strong>Data on your device:</strong> until you delete it (“Delete all my data”, uninstalling the app or clearing site data).</li>
         <li><strong>Coordinates and search text sent to the server:</strong> not kept after the request is answered; only the shared cache entries, which are not linked to anyone, remain for the periods in <a href="#location">section 3</a>.</li>
         <li><strong>Cloudflare’s request logs:</strong> for Cloudflare’s own retention periods; we have no logging system of our own.</li>
+        <li><strong>Request counter for route suggestions:</strong> to limit abuse, an hourly counter is kept per visitor. Its name is a code made from the IP address with a secret key, which cannot be turned back and changes every hour; the IP address itself is not stored. The counter lasts at most 1 hour.</li>
+        <li><strong>Test programme:</strong> your membership of the test group lasts until you leave or until the group is deleted, at the latest 30 days after the test ends and the app is released to everyone; feedback for Google Play’s own retention periods.</li>
         <li><strong>Ad data:</strong> for the periods set out in Google’s policies.</li>
         <li><strong>Emails:</strong> up to 12 months after the conversation ends, or longer where the law requires it.</li>
       </ul>
@@ -337,7 +360,7 @@ footer .chip{color:var(--ink)}
         <li><strong>On Android:</strong> uninstalling the app, or Settings → Apps → Ne Giysem? → Storage → Clear data, also deletes everything.</li>
         <li><strong>On the web:</strong> clear this site’s data (cookies and site data) in your browser settings.</li>
         <li><strong>Advertising ID:</strong> reset or delete it in your Android settings (<a href="#ads">section 6</a>).</li>
-        <li><strong>On our server:</strong> we keep no account or record that can be linked to you, so there is nothing to delete. If you still have a request, write to <a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a>.</li>
+        <li><strong>On our server:</strong> we keep no account or record that can be linked to you, so there is nothing to delete. If you still have a request, write to <!--email_off--><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><!--/email_off-->.</li>
       </ul>
     </section>
 
@@ -345,7 +368,7 @@ footer .chip{color:var(--ink)}
       <h2 id="rights"><span class="n" aria-hidden="true">11</span>Your rights</h2>
       <p>Under the GDPR you have the right to access your data, to have it corrected or erased, to restrict or object to its processing, and to data portability. Where processing is based on consent, you can withdraw it at any time without affecting earlier processing.</p>
       <p>Under Article 11 of KVKK you can ask the controller to tell you whether your data is processed and, if so, to give you information about it; to learn the purpose and whether the data is used accordingly; to know the third parties in Türkiye or abroad it was transferred to; to correct incomplete or inaccurate data; to delete or destroy it under Article 7; to notify those third parties of such corrections or deletions; to object to a result against you arising solely from automated analysis; and to claim compensation for damage caused by unlawful processing.</p>
-      <p><strong>How to apply:</strong> email <a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a>, or use the other methods set out in Türkiye’s Communiqué on the Procedures and Principles of Application to the Data Controller. We answer within 30 days, free of charge as a rule. Most of your data exists only on your device, so we cannot see it; you can delete it yourself as described in <a href="#deletion">section 10</a>.</p>
+      <p><strong>How to apply:</strong> email <!--email_off--><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><!--/email_off-->, or use the other methods set out in Türkiye’s Communiqué on the Procedures and Principles of Application to the Data Controller. We answer within 30 days, free of charge as a rule. Most of your data exists only on your device, so we cannot see it; you can delete it yourself as described in <a href="#deletion">section 10</a>.</p>
       <p>If you are not satisfied with our answer, you can complain to the Turkish <a href="https://www.kvkk.gov.tr/">Personal Data Protection Board (KVKK)</a>. If you live in the EU or EEA, you can also complain to your local data protection authority.</p>
     </section>
 
@@ -357,6 +380,13 @@ footer .chip{color:var(--ink)}
     <section class="card" aria-labelledby="security">
       <h2 id="security"><span class="n" aria-hidden="true">13</span>Security</h2>
       <p>All connections between the app and the server are encrypted with HTTPS. There are no accounts or passwords, and we process as little data as possible. Data on your device is protected by your device’s own security (such as the screen lock); keep this in mind if you share your device.</p>
+      <ul>
+        <li><strong>Only its own code:</strong> through a Content Security Policy, the website and the app’s screen (its page) run only their own code and can connect only to the services listed in this policy; they cannot send data to any other site, and injected code cannot run. (AdMob ads and Google Play services in the Android app work outside the page; see <a href="#ads">section 6</a>.)</li>
+        <li><strong>Not shown inside other sites:</strong> our pages cannot be opened in a frame on another site, and your browser does not tell other sites which of our pages you came from.</li>
+        <li><strong>Android app:</strong> the app’s screen opens only its own built-in files; links open in your browser. Location permission is given only to the app’s own page. The app’s data is not included in Google backups.</li>
+        <li><strong>Server keys:</strong> the Google key used for route suggestions stays on the server and never reaches the app or the page.</li>
+        <li><strong>Reporting a vulnerability:</strong> if you find a security issue, please report it to <!--email_off--><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><!--/email_off--> before making it public.</li>
+      </ul>
     </section>
 
     <section class="card" aria-labelledby="changes">
@@ -366,7 +396,7 @@ footer .chip{color:var(--ink)}
 
     <section class="card" aria-labelledby="contact">
       <h2 id="contact"><span class="n" aria-hidden="true">15</span>Contact</h2>
-      <p class="contact">saawanco<br><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><br><a href="https://ne-giysem.pages.dev/">https://ne-giysem.pages.dev</a></p>
+      <p class="contact">saawanco<br><!--email_off--><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><!--/email_off--><br><a href="https://ne-giysem.pages.dev/">https://ne-giysem.pages.dev</a></p>
     </section>
   </main>
 

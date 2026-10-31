@@ -3,43 +3,52 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Security: no scripts at all, and nothing loaded from other sites (fonts and icon are the site's own files). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="same-origin">
 <title>Gizlilik Politikası ve KVKK Aydınlatma Metni · Ne Giysem?</title>
 <meta name="description" content="Ne Giysem? hangi verileri neden işler, kimlerle paylaşır ve verilerini nasıl silebilirsin: gizlilik politikası, KVKK aydınlatma metni, reklam ve ortaklık linki bilgilendirmesi.">
-<meta name="theme-color" content="#FFD65E" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#37332a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F3BB6C" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0F21" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <link rel="canonical" href="https://ne-giysem.pages.dev/gizlilik.html">
 <link rel="alternate" hreflang="tr" href="https://ne-giysem.pages.dev/gizlilik.html">
 <link rel="alternate" hreflang="en" href="https://ne-giysem.pages.dev/privacy.html">
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
-/* Same look as the app (web/index.html): level-yellow field, ink text, translucent rounded cards, Bricolage Grotesque headings, Figtree body. */
+/* Fonts from the app's own files (web/fonts, SIL Open Font License): no request to Google Fonts or anyone else. */
+@font-face{font-family:"Instrument Serif";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-regular.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Instrument Serif";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-ext-regular.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Instrument Serif";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-italic.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Instrument Serif";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-latin-ext-italic.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(fonts/figtree-latin-wght.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(fonts/figtree-latin-ext-wght.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+/* Same look as the app (web/index.html): a mild day's sky (deep blue in dark mode), ink text, translucent rounded cards,
+   Instrument Serif headings, Figtree body. */
 :root{
-  --lv:#FFD65E; --field:var(--lv);
+  --lv:#F3BB6C; --field:#F8DAAA; --sky:linear-gradient(180deg,#F3BB6C 0,#F8DAAA 380px,#FCEEDB 900px);
   --ink:#14161f; --ink2:rgba(20,22,31,.78); --card:rgba(255,255,255,.6); --card2:rgba(255,255,255,.78); --line:rgba(20,22,31,.14);
   --pill-bg:#14161f; --pill-ink:#ffffff; --hl-bg:#ffffff; --hl-ink:#14161f; --focus:#14161f; --dot:var(--lv);
-  --font-display:"Bricolage Grotesque","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-display:"Instrument Serif",Georgia,"Times New Roman",serif;
   --font-body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --field:#37332a; --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
-    --pill-bg:var(--lv); --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
+    --field:#131B37; --sky:linear-gradient(180deg,#0A0F21 0,#131B37 380px,#26305A 1400px);
+    --ink:#f3efe6; --ink2:rgba(243,239,230,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
+    --pill-bg:#F3EAD5; --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
     color-scheme:dark;
   }
-  @supports (color:color-mix(in oklab,red,blue)){ :root:not([data-theme="light"]){ --field:color-mix(in oklab,var(--lv) 22%,#0b0d16); } }
 }
 :root[data-theme="dark"]{
-  --field:#37332a; --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
-  --pill-bg:var(--lv); --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
+  --field:#131B37; --sky:linear-gradient(180deg,#0A0F21 0,#131B37 380px,#26305A 1400px);
+  --ink:#f3efe6; --ink2:rgba(243,239,230,.8); --card:rgba(255,255,255,.07); --card2:rgba(255,255,255,.12); --line:rgba(255,255,255,.15);
+  --pill-bg:#F3EAD5; --pill-ink:#14161f; --hl-bg:var(--lv); --hl-ink:#14161f; --focus:var(--lv);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{background:var(--field);-webkit-text-size-adjust:100%;scroll-padding-top:16px}
-body{margin:0;background:var(--field);color:var(--ink);font:500 16.5px/1.6 var(--font-body);-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--sky,var(--field)) no-repeat,var(--field);color:var(--ink);font:500 16.5px/1.6 var(--font-body);-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration-thickness:1.5px;text-underline-offset:3px}
 a:hover{text-decoration-thickness:2.5px}
 :focus-visible{outline:2.5px solid var(--focus);outline-offset:3px;border-radius:6px}
@@ -47,19 +56,19 @@ a:hover{text-decoration-thickness:2.5px}
 .skip:focus{top:12px}
 .wrap{max-width:46rem;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:env(safe-area-inset-top,0px)}
-.logo{display:inline-flex;align-items:center;gap:8px;font:800 1.15rem/1 var(--font-display);letter-spacing:-.02em;text-decoration:none;min-height:44px}
+.logo{display:inline-flex;align-items:center;gap:8px;font:400 1.45rem/1 var(--font-display);letter-spacing:-.005em;text-decoration:none;min-height:44px}
 .logo svg{width:28px;height:28px;flex:none}
 .chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:9px 16px;border-radius:999px;background:var(--card2);font-weight:700;font-size:15px;text-decoration:none}
 .hero{margin:26px 0 18px}
 .pill{display:inline-block;background:var(--pill-bg);color:var(--pill-ink);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13.5px;line-height:1.3}
-h1{margin:14px 0 12px;font:800 clamp(2rem,8.4vw,3.1rem)/1.04 var(--font-display);letter-spacing:-.035em;text-wrap:balance}
-.hl{display:inline-block;background:var(--hl-bg);color:var(--hl-ink);padding:.02em .2em .06em;border-radius:.22em;transform:rotate(-2deg)}
+h1{margin:14px 0 12px;font:400 clamp(2.3rem,9.4vw,3.5rem)/1.02 var(--font-display);letter-spacing:-.01em;text-wrap:balance}
+.hl{font-style:italic;text-decoration-line:underline;text-decoration-style:dashed;text-decoration-color:#9C4A2A;text-decoration-thickness:2px;text-underline-offset:.14em;text-decoration-skip-ink:none}
 .lead{margin:0;font-size:17.5px;color:var(--ink2);max-width:40em}
 .card{background:var(--card);border-radius:24px;padding:18px 18px 8px;margin-top:14px}
 .card > :first-child{margin-top:0}
-h2{margin:0 0 10px;font:800 1.32rem/1.15 var(--font-display);letter-spacing:-.015em;scroll-margin-top:16px}
+h2{margin:0 0 10px;font:400 1.7rem/1.1 var(--font-display);letter-spacing:-.005em;scroll-margin-top:16px}
 h2 .n{display:inline-grid;place-items:center;min-width:1.7em;height:1.7em;margin-right:.35em;border-radius:999px;background:var(--pill-bg);color:var(--pill-ink);font:800 .7em/1 var(--font-body);vertical-align:.18em}
-h3{margin:18px 0 6px;font:800 1.06rem/1.25 var(--font-display);letter-spacing:-.01em}
+h3{margin:18px 0 6px;font:700 1.02rem/1.3 var(--font-body);letter-spacing:-.005em}
 p,ul,ol,dl{margin:0 0 12px}
 ul,ol{padding-left:1.25em}
 li{margin:4px 0}
@@ -97,7 +106,7 @@ footer .chip{color:var(--ink)}
 <div class="wrap">
   <header class="bar">
     <a class="logo" href="./" aria-label="Ne Giysem? uygulamasına dön">
-      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#14161f"/><g transform="rotate(-12 32 34)"><path d="M18.5 22.5 25.5 15.5h13l7 7V52h-27z" fill="#ffffff"/><circle cx="32" cy="24" r="3" fill="#14161f"/><rect x="24" y="36" width="16" height="3" rx="1.5" fill="#14161f"/><rect x="24" y="42" width="10" height="3" rx="1.5" fill="#14161f"/></g></svg>
+      <svg aria-hidden="true" viewBox="0 0 108 108"><defs><filter id="nglb" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6"/></filter><linearGradient id="nglp" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#FBF4E4"/><stop offset="1" stop-color="#EADBBB"/></linearGradient><linearGradient id="ngls" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#131B37"/><stop offset="1" stop-color="#2C3766"/></linearGradient><radialGradient id="nglg" cx="0.85" cy="0.05" r="0.9"><stop offset="0" stop-color="#9DB4FF" stop-opacity=".35"/><stop offset="1" stop-color="#9DB4FF" stop-opacity="0"/></radialGradient></defs><clipPath id="nglc"><rect width="108" height="108" rx="24"/></clipPath><g clip-path="url(#nglc)"><rect width="108" height="108" fill="url(#ngls)"/><rect width="108" height="108" fill="url(#nglg)"/><g transform="translate(54 54) scale(1.4) translate(-54 -54) translate(54 56) rotate(-9)"><path d="M0 -16.5C-2 -30.5 6 -40.5 3 -66.5" fill="none" stroke="#E9DCC0" stroke-width="1.6" stroke-linecap="round"/><path d="M-11 -24H11L19 -16V21Q19 24 16 24H-16Q-19 24 -19 21V-16Z" fill="#0A0804" fill-opacity=".35" transform="translate(1.2 2.4)" filter="url(#nglb)"/><path d="M-11 -24H11L19 -16V21Q19 24 16 24H-16Q-19 24 -19 21V-16Z" fill="url(#nglp)"/><path d="M-11 -24H11L19 -16V21Q19 24 16 24H-16Q-19 24 -19 21V-16Z" fill="none" stroke="#D9C9A8" stroke-width=".8"/><path d="M-15.8 -15V20.6H15.8V-15" fill="none" stroke="#D9C9A8" stroke-width=".6" stroke-dasharray="1.6 1.4"/><circle cx="0" cy="-16.5" r="3.6" fill="#D9C9A8"/><circle cx="0" cy="-16.5" r="2.3" fill="#131B37"/><path d="M0 -16.5C-1.2 -21.5 1 -25.5 2 -29.5" fill="none" stroke="#E9DCC0" stroke-width="1.6" stroke-linecap="round"/><path d="M128 186Q124 186 120.5 190.0Q117 194 119 204L152 370Q157 397 165.5 414.0Q174 431 195 446L225 468Q278 506 306.5 550.5Q335 595 335 656Q335 685 320.0 701.0Q305 717 282 717Q243 717 214.0 688.5Q185 660 146 590Q139 577 130 578Q119 580 124 597L154 716Q158 729 170 736Q184 744 203.5 747.5Q223 751 246 751Q282 751 314.0 738.5Q346 726 366.5 699.5Q387 673 387 630Q387 559 350.5 504.5Q314 450 250 405L201 370Q191 363 186.0 352.5Q181 342 176 325L143 200Q139 186 128 186ZM95 -9Q74 -9 61.0 4.5Q48 18 48 38Q48 64 66.0 80.0Q84 96 104 96Q124 96 137.5 82.5Q151 69 151 49Q151 23 133.0 7.0Q115 -9 95 -9Z" fill="#9C4A2A" stroke="#9C4A2A" stroke-width="24.4" stroke-linejoin="round" transform="translate(-8.013 18.668) scale(0.03684 -0.03684)"/></g></g></svg>
       <span>Ne Giysem?</span>
     </a>
     <a class="chip" href="privacy.html" hreflang="en" lang="en">English</a>
@@ -105,7 +114,7 @@ footer .chip{color:var(--ink)}
 
   <main id="icerik">
     <div class="hero">
-      <p class="pill">Son güncelleme: <time datetime="2026-10-30">30 Ekim 2026</time></p>
+      <p class="pill">Son güncelleme: <time datetime="2026-10-31">31 Ekim 2026</time></p>
       <h1>Gizlilik Politikası ve <span class="hl">KVKK</span> Aydınlatma Metni</h1>
       <p class="lead">Ne Giysem? hesap istemez. Ayarların, kayıtlı yerlerin, rutinin ve dolabın yalnızca senin cihazında durur. Bu sayfa hangi verinin nereye, neden gittiğini ve nasıl silebileceğini anlatır. Aynı zamanda 6698 sayılı Kişisel Verilerin Korunması Kanunu’nun (KVKK) 10. maddesi uyarınca hazırlanmış aydınlatma metnidir.</p>
     </div>
@@ -147,7 +156,7 @@ footer .chip{color:var(--ink)}
       <p>Ne Giysem? web sitesi (<a href="https://ne-giysem.pages.dev/">https://ne-giysem.pages.dev</a>) ve Android uygulaması (Google Play paket adı <code>com.negiysem.app</code>) Türkiye’de yaşayan bireysel bir geliştirici tarafından yayımlanır. KVKK bakımından veri sorumlusu (AB Genel Veri Koruma Tüzüğü, GDPR bakımından “controller”):</p>
       <dl class="kv box">
         <dt>Veri sorumlusu</dt><dd>saawanco</dd>
-        <dt>E-posta</dt><dd><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a></dd>
+        <dt>E-posta</dt><dd><!--email_off--><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><!--/email_off--></dd>
         <dt>Web</dt><dd><a href="https://ne-giysem.pages.dev/">https://ne-giysem.pages.dev</a></dd>
       </dl>
     </section>
@@ -180,7 +189,8 @@ footer .chip{color:var(--ink)}
         <li><strong>Ortaklık linkleri:</strong> bir linke dokunduğunda mağazaya giden bağlantıdaki ortaklık kodu (<a href="#ortaklik">7. bölüm</a>).</li>
         <li><strong>Yazışmalar:</strong> bize e-posta gönderirsen e-posta adresin ve mesajın.</li>
         <li><strong>Sorun bildirimi:</strong> “Sana göre → Sorun bildir” e-posta uygulamanı açar; e-postayı sen yazıp sen gönderirsin. Uygulama e-postaya şu teknik bilgileri ekler: uygulamanın sürümü, telefonun modeli ve Android sürümü (web sitesinde tarayıcı bilgisi), dil, ekran boyutu, birkaç ayarın (ör. “Çabuk üşürüm”, yolculuk sayısı), son hava alma zamanı, widget’ın son sorunu ve uygulamanın bu cihazda tuttuğu son hata ve çökme kayıtları. <strong>Konumun, yerlerin ve rutinin eklenmez;</strong> kayıtlardaki koordinata benzeyen sayılar silinir. Göndermeden önce hepsini görüp değiştirebilirsin. Hata ve çökme kayıtları yalnızca cihazında durur, en fazla son 15 hata ve 5 çökme; “Tüm verilerimi sil” bunları da siler.</li>
-        <li><strong>Yazı tipleri:</strong> sayfalar açılırken yazı tipleri Google Fonts’tan indirilir; bu sırada IP adresin ve tarayıcı bilgin Google’a ulaşır.</li>
+        <li><strong>Yazı tipleri ve simgeler:</strong> sitenin ve uygulamanın kendi dosyalarıdır. Sayfa açılırken başka bir siteye (ör. Google Fonts’a) istek gitmez.</li>
+        <li><strong>Test programı (Google Play kapalı testi):</strong> uygulamanın Google Play’deki kapalı testine katılmak için test grubuna (Google Grupları) katılırsan Google hesabının e-posta adresini ve hesabında görünen adını görürüz. Grup üyeleri birbirini göremez. Google Play bize test kullanıcısı sayısını ve Play üzerinden bıraktığın özel geri bildirimleri gösterir. Bu bilgileri yalnızca testi yürütmek, Google Play’in test şartını karşılamak ve geri bildirimine cevap vermek için kullanırız; kimseyle paylaşmayız, reklam ya da pazarlama için kullanmayız.</li>
         <li><strong>Google Play:</strong> uygulamayı Google Play’den indirdiğinde Google kendi verilerini kendi gizlilik politikasına göre işler. Play Console bize yükleme sayısı ve çökme raporları gibi, seni tanımamıza yaramayan toplu istatistikler gösterir.</li>
       </ul>
       <p>Uygulamada kendi analiz ya da izleme aracımız yoktur. Sağlık, inanç gibi özel nitelikli kişisel verileri işlemeyiz.</p>
@@ -219,6 +229,13 @@ footer .chip{color:var(--ink)}
         <dl class="kv">
           <dt>Veriler</dt><dd>IP adresi, istek zamanı ve adresi, tarayıcı veya cihaz bilgisi (Cloudflare’in standart kayıtları), teknik hata mesajları</dd>
           <dt>Hukuki sebep</dt><dd>KVKK m.5/2-f (meşru menfaat: kötüye kullanımı önlemek, hataları gidermek); GDPR m.6/1-f</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Test programını yürütmek (yalnızca kapalı teste katılırsan)</h3>
+        <dl class="kv">
+          <dt>Veriler</dt><dd>Test grubuna katıldığın Google hesabının e-posta adresi ve adı, Google Play üzerinden bıraktığın özel geri bildirimler</dd>
+          <dt>Hukuki sebep</dt><dd>KVKK m.5/2-c (katılmak istediğin test programının yürütülmesi için gerekli olması) ve m.5/2-f (meşru menfaat: uygulamayı yayından önce denemek); GDPR m.6/1-b ve m.6/1-f. Gruptan istediğin an ayrılabilirsin.</dd>
         </dl>
       </div>
       <div class="box">
@@ -265,12 +282,16 @@ footer .chip{color:var(--ink)}
       </div>
       <div class="box">
         <h3>Sunucumuza ulaşılamadığında: MET Norway, Photon ve BigDataCloud (Avustralya) doğrudan</h3>
-        <p>Bazı ağlarda sunucumuzun adresi (pages.dev) engelli olabiliyor. O zaman uygulama ve widget yarım saat boyunca aynı istekleri sunucumuz yerine doğrudan bu servislere gönderir: hava için MET Norway’e yaklaşık 1 km’ye yuvarlanmış koordinatlar, yer araması için Photon’a arama metni ve yaklaşık konum, yer adı ve yaklaşık konum için BigDataCloud’a koordinatlar. Bu durumda bu servisler IP adresini de görür. Başka bir veri eklenmez; hava, sunucumuzun kullandığı kodun aynısıyla telefonda hesaplanır.</p>
+        <p>Bazı ağlarda sunucumuzun adresi (pages.dev) engelli olabiliyor. O zaman uygulama ve widget yarım saat boyunca aynı istekleri sunucumuz yerine doğrudan bu servislere gönderir: hava için MET Norway’e yaklaşık 1 km’ye yuvarlanmış koordinatlar, yer araması için Photon’a arama metni ve yaklaşık konum, yer adı ve yaklaşık konum için BigDataCloud’a yaklaşık 100 m’ye yuvarlanmış koordinatlar. Bu durumda bu servisler IP adresini de görür. Başka bir veri eklenmez; hava, sunucumuzun kullandığı kodun aynısıyla telefonda hesaplanır.</p>
       </div>
       <div class="box">
         <h3>Google (Google LLC, ABD; Avrupa’daki kullanıcılar için Google Ireland Limited)</h3>
-        <p>Android uygulamasında AdMob, web sitesinde AdSense reklamları; Google Fonts yazı tipleri; uygulamanın dağıtımı için Google Play. Google, reklam ve Play verilerini kendi <a href="https://policies.google.com/privacy?hl=tr">gizlilik politikasına</a> göre, kendi sorumluluğunda da işler.</p>
+        <p>Android uygulamasında AdMob, web sitesinde AdSense reklamları; uygulamanın dağıtımı için Google Play; kapalı test grubu için Google Grupları. Google, reklam ve Play verilerini kendi <a href="https://policies.google.com/privacy?hl=tr">gizlilik politikasına</a> göre, kendi sorumluluğunda da işler.</p>
         <p><strong>Google Maps (Routes API), yalnızca rota önerilerini açarsan:</strong> yolculuklarının başlangıç ve varış koordinatları ile çıkış saatleri sunucumuz üzerinden Google’a gider (IP adresin iletilmez). Google’ın yanıtındaki rotalar yalnızca sayfa açıkken gösterilir, ne cihazında ne sunucumuzda saklanır. Bu özelliği kullanarak <a href="https://maps.google.com/help/terms_maps.html">Google Haritalar/Google Earth Ek Hizmet Şartları</a>’nı ve <a href="https://policies.google.com/privacy?hl=tr">Google Gizlilik Politikası</a>’nı kabul etmiş olursun.</p>
+      </div>
+      <div class="box">
+        <h3>GitHub, Inc. (ABD)</h3>
+        <p>Yalnızca web sitesindeki “Uygulamayı indir” düğmesine dokunursan: Android uygulamasının dosyası (APK) GitHub’dan indirilir; bu sırada GitHub IP adresini ve tarayıcı bilgini görür ve kendi <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">gizlilik bildirimine</a> göre işler.</p>
       </div>
       <div class="box">
         <h3>Trendyol ve Amazon.com.tr</h3>
@@ -281,7 +302,7 @@ footer .chip{color:var(--ink)}
         <p>Yalnızca kanunen zorunlu olduğunda ve istenen ölçüde.</p>
       </div>
       <h3>Yurt dışına aktarım</h3>
-      <p>Cloudflare, Google (rota önerileri dahil), MET Norway, komoot ve BigDataCloud’un sunucuları Türkiye dışındadır (ABD, Avrupa ve diğer ülkeler); bu yüzden uygulamayı kullandığında yukarıdaki veriler yurt dışına aktarılmış olur. Aktarım, KVKK’nın 9. maddesinde sayılan güvencelere (ör. sağlayıcıların sunduğu standart sözleşmeler) ya da bunların bulunmadığı hâllerde aynı maddede öngörülen istisnalara dayanılarak yapılır. MET Norway ve Photon’a giden yuvarlanmış koordinatlar seni tanımlayacak başka bir bilgiyle birlikte gönderilmez.</p>
+      <p>Cloudflare, Google (rota önerileri ve test grubu dahil), MET Norway, komoot, BigDataCloud ve GitHub’ın sunucuları Türkiye dışındadır (ABD, Avrupa ve diğer ülkeler); bu yüzden uygulamayı kullandığında yukarıdaki veriler yurt dışına aktarılmış olur. Aktarım, KVKK’nın 9. maddesinde sayılan güvencelere (ör. sağlayıcıların sunduğu standart sözleşmeler) ya da bunların bulunmadığı hâllerde aynı maddede öngörülen istisnalara dayanılarak yapılır. MET Norway ve Photon’a giden yuvarlanmış koordinatlar seni tanımlayacak başka bir bilgiyle birlikte gönderilmez.</p>
     </section>
 
     <section class="card" aria-labelledby="reklam">
@@ -324,6 +345,8 @@ footer .chip{color:var(--ink)}
         <li><strong>Cihazındaki veriler:</strong> sen silene kadar (“Tüm verilerimi sil”, uygulamayı kaldırmak ya da site verilerini temizlemek).</li>
         <li><strong>Sunucuya giden koordinatlar ve arama metni:</strong> isteğe cevap verildikten sonra saklanmaz; yalnızca kimseyle ilişkilendirilmeyen ortak önbellek kayıtları <a href="#konum">3. bölümde</a> yazan süreler kadar kalır.</li>
         <li><strong>Cloudflare’in istek kayıtları:</strong> Cloudflare’in kendi saklama süreleri boyunca; ayrıca kendi kayıt sistemimiz yoktur.</li>
+        <li><strong>Rota önerilerindeki istek sayacı:</strong> kötüye kullanımı sınırlamak için ziyaretçi başına saatlik bir sayaç tutulur. Sayacın adı IP adresinden gizli bir anahtarla üretilen, geri çevrilemeyen ve her saat değişen bir koddur; IP adresinin kendisi saklanmaz. Sayaç en fazla 1 saat kalır.</li>
+        <li><strong>Test programı:</strong> test grubundaki üyelik sen ayrılana ya da test bitip uygulama herkese açıldıktan sonra en geç 30 gün içinde grup silinene kadar; geri bildirimler Google Play’in kendi saklama süreleri boyunca.</li>
         <li><strong>Reklam verileri:</strong> Google’ın politikalarında belirtilen süreler boyunca.</li>
         <li><strong>E-postalar:</strong> yazışma bittikten sonra en geç 12 ay; yasal bir yükümlülük varsa o süre kadar.</li>
       </ul>
@@ -337,7 +360,7 @@ footer .chip{color:var(--ink)}
         <li><strong>Android’de:</strong> uygulamayı kaldırmak ya da Ayarlar → Uygulamalar → Ne Giysem? → Depolama → Verileri temizle de her şeyi siler.</li>
         <li><strong>Web’de:</strong> tarayıcının ayarlarından bu sitenin verilerini (çerezler ve site verileri) sil.</li>
         <li><strong>Reklam kimliği:</strong> Android ayarlarından sıfırla ya da sil (<a href="#reklam">6. bölüm</a>).</li>
-        <li><strong>Sunucuda:</strong> seninle ilişkilendirilebilen bir kayıt ya da hesap tutmadığımız için silinecek bir şey yoktur. Yine de bir talebin varsa <a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a> adresine yaz.</li>
+        <li><strong>Sunucuda:</strong> seninle ilişkilendirilebilen bir kayıt ya da hesap tutmadığımız için silinecek bir şey yoktur. Yine de bir talebin varsa <!--email_off--><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><!--/email_off--> adresine yaz.</li>
       </ul>
     </section>
 
@@ -356,7 +379,7 @@ footer .chip{color:var(--ink)}
         <li>kanuna aykırı işlenmesi sebebiyle zarara uğraman hâlinde zararın giderilmesini talep etmek.</li>
       </ol>
       <p>Avrupa Ekonomik Alanı’ndaysan GDPR kapsamında ayrıca erişim, düzeltme, silme, işlemeyi kısıtlama, veri taşınabilirliği ve itiraz haklarına sahipsin; rızaya dayanan işlemelerde rızanı istediğin zaman geri alabilirsin (öncesindeki işlemler bundan etkilenmez).</p>
-      <p><strong>Nasıl başvurulur?</strong> Başvurunu <a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a> adresine e-postayla ya da Veri Sorumlusuna Başvuru Usul ve Esasları Hakkında Tebliğ’de sayılan diğer yollarla iletebilirsin. Başvurunu en geç 30 gün içinde ve kural olarak ücretsiz sonuçlandırırız. Verilerinin çoğu yalnızca cihazında durduğu için bunları biz göremeyiz; onları <a href="#silme">10. bölümdeki</a> yollarla kendin silebilirsin.</p>
+      <p><strong>Nasıl başvurulur?</strong> Başvurunu <!--email_off--><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><!--/email_off--> adresine e-postayla ya da Veri Sorumlusuna Başvuru Usul ve Esasları Hakkında Tebliğ’de sayılan diğer yollarla iletebilirsin. Başvurunu en geç 30 gün içinde ve kural olarak ücretsiz sonuçlandırırız. Verilerinin çoğu yalnızca cihazında durduğu için bunları biz göremeyiz; onları <a href="#silme">10. bölümdeki</a> yollarla kendin silebilirsin.</p>
       <p>Cevabımızdan memnun kalmazsan <a href="https://www.kvkk.gov.tr/">Kişisel Verileri Koruma Kurulu</a>’na şikâyette bulunabilirsin. AB’de yaşıyorsan bulunduğun ülkenin veri koruma otoritesine de başvurabilirsin.</p>
     </section>
 
@@ -368,6 +391,13 @@ footer .chip{color:var(--ink)}
     <section class="card" aria-labelledby="guvenlik">
       <h2 id="guvenlik"><span class="n" aria-hidden="true">13</span>Güvenlik</h2>
       <p>Uygulama ile sunucu arasındaki bütün bağlantılar HTTPS ile şifrelenir. Hesap ve parola yoktur; mümkün olan en az veriyi işleriz. Cihazındaki veriler, cihazının kendi korumasına (ör. ekran kilidi) tabidir; cihazını paylaşıyorsan bunu göz önünde bulundur.</p>
+      <ul>
+        <li><strong>Yalnızca kendi kodu:</strong> web sitesi ve uygulamanın ekranı (sayfası), içerik güvenliği politikasıyla (Content-Security-Policy) yalnızca kendi kodunu çalıştırır ve yalnızca bu metinde sayılan servislere bağlanabilir; başka bir siteye veri gönderemez, araya sokulmuş bir kod çalışamaz. (Android uygulamasındaki AdMob reklamları ve Google Play hizmetleri sayfanın dışındadır; <a href="#reklam">6. bölümde</a> anlatılır.)</li>
+        <li><strong>Başka sitelerde gösterilmez:</strong> sayfalarımız başka bir sitenin içinde çerçeve olarak açılamaz; tarayıcın başka sitelere hangi sayfamızdan geldiğini söylemez.</li>
+        <li><strong>Android uygulaması:</strong> uygulamanın ekranı yalnızca uygulamanın içindeki kendi dosyalarını açar; bağlantılar tarayıcında açılır. Konum izni yalnızca uygulamanın kendi sayfasına verilir. Uygulamanın verileri Google yedeklemesine gitmez.</li>
+        <li><strong>Sunucu anahtarları:</strong> rota önerileri için kullanılan Google anahtarı yalnızca sunucuda durur, uygulamaya ya da sayfaya hiç gelmez.</li>
+        <li><strong>Güvenlik açığı bildirimi:</strong> bir açık bulduysan lütfen herkese açık yazmadan önce <!--email_off--><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><!--/email_off--> adresine bildir.</li>
+      </ul>
     </section>
 
     <section class="card" aria-labelledby="degisiklik">
@@ -377,7 +407,7 @@ footer .chip{color:var(--ink)}
 
     <section class="card" aria-labelledby="iletisim">
       <h2 id="iletisim"><span class="n" aria-hidden="true">15</span>İletişim</h2>
-      <p class="contact">saawanco<br><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><br><a href="https://ne-giysem.pages.dev/">https://ne-giysem.pages.dev</a></p>
+      <p class="contact">saawanco<br><!--email_off--><a href="mailto:saawanco@gmail.com">saawanco@gmail.com</a><!--/email_off--><br><a href="https://ne-giysem.pages.dev/">https://ne-giysem.pages.dev</a></p>
     </section>
   </main>
 

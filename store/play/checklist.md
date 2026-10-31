@@ -21,7 +21,7 @@ Uygulama: **Ne Giysem?** · paket adı `com.negiysem.app` · ücretsiz · reklam
 - [ ] **Android’de bağış ve AdSense yok.** Web sayfası `window.NeGiysemAndroid` varken bağış bağlantısını ve AdSense kodunu göstermemeli; uygulamada yalnızca AdMob. Geliştiriciye bağış için Play dışı ödeme yoluna yönlendirmek ödeme politikasıyla çakışabilir. → <https://support.google.com/googleplay/android-developer/answer/9858738>
 - [ ] **Kaynak yazısı.** Sayfanın altındaki “Hava verisi Open-Meteo.com, konum adı BigDataCloud” metnini yeni kaynaklara göre değiştir: “Hava verisi © MET Norway (CC BY 4.0), harita verisi © OpenStreetMap katkıcıları”.
 - [ ] **Reklam yerleşimi** `ads-declaration.md` §3’teki listeye uygun (düğmelere yapışık banner yok, widget’ta reklam yok, “Reklam” etiketi var).
-- [ ] **İsteğe bağlı:** (24 Ekim 2026: `ACCESS_FINE_LOCATION` manifestte hâlâ var.) Yaklaşık konum yetiyorsa `ACCESS_FINE_LOCATION`’ı manifestten ve izin isteğinden kaldır (Veri güvenliği formu sadeleşir, bkz. `data-safety.md`). Yazı tiplerini Google Fonts yerine APK’nın içine koy (çevrimdışı da çalışır, Google’a IP gitmez).
+- [ ] **İsteğe bağlı:** (24 Ekim 2026: `ACCESS_FINE_LOCATION` manifestte hâlâ var.) Yaklaşık konum yetiyorsa `ACCESS_FINE_LOCATION`’ı manifestten ve izin isteğinden kaldır (Veri güvenliği formu sadeleşir, bkz. `data-safety.md`). (Yazı tipleri 31 Ekim 2026’dan beri APK’nın ve sitenin içinde; Google Fonts kullanılmıyor.)
 - [x] Birleştirilmiş manifestte `com.google.android.gms.permission.AD_ID` izni var (AdMob ekler); AdMob `APPLICATION_ID` ve FileProvider da var. Bulut derlemesinin denetim raporu her seferinde kontrol ediyor ve beklenmeyen bir izin görürse derlemeyi durduruyor.
 
 ## 1. Geliştirici hesabı

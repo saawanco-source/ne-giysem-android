@@ -5,7 +5,7 @@
 //   app/src/main/res/mipmap-*dpi/ic_launcher_monochrome.png      the tag as a silhouette, for themed icons
 //   web/icons/favicon.svg, icon-192.png, icon-512.png, maskable-512.png, apple-touch-icon.png
 //   store/play/graphics/icon-512.png                              Google Play's app icon (full square: Play rounds it)
-//   web/index.html  the header logo (between <div class="logo"> and its <span>)
+//   web/index.html, gizlilik.html, privacy.html  the header logo (the <svg> in class="logo")
 // Run from the repository root after changing the mark (needs the tests' Playwright and Python's Pillow):
 //   node tools/icons.js
 const fs = require("fs"), path = require("path");
@@ -124,10 +124,12 @@ function backgroundXml() {
   if (r.status !== 0) throw new Error("icon-512 RGBA: " + r.stderr);
   await browser.close();
 
-  // The header logo (also drawn on the share picture), with its own ids.
-  const file = path.join(ROOT, "web/index.html"), html = fs.readFileSync(file, "utf8");
-  const re = /(<div class="logo">\s*)<svg[\s\S]*?<\/svg>/;
-  if (!re.test(html)) throw new Error('the header logo (<div class="logo"><svg …>) is not in web/index.html');
-  fs.writeFileSync(file, html.replace(re, (m, a) => a + badge("ngl", 'aria-hidden="true"').replace(/\n/g, "")));
+  // The header logo on the app (also drawn on the share picture) and on the privacy pages, with its own ids.
+  for (const page of ["index.html", "gizlilik.html", "privacy.html"]) {
+    const file = path.join(ROOT, "web", page), html = fs.readFileSync(file, "utf8");
+    const re = /(class="logo"[^>]*>\s*)<svg[\s\S]*?<\/svg>/;
+    if (!re.test(html)) throw new Error(`the header logo (class="logo" … <svg …>) is not in web/${page}`);
+    fs.writeFileSync(file, html.replace(re, (m, a) => a + badge("ngl", 'aria-hidden="true"').replace(/\n/g, "")));
+  }
   console.log("app icon, themed icon, web icons and header logo written");
 })().catch((e) => { console.error(e); process.exit(1); });

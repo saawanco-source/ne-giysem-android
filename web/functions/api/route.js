@@ -70,17 +70,32 @@ function km(a, b) {
   return 12742 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
+/**
+ * The counter's name for a visitor in one hour: an HMAC of the address (an IPv6 /64) and the hour, keyed with the
+ * server's secret, so the edge cache never holds an IP address, and the name can't be turned back into one (an
+ * unkeyed hash of an IPv4 address could be, by trying them all) nor linked from one hour to the next.
+ */
+export async function visitorTag(ip, hour, secret) {
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey("raw", enc.encode("ng-rate:" + secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(visitor(ip) + "|" + hour)));
+  return Array.from(sig.slice(0, 16), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 /** At most RATE_PER_HOUR answers per visitor and hour, counted in the edge cache (per data centre; best effort). */
-async function underLimit(request) {
+async function underLimit(request, secret) {
   const cache = globalThis.caches && globalThis.caches.default;
   if (!cache) return true;
-  const ip = visitor(request.headers.get("cf-connecting-ip"));
-  const key = `${new URL(request.url).origin}/__ng-rate/route/${encodeURIComponent(ip)}/${Math.floor(Date.now() / 3600e3)}`;
+  const hour = Math.floor(Date.now() / 3600e3);
+  const tag = await visitorTag(request.headers.get("cf-connecting-ip"), hour, secret);
+  const key = `${new URL(request.url).origin}/__ng-rate/route/${tag}/${hour}`;
   try {
     const hit = await cache.match(key);
     const n = hit ? Number(await hit.text()) || 0 : 0;
     if (n >= RATE_PER_HOUR) return false;
-    await cache.put(key, new Response(String(n + 1), { headers: { "cache-control": "public, max-age=3600" } }));
+    // Gone at the end of this hour at the latest (the next hour has another name anyway).
+    const left = Math.max(1, 3600 - Math.floor(Date.now() / 1000) % 3600);
+    await cache.put(key, new Response(String(n + 1), { headers: { "cache-control": `public, max-age=${left}` } }));
   } catch (e) { /* a broken counter must not stop the feature */ }
   return true;
 }
@@ -168,7 +183,9 @@ export const onRequest = route(async (context, url) => {
   const now = Date.now();
   if (!Number.isFinite(depart) || depart > now + 8 * 864e5) throw badRequest("invalid depart");
   const lang = url.searchParams.get("lang") === "en" ? "en" : "tr";
-  if (!(await underLimit(context.request))) throw new HttpError(429, "rate_limited");
+  // RATE_SECRET (optional, any long random text) names the rate counters; without it the Google key does.
+  const rateSecret = context.env && typeof context.env.RATE_SECRET === "string" && context.env.RATE_SECRET.trim() ? context.env.RATE_SECRET.trim() : key;
+  if (!(await underLimit(context.request, rateSecret))) throw new HttpError(429, "rate_limited");
 
   const ll = (p) => ({ location: { latLng: { latitude: Math.round(p.lat * 1e5) / 1e5, longitude: Math.round(p.lon * 1e5) / 1e5 } } });
   const body = {

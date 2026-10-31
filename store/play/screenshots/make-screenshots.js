@@ -257,7 +257,7 @@ const RANGE = {
   "latin-ext": "U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF",
   "latin": "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD",
 };
-// Same families as the Google Fonts link in web/index.html, served from store/play/fonts (SIL OFL 1.1).
+// The page loads its own fonts (web/fonts); these serve any request that still goes to Google Fonts (SIL OFL 1.1).
 const FONT_FILES = [
   { fam: "Instrument Serif", style: "normal", weight: "400", file: "InstrumentSerif-Regular.ttf" },
   { fam: "Instrument Serif", style: "italic", weight: "400", file: "InstrumentSerif-Italic.ttf" },

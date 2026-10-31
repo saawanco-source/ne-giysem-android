@@ -1,0 +1,17 @@
+# Security headers for every page and file of the site (Cloudflare Pages reads this file; it doesn't apply to the
+# /api/* functions, which set their own). Each page's own Content-Security-Policy (what it may load and contact) is a
+# <meta> tag in the page itself, so the Android app's bundled copy has it too; this adds what only a header can do.
+#   - HTTPS only, for a year (pages.dev is HTTPS-only anyway; this also covers a custom domain later)
+#   - no other site may show these pages in a frame (clickjacking)
+#   - files are used only as the type the server says
+#   - other sites never learn which page someone came from
+#   - no camera, microphone, payment, USB or ad-topics access; location only for the site itself
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: same-origin
+  Permissions-Policy: camera=(), microphone=(), payment=(), usb=(), browsing-topics=(), geolocation=(self)
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin

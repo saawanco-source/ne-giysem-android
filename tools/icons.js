@@ -4,8 +4,9 @@
 //   app/src/main/res/mipmap-*dpi/ic_launcher_foreground.png      the tag (also the watch app's icon: wear/build.gradle.kts)
 //   app/src/main/res/mipmap-*dpi/ic_launcher_monochrome.png      the tag as a silhouette, for themed icons
 //   web/icons/favicon.svg, icon-192.png, icon-512.png, maskable-512.png, apple-touch-icon.png
+//   store/play/graphics/icon-512.png                              Google Play's app icon (full square: Play rounds it)
 //   web/index.html  the header logo (between <div class="logo"> and its <span>)
-// Run from the repository root after changing the mark (needs the tests' Playwright):
+// Run from the repository root after changing the mark (needs the tests' Playwright and Python's Pillow):
 //   node tools/icons.js
 const fs = require("fs"), path = require("path");
 const ROOT = path.resolve(__dirname, "..");
@@ -116,6 +117,11 @@ function backgroundXml() {
   await png(badge("i"), 512, path.join(icons, "icon-512.png"));
   await png(full("i", 1.2), 512, path.join(icons, "maskable-512.png"), true);   // the whole square: the system masks it
   await png(full("i", 1.3), 180, path.join(icons, "apple-touch-icon.png"), true);
+  const play = path.join(ROOT, "store/play/graphics/icon-512.png");
+  await png(full("i", 1.3), 512, play, true);
+  // Play asks for a 32-bit PNG: the same picture with an (opaque) alpha channel, via Python's Pillow.
+  const r = require("child_process").spawnSync("python3", ["-c", "import sys; from PIL import Image; Image.open(sys.argv[1]).convert('RGBA').save(sys.argv[1])", play]);
+  if (r.status !== 0) throw new Error("icon-512 RGBA: " + r.stderr);
   await browser.close();
 
   // The header logo (also drawn on the share picture), with its own ids.

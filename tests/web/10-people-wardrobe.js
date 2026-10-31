@@ -63,10 +63,11 @@ H.run({
     await s.page.exposeFunction("__bridge", (j) => calls.push(JSON.parse(j)));
     await s.context.addInitScript(() => { window.NeGiysemAndroid = { saveState: (j) => window.__bridge(j), setTheme() {}, reset() {}, hasLocation: () => false }; });
     await s.goto(); await sleep(400);
-    const me = await s.page.$eval("#pills", (e) => e.textContent);
+    const hero = (s) => s.page.evaluate(() => document.getElementById("pills").textContent + " · " + document.getElementById("tagLevel").textContent);
+    const me = await hero(s);
     await s.page.click("[data-person-add]"); await sleep(150);
     await s.page.fill("#pfName", "Deniz"); await s.page.click("[data-pf-save]"); await sleep(300);
-    const kid = await s.page.$eval("#pills", (e) => e.textContent);
+    const kid = await hero(s);
     check("child profile: hero says whose outfit", /Deniz için/.test(kid), kid);
     check("child is dressed warmer than the adult (one band colder)", me !== kid && /Soğuk/.test(kid), { me, kid });
     const last = calls[calls.length - 1] || {};

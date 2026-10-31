@@ -77,13 +77,13 @@ H.run({
     for (const theme of ["light", "dark"]) {
       const s = await t.open({ ctx: theme === "dark" ? EN_DARK : EN, seed: seed(fc(9)) });
       await s.goto(); await sleep(400);
-      const m = await s.page.evaluate(() => ({ head: document.getElementById("headline").textContent, pills: [...document.querySelectorAll("#pills .pill")].map((e) => e.textContent),
+      const m = await s.page.evaluate(() => ({ head: document.getElementById("headline").textContent, pills: [...document.querySelectorAll("#pills .pill")].map((e) => e.textContent), level: document.getElementById("tagLevel").textContent,
         labels: [...document.querySelectorAll("#wear .lab")].map((e) => e.textContent), take: document.getElementById("take").innerText, feels: document.getElementById("nowFeels").textContent,
         cond: document.getElementById("nowCond").textContent, facts: document.getElementById("facts").innerText, place: document.getElementById("placeBtn").getAttribute("aria-label") }));
       if (theme === "light") {
         note("main:", JSON.stringify(m));
         check("main: English headline with its highlight", /[A-Za-z]/.test(m.head) && !!(await s.page.$("#headline .hl")) && !TR_CHARS.test(m.head), m.head);
-        check("main: level pill, sticker labels, 'Take along' in English", m.pills.some((p) => ["Freezing", "Very cold", "Cold", "Chilly", "Cool", "Mild", "Warm", "Hot"].includes(p)) && m.labels.includes("Sweater") && /^Take along/.test(m.take), m);
+        check("main: level on the tag, sticker labels, 'Take along' in English", ["Freezing", "Very cold", "Cold", "Chilly", "Cool", "Mild", "Warm", "Hot"].includes(m.level) && m.labels.includes("Sweater") && /^Take along/.test(m.take), m);
         check("main: feels-like, condition, units (km/h, %)", /^Feels like \d+°/.test(m.feels) && m.cond === "Partly cloudy" && /NE wind · 10 km\/h/.test(m.facts) && /Rain 5%/.test(m.facts) && /Humidity 65%/.test(m.facts) && /Updated \d\d:\d\d/.test(m.facts), m);
         check("main: place button aria-label in English", m.place === "Place: Beşiktaş. Change", m.place);
         // the info card: tap a sticker
@@ -119,10 +119,11 @@ H.run({
     const s = await t.open({ seed: seed(fc(9)) }); // Turkish phone
     await androidBridge(s, calls);
     await s.goto(); await sleep(400);
-    const grab = () => s.page.evaluate(() => ({ lang: document.documentElement.lang, head: document.getElementById("headline").innerHTML,
-      pills: document.getElementById("pills").innerHTML, wear: document.getElementById("wear").innerHTML, me: document.querySelector(".me").innerHTML,
-      manual: document.getElementById("manualCard").innerHTML, week: document.getElementById("week").innerHTML, foot: document.getElementById("foot").innerHTML,
-      q: document.getElementById("q").getAttribute("placeholder"), refresh: document.getElementById("refresh").getAttribute("aria-label"), desc: document.querySelector('meta[name="description"]').content }));
+    // (each drawing numbers its own gradients: the numbers aren't part of the comparison)
+    const grab = () => s.page.evaluate(() => { const ids = (h) => h.replace(/ng\d+-/g, "ng-"); return { lang: document.documentElement.lang, head: document.getElementById("headline").innerHTML,
+      pills: document.getElementById("pills").innerHTML, wear: ids(document.getElementById("wear").innerHTML), me: ids(document.querySelector(".me").innerHTML),
+      manual: document.getElementById("manualCard").innerHTML, week: ids(document.getElementById("week").innerHTML), foot: document.getElementById("foot").innerHTML,
+      q: document.getElementById("q").getAttribute("placeholder"), refresh: document.getElementById("refresh").getAttribute("aria-label"), desc: document.querySelector('meta[name="description"]').content }; });
     const tr0 = await grab();
     check("Turkish phone: Turkish page", tr0.lang === "tr" && /Sana göre/.test(tr0.me), tr0.lang);
     check("Android payload carries lang 'tr'", calls.length === 0 || calls[calls.length - 1].lang === "tr", calls.slice(-1));

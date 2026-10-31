@@ -20,43 +20,56 @@
 <!-- shared:start -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: the whole screen takes the colour of today's temperature band; a one-line verdict and big illustrated garment stickers answer "what do I wear" at a glance. Phone: verdict, stickers, day strip, personal settings. Desktop: verdict and details left, sticker board right. */
+/* Layout: the screen is today's sky (a light for each temperature band, deep blue at night) with film grain; a one-line
+   verdict in a serif, the temperature on a hanging tag, and the outfit on a clothes rail answer "what do I wear" at a
+   glance. Phone: verdict, rail, day strip, personal settings. Desktop: verdict and details left, the rail right. */
 :root{
-  --lv:#E6E86E;
-  --field:var(--lv);
-  --ink:#14161f; --ink2:rgba(20,22,31,.78); --card:rgba(255,255,255,.55); --line:rgba(20,22,31,.13);
-  --input:#ffffff; --input-line:rgba(20,22,31,.52);
-  --chip:rgba(255,255,255,.78); --halo:#ffffff; --shadow:rgba(20,22,31,.28);
-  --hl-bg:#ffffff; --hl-ink:#14161f; --pill-bg:#14161f; --pill-ink:#ffffff; --focus:#14161f;
-  --tip-bg:#ffffff; --tip-ink:#14161f; --tip-sub:rgba(20,22,31,.66);
-  --font-display:"Bricolage Grotesque","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
+  --lv:#E6E86E;                                             /* the band's colour: accents, week dots */
+  --d1:#E4C470; --d2:#F1E2B6; --d3:#E6E8CD;                  /* the band's daytime sky, set by the page */
+  --sky1:var(--d1); --sky2:var(--d2); --sky3:var(--d3); --glow:rgba(255,250,230,.92); --haze:rgba(255,255,255,.3);
+  --field:var(--sky2);
+  --ink:#1d1b14; --ink2:rgba(29,27,20,.74); --card:rgba(255,252,244,.5); --card-line:rgba(255,255,255,.72); --line:rgba(29,27,20,.13);
+  --input:#fffdf8; --input-line:rgba(29,27,20,.5);
+  --chip:rgba(255,252,244,.62); --halo:#ffffff; --shadow:rgba(60,45,15,.3);
+  --stitch:#9C4A2A; --pill-bg:#1d1b14; --pill-ink:#f7f1e3; --focus:#1d1b14;
+  --tip-bg:#fffcf4; --tip-ink:#1d1b14; --tip-sub:rgba(29,27,20,.66);
+  --paper1:#FFFDF6; --paper2:#EADFC4; --label1:#FBF6E9; --label2:#EBE0C6; --label-ink:#1d1b14;
+  --font-display:"Instrument Serif",Georgia,"Times New Roman",serif;
   --font-body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --field:color-mix(in oklab,var(--lv) 22%,#0b0d16);
-    --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
-    --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55); --row-in-card:rgba(0,0,0,.22);
-    --input:rgba(0,0,0,.32); --input-line:rgba(246,244,238,.58);
-    --hl-bg:var(--lv); --hl-ink:#14161f; --pill-bg:var(--lv); --pill-ink:#14161f; --focus:var(--lv);
-    --tip-bg:#1d2030; --tip-ink:#f6f4ee; --tip-sub:rgba(246,244,238,.7);
+    --sky1:#0A0F21; --sky2:#131B37; --sky3:#26305A; --glow:rgba(200,210,255,.2); --glow:color-mix(in oklab,var(--lv) 30%,transparent); --haze:rgba(150,170,255,.05); --grain-op:.2;
+    --field:#141C38;
+    --ink:#F3EFE6; --ink2:rgba(243,239,230,.78); --card:rgba(18,22,44,.55); --card-line:rgba(255,255,255,.12); --line:rgba(255,255,255,.14);
+    --chip:rgba(255,255,255,.1); --halo:#F3EFE6; --shadow:rgba(0,0,0,.6); --row-in-card:rgba(0,0,0,.22);
+    --input:rgba(0,0,0,.3); --input-line:rgba(243,239,230,.55);
+    --stitch:#F3B98A; --pill-bg:#F3EFE6; --pill-ink:#141A30; --focus:var(--lv);
+    --tip-bg:#1B2038; --tip-ink:#F3EFE6; --tip-sub:rgba(243,239,230,.7);
+    --paper1:#F1ECE0; --paper2:#C9C0AC; --label1:#ECE6D8; --label2:#CBC2AE;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"],:root[data-night="1"]{
-  --field:color-mix(in oklab,var(--lv) 22%,#0b0d16);
-  --ink:#f6f4ee; --ink2:rgba(246,244,238,.8); --card:rgba(255,255,255,.07); --line:rgba(255,255,255,.14);
-  --chip:rgba(255,255,255,.13); --halo:#f6f4ee; --shadow:rgba(0,0,0,.55); --row-in-card:rgba(0,0,0,.22);
-  --input:rgba(0,0,0,.32); --input-line:rgba(246,244,238,.58);
-  --hl-bg:var(--lv); --hl-ink:#14161f; --pill-bg:var(--lv); --pill-ink:#14161f; --focus:var(--lv);
-    --tip-bg:#1d2030; --tip-ink:#f6f4ee; --tip-sub:rgba(246,244,238,.7);
+  --sky1:#0A0F21; --sky2:#131B37; --sky3:#26305A; --glow:rgba(200,210,255,.2); --glow:color-mix(in oklab,var(--lv) 30%,transparent); --haze:rgba(150,170,255,.05); --grain-op:.2;
+  --field:#141C38;
+  --ink:#F3EFE6; --ink2:rgba(243,239,230,.78); --card:rgba(18,22,44,.55); --card-line:rgba(255,255,255,.12); --line:rgba(255,255,255,.14);
+  --chip:rgba(255,255,255,.1); --halo:#F3EFE6; --shadow:rgba(0,0,0,.6); --row-in-card:rgba(0,0,0,.22);
+  --input:rgba(0,0,0,.3); --input-line:rgba(243,239,230,.55);
+  --stitch:#F3B98A; --pill-bg:#F3EFE6; --pill-ink:#141A30; --focus:var(--lv);
+  --tip-bg:#1B2038; --tip-ink:#F3EFE6; --tip-sub:rgba(243,239,230,.7);
+  --paper1:#F1ECE0; --paper2:#C9C0AC; --label1:#ECE6D8; --label2:#CBC2AE;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html{background:var(--field);transition:background-color .7s ease}
-body{margin:0;background:var(--field);color:var(--ink);font:500 15px/1.45 var(--font-body);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;transition:background-color .7s ease,color .7s ease}
+html{background:var(--sky2)}
+body{margin:0;background:transparent;color:var(--ink);font:500 15px/1.45 var(--font-body);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;transition:color .7s ease}
+/* the sky: the sun's glow in a corner, a soft haze, the band's light from top to bottom, and film grain over it all */
+.sky{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle at 88% -4%,var(--glow) 0,transparent 46%),radial-gradient(ellipse 80% 30% at 6% 34%,var(--haze),transparent 70%),linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 44%,var(--sky3) 100%)}
+.sky::after{content:"";position:absolute;inset:0;background-image:var(--grain,none);background-size:180px;opacity:var(--grain-op,.42);mix-blend-mode:soft-light}
 [hidden]{display:none!important}
 button{font:inherit;color:inherit}
 /* Touch: no square blue tap flash from the phone; pressed controls shrink a little instead, keeping their round shape. */
@@ -85,21 +98,21 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 
 /* top bar */
 .bar{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:10px}
-.logo{display:flex;align-items:center;gap:8px;font:800 1.15rem/1 var(--font-display);letter-spacing:-.02em;white-space:nowrap}
+.logo{display:flex;align-items:center;gap:8px;font:400 1.45rem/1 var(--font-display);letter-spacing:-.005em;white-space:nowrap}
 .logo svg{width:28px;height:28px;flex:none}
 .bar-r{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;flex:1 1 auto}
 @media (max-width:400px){.logo span{display:none}}
 /* With the install button too, the name keeps the row on a phone: the header never changes height with the place's name. */
 @media (max-width:460px){.bar:has(#installBtn:not([hidden])) .logo span{display:none}}
-.place-btn{display:inline-flex;align-items:center;gap:6px;min-width:min(8.5em,100%);max-width:100%;border:0;background:var(--chip);border-radius:999px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer}
+.place-btn{display:inline-flex;align-items:center;gap:6px;min-width:min(8.5em,100%);max-width:100%;border:0;background:var(--chip);border-radius:999px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:inset 0 0 0 1px var(--card-line),0 8px 18px -12px var(--shadow)}
 .place-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .place-btn svg{width:16px;height:16px;flex:none}
-.icon-btn{width:44px;height:44px;flex:none;border:0;border-radius:50%;background:var(--chip);display:grid;place-items:center;cursor:pointer}
+.icon-btn{width:44px;height:44px;flex:none;border:0;border-radius:50%;background:var(--chip);display:grid;place-items:center;cursor:pointer;box-shadow:inset 0 0 0 1px var(--card-line),0 8px 18px -12px var(--shadow)}
 .icon-btn svg{width:19px;height:19px}
 .icon-btn.busy svg{animation:spin .9s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.panel{margin-top:12px;background:var(--card);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.panel{margin-top:12px;background:var(--card);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 0 0 1px var(--card-line),0 18px 34px -24px var(--shadow)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{border:0;background:var(--chip);border-radius:999px;padding:10px 14px;min-height:40px;font-weight:600;font-size:14px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--pill-bg);color:var(--pill-ink)}
@@ -156,12 +169,12 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .trip{display:flex;flex-direction:column;gap:9px;padding:14px 0 4px;border-top:1px solid var(--line)}
 .trip:first-child{border-top:0;padding-top:6px}
 .trip-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-weight:800;font-size:15px}
-.trip-h time{font:800 1.35rem/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.trip-h time{font:400 1.75rem/1 var(--font-display);font-variant-numeric:tabular-nums}
 .trip-h .when{font-weight:600;color:var(--ink2);font-size:13px}
 .routes{display:flex;gap:6px;flex-wrap:wrap}
 .rchip{border:0;background:var(--chip);border-radius:999px;padding:7px 12px;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
 .rchip[aria-pressed="true"]{background:var(--pill-bg);color:var(--pill-ink)}
-.rchip .rec{font-size:11px;font-weight:800;background:var(--hl-bg);color:var(--hl-ink);border-radius:999px;padding:1px 7px}
+.rchip .rec{font-size:11px;font-weight:800;background:var(--label1);color:var(--label-ink);border-radius:999px;padding:1px 7px}
 .rchip[aria-pressed="true"] .rec{background:var(--pill-ink);color:var(--pill-bg)}
 .steps{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 .step{display:inline-flex;align-items:center;gap:5px;background:var(--chip);border-radius:12px;padding:5px 9px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -188,7 +201,7 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .empty{font-size:14px;color:var(--ink2);margin:4px 0 0}
 
 /* routine editor */
-.edit h3{margin:18px 0 8px;font:800 1rem/1.1 var(--font-display)}
+.edit h3{margin:18px 0 8px;font:400 1.4rem/1.1 var(--font-display)}
 .edit .lead{margin:0;font-size:13.5px;color:var(--ink2);max-width:62ch}
 .ed-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--chip);border-radius:16px;padding:10px;margin-top:8px}
 .ed-row select,.ed-row input{border:1.5px solid var(--input-line);background:var(--input);color:var(--ink);border-radius:10px;padding:8px 10px;min-height:40px;font:inherit;font-size:14px;min-width:0}
@@ -213,42 +226,62 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .ed-foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 .warn{font-size:13.5px;font-weight:700;margin:8px 0 0}
 
-/* hero */
-.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.pill{background:var(--pill-bg);color:var(--pill-ink);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;line-height:1.2}
-.pill.soft{background:var(--chip);color:var(--ink)}
-.head{margin:0;font:800 clamp(2.15rem,7.4vw,3.7rem)/1.02 var(--font-display);letter-spacing:-.035em;text-wrap:balance;max-width:16ch}
-.hl{display:inline-block;background:var(--hl-bg);color:var(--hl-ink);padding:.02em .2em .06em;border-radius:.22em;transform:rotate(-2deg);margin:0 .04em}
+/* hero: the verdict in a serif beside a paper tag hanging from a pin, with the temperature on it */
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.pill{background:var(--pill-bg);color:var(--pill-ink);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;line-height:1.2;box-shadow:0 6px 14px -9px var(--shadow)}
+.pill.soft{background:var(--chip);color:var(--ink);box-shadow:inset 0 0 0 1px var(--card-line)}
+.head{margin:0;font:400 clamp(2.55rem,10.6vw,4.2rem)/1.01 var(--font-display);letter-spacing:-.012em;text-wrap:pretty}
+/* the word that matters: italic, underlined with a stitched thread */
+.hl{font-style:italic;text-decoration-line:underline;text-decoration-style:dashed;text-decoration-color:var(--stitch);text-decoration-thickness:2px;text-underline-offset:.14em;text-decoration-skip-ink:none}
 .nw{white-space:nowrap}
-.hero .now{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:18px}
-.hero .now > div{min-width:0;flex:1 1 12em}
-.big{font:800 4.4rem/.9 var(--font-display);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
-.hero .now .ic{width:46px;height:46px}
-.hero .now .t1{font-weight:700;font-size:16px}
-.hero .now .t2{color:var(--ink2);font-size:14px}
+.meta{margin:12px 0 0;font-size:15px;line-height:1.45;color:var(--ink2)}
+.meta .t1{color:var(--ink);font-weight:700}
+.meta .t1:not(:empty)+.t2::before{content:" · "}
 .head:focus{outline:none}
+.tag{float:right;position:relative;width:106px;height:138px;margin:34px 2px 10px 14px;transform:rotate(5deg);transform-origin:53px -22px;color:#1d1b14;--field:#F3EAD5;
+  filter:drop-shadow(0 12px 14px var(--shadow)) drop-shadow(0 2px 2px rgba(0,0,0,.14));transition:transform .6s cubic-bezier(.3,.7,.4,1)}
+.tag-str{position:absolute;left:50%;top:-34px;width:30px;height:52px;margin-left:-15px;overflow:visible}
+.tag-body{position:absolute;inset:0;clip-path:polygon(22% 0,78% 0,100% 14%,100% 100%,0 100%,0 14%);background:radial-gradient(ellipse at 30% 18%,var(--paper1) 0,var(--paper2) 100%)}
+.tag-body::before{content:"";position:absolute;inset:6px;clip-path:polygon(22% 0,78% 0,100% 14%,100% 100%,0 100%,0 14%);border:1.2px dashed #9C4A2A;opacity:.55}
+.tag-body::after{content:"";position:absolute;left:50%;top:9px;width:16px;height:16px;margin-left:-8px;border-radius:50%;
+  background:radial-gradient(circle,var(--sky2) 0 3.3px,#6E5020 3.6px 4.3px,#EBD397 5px,#9A7838 8px)}
+.tag .big{position:absolute;left:0;right:0;top:30px;text-align:center;font:400 3.5rem/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;white-space:nowrap}
+.tag .lvl{position:absolute;left:6px;right:6px;top:91px;text-align:center;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#9C4A2A;line-height:1.1}
+.tag #nowIcon{position:absolute;left:0;right:0;bottom:11px;display:flex;justify-content:center}
+.tag .ic{width:22px;height:22px}
+@media (max-width:360px){.tag{width:94px;height:126px;margin-left:10px}.tag .big{font-size:3.05rem}.tag .lvl{top:84px}}
+@media (min-width:900px){.stk{max-width:150px}.stk.floor{flex-basis:160px}.stk .lab{font-size:12px}}
 
-/* sticker board */
-.stickers{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 2px;padding:6px 0}
-.stk{min-width:118px;padding:0 3px;display:flex;flex-direction:column;align-items:center;gap:4px;transform:rotate(var(--r,0deg))}
-.stk .art{width:100px;height:100px;filter:drop-shadow(3px 0 0 var(--halo)) drop-shadow(-3px 0 0 var(--halo)) drop-shadow(0 3px 0 var(--halo)) drop-shadow(0 -3px 0 var(--halo)) drop-shadow(0 10px 12px var(--shadow))}
-.stk .art svg{width:100%;height:100%;display:block}
-.stk .lab{background:var(--chip);border-radius:999px;padding:3px 10px;font-weight:700;font-size:13px;text-align:center;line-height:1.25;white-space:nowrap}
-.pop .stk{animation:drop .5s cubic-bezier(.2,.9,.3,1.25) both}
+/* the clothes rail: tops on wooden hangers, bottoms in clips, small things on pegs; shoes stand on the floor below */
+.stickers{position:relative;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:0 2px;padding:0 6px 4px}
+.stickers::before{content:"";position:absolute;left:0;right:0;top:4px;height:7px;border-radius:4px;background:linear-gradient(180deg,#FBFAF6,#C6C9CF 45%,#868A93);box-shadow:0 4px 8px var(--shadow)}
+.stickers::after{content:"";flex-basis:100%;height:0;order:1}
+.stk{order:0;flex:1 1 0;max-width:112px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;transform-origin:50% 4px}
+.stk.floor{order:2;flex:0 1 128px;margin-top:6px;transform-origin:50% 100%}
+.stk .art{display:block;width:100%;filter:drop-shadow(0 10px 9px var(--shadow))}
+.stk .art svg{display:block;width:100%;height:auto}
+/* each piece's name on a woven label */
+.stk .lab{max-width:100%;background:linear-gradient(180deg,var(--label1),var(--label2));color:var(--label-ink);border-radius:3px;padding:5px 8px;outline:1px dashed rgba(29,27,20,.36);outline-offset:-4px;
+  font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;line-height:1.2;text-align:center;overflow-wrap:anywhere;box-shadow:0 3px 7px -3px var(--shadow)}
+.pop .stk{animation:swing .95s cubic-bezier(.3,.7,.4,1) both}
+.pop .stk.floor{animation:settle .5s cubic-bezier(.2,.9,.3,1.2) both}
 .pop .stk:nth-child(2){animation-delay:.05s}.pop .stk:nth-child(3){animation-delay:.1s}.pop .stk:nth-child(4){animation-delay:.15s}.pop .stk:nth-child(5){animation-delay:.2s}.pop .stk:nth-child(6){animation-delay:.25s}
-@keyframes drop{from{transform:translateY(-14px) rotate(calc(var(--r,0deg) - 10deg)) scale(.9)}to{transform:rotate(var(--r,0deg))}}
+@keyframes swing{0%{transform:rotate(8deg)}40%{transform:rotate(-3.5deg)}70%{transform:rotate(1.4deg)}100%{transform:rotate(0)}}
+@keyframes settle{from{transform:translateY(-10px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes sway{0%,100%{transform:rotate(0)}30%{transform:rotate(4deg)}65%{transform:rotate(-2.5deg)}}
 .stk,.mini{cursor:pointer}
 .stk:focus-visible{outline:2.5px solid var(--focus);outline-offset:4px;border-radius:14px}
 .mini:focus-visible{outline:2.5px solid var(--focus);outline-offset:2px}
-.stk:hover,.stk.on{animation:wig .5s ease}
-.stk.on .lab,.mini.on{background:var(--pill-bg);color:var(--pill-ink)}
+.stk:hover,.stk.on{animation:sway .8s ease}
+.stk.floor:hover,.stk.floor.on{animation:none}
+.stk.on .lab,.mini.on{background:var(--pill-bg);color:var(--pill-ink);outline-color:currentColor}
 
 /* sticker info card: follows the mouse, opens on tap on phones */
 .tip-card{position:fixed;z-index:50;left:0;top:0;width:min(300px,calc(100vw - 24px));background:var(--tip-bg);color:var(--tip-ink);border-radius:18px;padding:18px 16px 14px;
   box-shadow:inset 0 6px 0 var(--lv),0 18px 40px -12px var(--shadow),0 0 0 1px var(--line);pointer-events:none;animation:tipIn .14s ease-out}
 @keyframes tipIn{from{opacity:0;translate:0 4px}to{opacity:1;translate:0 0}}
 .tip-card .ts{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--tip-sub)}
-.tip-card .tt{font:800 1.3rem/1.1 var(--font-display);letter-spacing:-.02em;margin:4px 0 2px}
+.tip-card .tt{font:400 1.7rem/1.05 var(--font-display);margin:4px 0 2px}
 .tip-card .ta{font-size:13.5px;color:var(--tip-sub);margin:0 0 9px}
 .tip-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:14px;font-weight:650;line-height:1.35}
 .tip-card li{padding-left:16px;position:relative}
@@ -269,7 +302,7 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .tip-card .tp{margin:10px 0 0;font-size:13px;color:var(--tip-sub);border-top:1px dashed var(--line);padding-top:8px}
 
 /* the same reasons as a list */
-.more{margin-top:12px;background:var(--card);border-radius:20px;padding:2px 14px}
+.more{margin-top:12px;background:var(--card);border-radius:22px;padding:2px 14px;box-shadow:inset 0 0 0 1px var(--card-line)}
 .more summary{cursor:pointer;font-weight:800;padding:11px 0;font-size:14px}
 .more dl{margin:0 0 8px}
 .more .row-i{display:grid;grid-template-columns:7.4rem minmax(0,1fr);gap:10px;padding:9px 0;border-top:1px dotted var(--line)}
@@ -278,24 +311,26 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .more dd small{display:block;font-weight:500;color:var(--ink2);font-size:13px;line-height:1.4}
 @media (max-width:420px){.more .row-i{grid-template-columns:minmax(0,1fr);gap:2px}}
 @keyframes wig{0%,100%{transform:rotate(var(--r,0deg))}35%{transform:rotate(calc(var(--r,0deg) + 6deg)) scale(1.04)}70%{transform:rotate(calc(var(--r,0deg) - 4deg))}}
-.take{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 10px;margin-top:10px;padding:12px;border-radius:22px;background:var(--card)}
-.take .tl{font:800 1rem/1 var(--font-display);letter-spacing:-.01em;margin-right:2px}
-.mini{display:flex;align-items:center;gap:6px;background:var(--chip);border-radius:999px;padding:4px 12px 4px 4px;font-weight:700;font-size:13px}
-.mini .art{width:36px;height:36px;filter:drop-shadow(1.5px 0 0 var(--halo)) drop-shadow(-1.5px 0 0 var(--halo)) drop-shadow(0 1.5px 0 var(--halo)) drop-shadow(0 -1.5px 0 var(--halo))}
+/* "Yanına al": woven labels with a rust thread */
+.take{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 10px;margin-top:14px;padding:12px 14px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 1px var(--card-line)}
+.take .tl{font:italic 400 1.5rem/1 var(--font-display);margin-right:2px}
+.mini{display:flex;align-items:center;gap:6px;background:linear-gradient(180deg,var(--label1),var(--label2));color:var(--label-ink);border-radius:4px;padding:4px 12px 4px 5px;
+  outline:1px dashed rgba(156,74,42,.62);outline-offset:-4px;box-shadow:0 4px 9px -5px var(--shadow);font-weight:700;font-size:13px}
+.mini .art{width:36px;height:36px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.2))}
 .mini .art svg{width:100%;height:100%;display:block}
-.tips{list-style:none;margin:12px 4px 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink2)}
-.tips li::before{content:"→ ";font-weight:700;color:var(--ink)}
+.tips{list-style:none;margin:14px 4px 0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:14px;color:var(--ink2)}
+.tips li::before{content:"";display:inline-block;width:14px;border-top:2px dashed var(--stitch);vertical-align:middle;margin:0 8px 3px 0}
 
 /* cards */
-.card{background:var(--card);border-radius:24px;padding:16px}
-.card h2{margin:0 0 12px;font:800 1.15rem/1.1 var(--font-display);letter-spacing:-.015em}
+.card{background:var(--card);border-radius:26px;padding:18px;box-shadow:inset 0 0 0 1px var(--card-line),0 18px 34px -24px var(--shadow)}
+.card h2{margin:0 0 12px;font:400 1.75rem/1.05 var(--font-display)}
 .hours{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;margin:0 -4px}
 .h{flex:0 0 auto;min-width:50px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 4px;border-radius:16px}
 .h.now{background:var(--chip)}
-.h.low{outline:2px solid var(--ink);outline-offset:-2px}
+.h.low{outline:1.5px dashed var(--stitch);outline-offset:-2px}
 .h .hh{font-size:12px;color:var(--ink2);font-weight:600}
 .h .ic{width:22px;height:22px}
-.h .ht{font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+.h .ht{font:400 1.3rem/1 var(--font-display);font-variant-numeric:tabular-nums}
 .h .hp{font-size:11px;font-weight:700;min-height:13px}
 .facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .fact{background:var(--chip);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -311,25 +346,28 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .seg button[aria-pressed="true"]{background:var(--pill-bg);color:var(--pill-ink)}
 .range{display:flex;align-items:center;gap:12px}
 .range input{flex:1;min-width:0;accent-color:var(--ink)}
-.range output{font:800 1.3rem/1 var(--font-display);min-width:3.2em;text-align:right;font-variant-numeric:tabular-nums}
+.range output{font:400 1.75rem/1 var(--font-display);min-width:3.2em;text-align:right;font-variant-numeric:tabular-nums}
 
 .foot{margin:30px 2px 0;font-size:12.5px;color:var(--ink2);max-width:70ch}
 .foot a{color:inherit}
 
 /* rain coming: a strip on top of the verdict, until it is dismissed for the day */
-.rain-alert{display:flex;align-items:center;gap:10px;max-width:34rem;margin:0 0 14px;padding:7px 4px 7px 12px;border-radius:18px;background:var(--pill-bg);color:var(--pill-ink);box-shadow:0 12px 24px -16px var(--shadow);transform:rotate(-.8deg);animation:alertIn .35s cubic-bezier(.2,.9,.3,1.2) both}
+.rain-alert{display:flex;align-items:center;gap:10px;max-width:34rem;margin:0 0 14px;padding:8px 4px 8px 12px;border-radius:18px;background:var(--pill-bg);color:var(--pill-ink);box-shadow:0 14px 26px -16px var(--shadow);animation:alertIn .35s cubic-bezier(.2,.9,.3,1.2) both}
 .rain-alert .ic{width:28px;height:28px;flex:none}
 .rain-alert p{margin:0;flex:1;min-width:0;font-weight:600;font-size:14.5px;line-height:1.3}
 .rain-alert b{font-weight:800}
 .rain-alert .x{color:inherit;margin-left:0;flex:none}
 .rain-alert :focus-visible{outline-color:currentColor}
 .severe{display:grid;gap:8px;max-width:36rem;margin:0 0 14px}
-.sv{border-radius:18px;padding:10px 14px 11px;background:#ffe27a;color:#2a2100;box-shadow:0 12px 24px -16px var(--shadow)}
-.sv.sv2{background:#ff8a5b;color:#2a0c00}
+.sv{--tape:#F2B705;position:relative;overflow:hidden;border-radius:18px;padding:24px 14px 11px;background:rgba(14,16,30,.86);color:#F3EFE6;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),0 14px 26px -16px rgba(0,0,0,.6)}
+.sv.sv2{--tape:#FF7A1A}
+.sv::before{content:"";position:absolute;left:0;right:0;top:0;height:12px;background:linear-gradient(180deg,var(--tape) 0 28%,#E5EAF1 28%,#B7BEC9 72%,var(--tape) 72% 100%)}
+.sv::after{content:"";position:absolute;left:0;right:0;top:3px;height:6px;background:repeating-linear-gradient(90deg,transparent 0 3px,rgba(255,255,255,.7) 3px 4px)}
+.sv-top .ic{color:var(--tape)}
 .sv-top{display:flex;align-items:center;gap:8px;font-size:16px}
 .sv-top .ic{width:22px;height:22px;flex:none}
 .sv-top b{font-weight:800}
-.sv-lv{margin-left:auto;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:999px;background:rgba(0,0,0,.13)}
+.sv-lv{margin-left:auto;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:999px;background:var(--tape);color:#1A0B02}
 .sv-when{margin:3px 0 0 30px;font-weight:650;font-size:14px}
 .sv details{margin:6px 0 0 30px}
 .sv summary{cursor:pointer;font-weight:750;font-size:14px}
@@ -339,7 +377,7 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .sv-note{margin:0 2px;font-size:12.5px;line-height:1.4;color:var(--ink2)}
 .sv-note a{color:inherit;font-weight:700}
 .sv-on{border:0;background:none;padding:2px 0;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;cursor:pointer}
-@keyframes alertIn{from{opacity:0;transform:translateY(-6px) rotate(-.8deg)}to{opacity:1;transform:rotate(-.8deg)}}
+@keyframes alertIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .hero-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 .act-chip{display:inline-flex;align-items:center;gap:7px}
 .act-chip svg{width:17px;height:17px;flex:none}
@@ -351,7 +389,7 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .wk-row{width:100%;border:0;background:none;border-radius:14px;padding:7px 4px;display:grid;grid-template-columns:minmax(0,1fr) 32px 5em auto;align-items:center;gap:7px;text-align:left;cursor:pointer}
 .wk-row[aria-expanded="true"]{background:var(--chip)}
 .wk-day{min-width:0}
-.wk-day b{display:block;font:800 1rem/1.15 var(--font-display);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-day b{display:block;font:400 1.3rem/1.05 var(--font-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wk-day small{display:flex;align-items:center;gap:5px;margin-top:2px;font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap;overflow:hidden}
 .wk-day small::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;background:var(--wl);box-shadow:0 0 0 1.5px var(--ink)}
 .wk-s{display:none}
@@ -361,8 +399,7 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .wk-t{text-align:right;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .wk-t b{font-weight:800}
 .wk-arts{display:flex;gap:1px}
-.wk-arts .art{width:30px;height:30px;filter:drop-shadow(1.5px 0 0 var(--halo)) drop-shadow(-1.5px 0 0 var(--halo)) drop-shadow(0 1.5px 0 var(--halo)) drop-shadow(0 -1.5px 0 var(--halo))}
-.wk-arts .art:nth-child(2){transform:rotate(5deg)}.wk-arts .art:nth-child(3){transform:rotate(-4deg)}
+.wk-arts .art{width:30px;height:30px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.18))}
 .wk-arts svg{width:100%;height:100%;display:block}
 .wk-more{padding:6px 8px 12px;display:flex;flex-direction:column;gap:4px}
 .wk-more p{margin:0}
@@ -382,24 +419,24 @@ html.sheet-open,html.sheet-open body{overflow:hidden}
 .wd .st{font-weight:600;font-size:11.5px;opacity:.8}
 .pf-form{display:flex;flex-direction:column;gap:12px;margin-top:12px}
 .pf-form input{border:1.5px solid var(--input-line);background:var(--input);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;min-height:44px}
-.stk.need .lab{box-shadow:inset 0 0 0 2px var(--ink);background:transparent}
+.stk.need .lab{background:transparent;color:var(--ink);outline:1.5px dashed var(--ink);outline-offset:-2px;box-shadow:none}
 .sheet{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center}
 .sheet-bg{position:absolute;inset:0;background:rgba(8,10,18,.52)}
-.sheet-box{position:relative;width:100%;max-width:640px;max-height:92vh;max-height:92dvh;overflow:auto;overscroll-behavior:contain;background:var(--field);color:var(--ink);
+.sheet-box{position:relative;width:100%;max-width:640px;max-height:92vh;max-height:92dvh;overflow:auto;overscroll-behavior:contain;background:linear-gradient(180deg,var(--sky1),var(--sky2) 38%,var(--sky3));color:var(--ink);
   border-radius:26px 26px 0 0;padding:16px 16px calc(22px + env(safe-area-inset-bottom,0px));box-shadow:0 -18px 50px -20px rgba(0,0,0,.55);animation:sheetIn .24s cubic-bezier(.2,.9,.3,1) both}
 .sheet-box::before{content:"";display:block;width:44px;height:5px;border-radius:9px;background:var(--line);margin:-6px auto 10px}
 @media (min-width:700px){.sheet{align-items:center;padding:24px}.sheet-box{border-radius:26px;max-height:88vh;padding:20px 22px 24px}.sheet-box::before{display:none}}
 @keyframes sheetIn{from{transform:translateY(28px);opacity:.5}to{transform:none;opacity:1}}
-.sheet-box h2{margin:0;font:800 1.3rem/1.1 var(--font-display);letter-spacing:-.015em}
+.sheet-box h2{margin:0;font:400 1.85rem/1.05 var(--font-display)}
 .sheet-box h2:focus{outline:none}
-.sheet-box h3{margin:18px 0 8px;font:800 1rem/1.1 var(--font-display)}
+.sheet-box h3{margin:18px 0 8px;font:400 1.4rem/1.1 var(--font-display)}
 .sheet-box .row:first-of-type{margin-top:10px}
 .pk-seg{display:flex;flex-wrap:wrap;gap:6px}
 .pk-seg button{border:0;background:var(--chip);border-radius:999px;padding:8px 14px;min-height:40px;font-weight:600;font-size:14px;cursor:pointer}
 .pk-seg button[aria-pressed="true"]{background:var(--pill-bg);color:var(--pill-ink)}
 .pk-seg.num button{min-width:42px;padding:8px 0;font-weight:800;font-variant-numeric:tabular-nums}
 .pk-sum{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;margin:20px 0 8px}
-.pk-sum b{font:800 1.1rem/1.15 var(--font-display);letter-spacing:-.01em}
+.pk-sum b{font:400 1.5rem/1.1 var(--font-display)}
 .pk-sum span{font-size:13px;font-weight:700;color:var(--ink2);font-variant-numeric:tabular-nums}
 .pk-days{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:thin}
 .pk-day{flex:0 0 auto;min-width:62px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px;border-radius:16px;background:var(--card);font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -410,12 +447,12 @@ html.sheet-open,html.sheet-open body{overflow:hidden}
 .pk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .pk-it{display:flex;align-items:center;gap:10px;background:var(--chip);border-radius:16px;padding:7px 14px 7px 10px;cursor:pointer;min-height:52px}
 .pk-it input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--ink);cursor:pointer}
-.pk-it .art{width:38px;height:38px;flex:none;filter:drop-shadow(1.5px 0 0 var(--halo)) drop-shadow(-1.5px 0 0 var(--halo)) drop-shadow(0 1.5px 0 var(--halo)) drop-shadow(0 -1.5px 0 var(--halo))}
+.pk-it .art{width:38px;height:38px;flex:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.18))}
 .pk-it .art svg{width:100%;height:100%;display:block}
 .pk-it .art.none{border-radius:50%;box-shadow:inset 0 0 0 2px var(--line);filter:none;transform:scale(.7)}
 .pk-it .pl{flex:1;min-width:0;font-weight:700;font-size:14.5px;line-height:1.25}
 .pk-it .pl small{display:block;font-weight:500;font-size:12.5px;color:var(--ink2);margin-top:1px}
-.pk-it .n{font:800 1.15rem/1 var(--font-display);font-variant-numeric:tabular-nums;flex:none}
+.pk-it .n{font:400 1.6rem/1 var(--font-display);font-variant-numeric:tabular-nums;flex:none}
 .pk-it.done .pl b,.pk-it.done .n{text-decoration:line-through;text-decoration-thickness:2px}
 .pk-it.done .art,.pk-it.done .pl{opacity:.55}
 .pk-note{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:16px;background:var(--card);border-radius:18px;padding:14px}
@@ -429,6 +466,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 <!-- shared:end -->
 </head>
 <body>
+<div class="sky" aria-hidden="true"></div>
 <div class="app">
   <header class="bar">
     <div class="logo">
@@ -482,13 +520,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     <section class="hero" aria-label="Bugünün önerisi" data-i18n-attr="aria-label">
       <div class="severe" id="severe" hidden></div>
       <div class="rain-alert" id="rainAlert" role="status" hidden></div>
+      <div class="tag" id="tag">
+        <svg class="tag-str" viewBox="0 0 30 52" aria-hidden="true"><path d="M15 5Q10.5 26 15 48M15 5Q19.5 26 15 48" fill="none" stroke="#7A6A4A" stroke-width="1.2"/><circle cx="15" cy="5" r="4" fill="#B88A3E"/><circle cx="13.8" cy="3.8" r="1.4" fill="#F4DFA6"/></svg>
+        <div class="tag-body"><span class="big" id="bigTemp">17°</span><span class="lvl" id="tagLevel"></span><span id="nowIcon"></span></div>
+      </div>
       <div class="pills" id="pills"></div>
       <h1 class="head" id="headline" tabindex="-1">Bugün ne giysem?</h1>
-      <div class="now">
-        <span class="big" id="bigTemp">17°</span>
-        <span id="nowIcon"></span>
-        <div><div class="t1" id="nowCond"></div><div class="t2" id="nowFeels"></div></div>
-      </div>
+      <p class="meta"><span class="t1" id="nowCond"></span><span class="t2" id="nowFeels"></span></p>
       <div class="hero-acts" id="heroActs" hidden>
         <button type="button" class="chip act-chip" id="shareBtn" aria-label="Bugünün önerisini görsel olarak paylaş" data-i18n-attr="aria-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3.5"/><path d="m7.5 8 4.5-4.5L16.5 8"/><path d="M5 12.5V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6.5"/></svg>
@@ -1326,46 +1364,251 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     }
   }
 
-  /* ================= garment stickers ================= */
-  var INK = "#14161f";
-  var LS = "M23 9 L13 12 L7 42 L14 44 L19 25 L19 55 L45 55 L45 25 L50 44 L57 42 L51 12 L41 9 Q32 16 23 9 Z";
-  var COAT = "M23 8 L13 11 L7 45 L14 47 L19 27 L18 58 L46 58 L45 27 L50 47 L57 45 L51 11 L41 8 Q32 14 23 8 Z";
-  var SNEAK = "M6 42 Q6 30 16 30 L26 30 Q30 30 33 34 L38 38 L52 40 Q59 41 59 47 L59 50 L6 50 Z";
-  var PANTS = "M20 7 L44 7 L46 58 L35 58 L32 25 L29 58 L18 58 Z";
-  var ART = {
-    tshirt: '<path d="M23 9 L13 13 L5 24 L13 30 L18 26 L18 55 L46 55 L46 26 L51 30 L59 24 L51 13 L41 9 Q32 17 23 9 Z" fill="#ffffff"/><path d="M26 10 Q32 14.5 38 10" fill="none"/>',
-    longsleeve: '<path d="' + LS + '" fill="#f3ead9"/><path d="M26 10 Q32 14 38 10" fill="none"/><path d="M8.2 37.5 L15 39.4 M55.8 37.5 L49 39.4" fill="none"/>',
-    thermal: '<path d="' + LS + '" fill="#e0d9fb"/><g stroke-width="1.3" opacity=".55"><path d="M21 30 H43 M21 36 H43 M21 42 H43 M21 48 H43" fill="none"/></g>',
-    sweatshirt: '<path d="M23 9 Q22 2 32 2 Q42 2 41 9" fill="#8f9db6"/><path d="' + LS + '" fill="#9eabc2"/><path d="M24 41 H40 L42 50 H22 Z" fill="none"/><path d="M29 12 V20 M35 12 V20" fill="none"/><path d="M8.2 37.5 L15 39.4 M55.8 37.5 L49 39.4" fill="none"/>',
-    hirka: '<path d="' + LS + '" fill="#d0914a"/><path d="M23 9 L32 30 L41 9" fill="none"/><path d="M32 30 V55" fill="none"/><circle cx="35" cy="36" r="1.6" fill="' + INK + '"/><circle cx="35" cy="43" r="1.6" fill="' + INK + '"/><circle cx="35" cy="50" r="1.6" fill="' + INK + '"/>',
-    kazak: '<path d="' + LS + '" fill="#e0564e"/><path d="M20 30 L24 34 L28 30 L32 34 L36 30 L40 34 L44 30" fill="none"/><path d="M20 38 L24 42 L28 38 L32 42 L36 38 L40 42 L44 38" fill="none"/><path d="M19 50 H45" fill="none"/><path d="M26 10 Q32 14 38 10" fill="none"/>',
-    ceket: '<path d="' + LS + '" fill="#5584dc"/><path d="M23 9 L27 21 L32 15 L37 21 L41 9" fill="#3f6cc4"/><path d="M32 15 V55" fill="none"/><path d="M22 29 H29 V34 H22 Z M35 29 H42 V34 H35 Z" fill="none"/>',
-    mont: '<path d="' + COAT + '" fill="#4f7358"/><path d="M23 8 L28 20 L32 13 L36 20 L41 8" fill="#3f604a"/><path d="M32 13 V58" fill="none"/><circle cx="28" cy="30" r="1.6" fill="' + INK + '"/><circle cx="28" cy="40" r="1.6" fill="' + INK + '"/><circle cx="36" cy="30" r="1.6" fill="' + INK + '"/><circle cx="36" cy="40" r="1.6" fill="' + INK + '"/>',
-    kaban: '<path d="' + COAT + '" fill="#86593a"/><path d="M23 8 L29 24 L32 18 L35 24 L41 8" fill="#6f4a2f"/><path d="M32 18 V58" fill="none"/><path d="M19 39 H45" stroke-width="3.2" fill="none"/><circle cx="35.5" cy="30" r="1.6" fill="' + INK + '"/><circle cx="35.5" cy="47" r="1.6" fill="' + INK + '"/>',
-    sisme: '<path d="M22 10 Q12 12 9 22 L6 43 Q6 47 11 47 L15 47 L18 31 L18 55 Q18 58 22 58 L42 58 Q46 58 46 55 L46 31 L49 47 L53 47 Q58 47 58 43 L55 22 Q52 12 42 10 Q32 15 22 10 Z" fill="#33437f"/><path d="M19 23 Q32 27 45 23 M19 32 Q32 36 45 32 M19 41 Q32 45 45 41 M19 50 Q32 54 45 50" fill="none"/><path d="M32 13 V58" fill="none"/>',
-    parka: '<path d="M22 10 Q21 2 32 2 Q43 2 42 10 Q32 15 22 10 Z" fill="#5d6b2d"/><path d="' + COAT + '" fill="#6f7f35"/><path d="M22 10 Q32 16 42 10" stroke="#efe2c4" stroke-width="5" fill="none"/><path d="M22 10 Q32 16 42 10" fill="none"/><path d="M32 15 V58" fill="none"/><path d="M21 33 H29 V40 H21 Z M35 33 H43 V40 H35 Z" fill="none"/>',
-    yagmurluk: '<path d="M22 10 Q21 2 32 2 Q43 2 42 10 Q32 15 22 10 Z" fill="#f2b51f"/><path d="' + COAT + '" fill="#ffcb3d"/><path d="M32 14 V58" fill="none"/><circle cx="35" cy="24" r="1.6" fill="' + INK + '"/><circle cx="35" cy="34" r="1.6" fill="' + INK + '"/><circle cx="35" cy="44" r="1.6" fill="' + INK + '"/>',
-    ruzgarlik: '<path d="M23 9 Q22 3 32 3 Q42 3 41 9" fill="#2a9d8f"/><path d="' + LS + '" fill="#3cc2b1"/><path d="M19.6 24 H44.4 V31 H19.6 Z" fill="#2a9d8f"/><path d="M32 12 V55" fill="none"/>',
-    jean: '<path d="' + PANTS + '" fill="#3f71d8"/><path d="M19.6 13 H44.4" fill="none"/><path d="M22 13 Q23 19 28 19 M42 13 Q41 19 36 19" fill="none"/><path d="M32 7 V13" fill="none"/>',
-    pantolon: '<path d="' + PANTS + '" fill="#4b4e60"/><path d="M19.6 13 H44.4" fill="none"/><path d="M32 7 V13" fill="none"/>',
-    sort: '<path d="M18 14 L46 14 L48 42 L35 42 L32 27 L29 42 L16 42 Z" fill="#78aee6"/><path d="M17.6 20 H46.4" fill="none"/><path d="M32 14 V20" fill="none"/>',
-    tayt: '<path d="M22 7 L42 7 L42.5 58 L34.5 58 L32 24 L29.5 58 L21.5 58 Z" fill="#2c2f40"/><path d="M22 12 H42" fill="none"/><path d="M24 30 L23 56 M40 30 L41 56" stroke="#7a7fa3" stroke-width="1.6" fill="none"/>',
-    sneaker: '<path d="' + SNEAK + '" fill="#ffffff"/><path d="M6 50 H59 V53 Q59 56 56 56 H9 Q6 56 6 53 Z" fill="#ef5b4a"/><path d="M27 33 L31 30 M30 36 L34 33 M33 39 L37 36" fill="none"/><path d="M40 46 Q47 42 54 45" stroke="#ef5b4a" stroke-width="2.4" fill="none"/>',
-    spor: '<path d="' + SNEAK + '" fill="#3cc2b1"/><path d="M6 50 H59 V53 Q59 56 56 56 H9 Q6 56 6 53 Z" fill="#ffffff"/><path d="M14 44 L44 44 M18 39 L40 39" stroke="#ffffff" stroke-width="2.6" fill="none"/><path d="M27 33 L31 30 M30 36 L34 33" fill="none"/>',
-    bot: '<path d="M14 9 L32 9 L32 33 L47 36 Q57 38 57 46 L57 50 L14 50 Z" fill="#7a5233"/><path d="M14 50 H57 V55 Q57 57 55 57 H16 Q14 57 14 55 Z" fill="#2a1b10"/><path d="M14 15 H32" fill="none"/><path d="M24 20 L30 18 M24 26 L30 24" fill="none"/>',
-    yuruyus: '<path d="M14 9 L32 9 L32 33 L47 36 Q57 38 57 46 L57 50 L14 50 Z" fill="#9b7a45"/><path d="M14 50 H57 V55 Q57 57 55 57 H16 Q14 57 14 55 Z" fill="#2a1b10"/><path d="M14 15 H32" fill="none"/><path d="M24 20 L30 18 M24 26 L30 24 M24 32 L30 30" stroke="#ef5b4a" stroke-width="2.6" fill="none"/>',
-    sandalet: '<path d="M6 47 Q6 42 12 42 L54 42 Q60 42 60 47 Q60 52 54 52 L12 52 Q6 52 6 47 Z" fill="#c98c5a"/><path d="M14 42 Q20 28 28 42 Z" fill="#a8693b"/><path d="M30 42 Q38 30 46 42 Z" fill="#a8693b"/>',
-    bere: '<path d="M12 42 Q12 15 32 15 Q52 15 52 42 Z" fill="#ef5b4a"/><path d="M10 42 H54 V52 H10 Z" fill="#cf4535"/><path d="M17 42 V52 M24 42 V52 M31 42 V52 M38 42 V52 M45 42 V52" stroke-width="1.6" fill="none"/><circle cx="32" cy="11" r="6" fill="#f6efe0"/>',
-    sapka: '<path d="M10 38 Q10 16 31 16 Q50 16 51 37 Z" fill="#2f3d63"/><path d="M47 35 L61 39 Q62 44 56 44 L42 42 Z" fill="#26324f"/><path d="M31 16 V37" fill="none"/><circle cx="31" cy="16" r="2" fill="' + INK + '"/>',
-    semsiye: '<path d="M6 34 Q32 2 58 34 Q51.5 29 45 34 Q38.5 29 32 34 Q25.5 29 19 34 Q12.5 29 6 34 Z" fill="#7b5cfa"/><path d="M32 8 Q22 18 19 34 M32 8 Q42 18 45 34" fill="none"/><path d="M32 34 V54 Q32 59 27 59 Q23 59 23 55" fill="none"/>',
-    gozluk: '<path d="M6 26 Q6 22 10 22 L26 22 Q29 22 29 26 L28 34 Q27 40 20 40 L14 40 Q7 40 7 34 Z" fill="#2f3550"/><path d="M35 26 Q35 22 38 22 L54 22 Q58 22 58 26 L57 34 Q57 40 50 40 L44 40 Q37 40 36 34 Z" fill="#2f3550"/><path d="M29 26 Q32 23 35 26" fill="none"/><path d="M11 27 L16 26 M40 27 L45 26" stroke="#ffffff" stroke-width="2" fill="none"/>',
-    atki: '<path d="M12 12 H52 Q56 12 56 16 V22 Q56 26 52 26 H34 V54 H22 V26 H12 Q8 26 8 22 V16 Q8 12 12 12 Z" fill="#f0c04f"/><path d="M22 34 H34 M22 42 H34" stroke="#d9534f" stroke-width="3.2" fill="none"/><path d="M24 54 V59 M28 54 V59 M32 54 V59" fill="none"/>',
-    eldiven: '<path d="M22 31 Q12 29 12 22 Q12 16 17 17 Q21 18 22 25" fill="#ef5b4a"/><path d="M22 47 V28 Q22 12 34 12 Q46 12 46 27 V47 Z" fill="#ef5b4a"/><path d="M21 46 H47 V56 H21 Z" fill="#f6efe0"/>',
-    su: '<path d="M26 5 H38 V13 H26 Z" fill="#3f71d8"/><path d="M22 18 Q22 13 26 13 L38 13 Q42 13 42 18 L42 56 Q42 59 39 59 L25 59 Q22 59 22 56 Z" fill="#9ad8f5"/><path d="M22 34 Q27 31 32 34 T42 34" fill="none"/>',
-    krem: '<path d="M20 7 L44 7 L40 49 L24 49 Z" fill="#ffb347"/><path d="M26 49 H38 V58 H26 Z" fill="#ffffff"/><circle cx="32" cy="24" r="6" fill="#fff3c4"/>',
-    corap: '<path d="M22 6 H36 V36 L48 44 Q54 48 50 54 Q46 59 40 55 L24 45 Q22 43 22 39 Z" fill="#ffffff"/><path d="M22 12 H36 M22 18 H36" stroke="#ef5b4a" stroke-width="2.6" fill="none"/>'
+  /* ================= garments: fabric, stitching and light ================= */
+  // Each piece is drawn in a 100×100 box, lit from the upper left: a volume gradient, a weave or knit texture, a soft
+  // highlight, darker seams and lighter stitching. Every drawing carries its own gradients (ids unique per drawing), so it
+  // also works as a standalone image (the share picture). rackArt() hangs the same piece on the rail: a hanger, a clip,
+  // a clothes peg, or the floor for shoes.
+  var ARTN = 0;
+  function rgbOf(c){ return [1, 3, 5].map(function(i){ return parseInt(c.slice(i, i + 2), 16); }); }
+  function shade(c, k){ return "#" + rgbOf(c).map(function(v){ v = k >= 0 ? v + (255 - v) * k : v * (1 + k); return ("0" + Math.round(Math.max(0, Math.min(255, v))).toString(16)).slice(-2); }).join(""); }
+  function light(c){ var a = rgbOf(c); return (a[0] * 0.3 + a[1] * 0.59 + a[2] * 0.11) / 255 > 0.62; }
+  function lgr(id, stops, x2, y2){
+    return '<linearGradient id="' + id + '" x1="0" y1="0" x2="' + (x2 == null ? 1 : x2) + '" y2="' + (y2 || 0) + '">' + stops.map(function(s){
+      return '<stop offset="' + s[0] + '" stop-color="' + s[1] + '"' + (s[2] != null ? ' stop-opacity="' + s[2] + '"' : '') + '/>'; }).join("") + '</linearGradient>';
+  }
+  var WEAVE = {
+    tweed:[3, '<path d="M0 3L3 0" stroke="#fff" stroke-opacity=".13" stroke-width=".6"/><path d="M-1 1L1-1M2 4L4 2" stroke="#000" stroke-opacity=".1" stroke-width=".6"/>'],
+    twill:[2.4, '<path d="M0 2.4L2.4 0" stroke="#fff" stroke-opacity=".13" stroke-width=".5"/>'],
+    knit:[3.2, '<path d="M.4 .4L1.6 2.6L2.8 .4" fill="none" stroke="#fff" stroke-opacity=".17" stroke-width=".5"/><path d="M.4 1.8L1.6 4L2.8 1.8" fill="none" stroke="#000" stroke-opacity=".08" stroke-width=".5"/>'],
+    wool:[2.6, '<circle cx=".7" cy=".7" r=".4" fill="#fff" fill-opacity=".16"/><circle cx="2" cy="1.9" r=".4" fill="#000" fill-opacity=".1"/>'],
+    rib:[2, '<path d="M.6 0V2" stroke="#000" stroke-opacity=".16" stroke-width=".6"/>'],
+    waffle:[3, '<path d="M0 .5H3M.5 0V3" stroke="#000" stroke-opacity=".1" stroke-width=".5"/>'],
+    mesh:[2, '<circle cx="1" cy="1" r=".45" fill="#000" fill-opacity=".14"/>'],
+    cotton:[2, '<path d="M0 .5H2" stroke="#000" stroke-opacity=".04" stroke-width=".5"/>']
   };
-  function art(g){ return '<svg viewBox="0 0 64 64" aria-hidden="true" stroke="' + INK + '" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">' + (ART[g] || ART.tshirt) + '</svg>'; }
+  function Art(){ this.id = "ng" + (++ARTN) + "-"; this.d = []; this.b = []; this.n = 0; }
+  Art.prototype.uid = function(){ return this.id + (this.n++); };
+  // a piece of cloth: volume, weave, highlight and a fine edge one shade darker
+  Art.prototype.cloth = function(d, c, weave, o){
+    o = o || {}; var g = this.uid();
+    this.d.push(lgr(g + "v", [[0, shade(c, o.hi == null ? 0.2 : o.hi)], [0.55, c], [1, shade(c, o.lo == null ? -0.3 : o.lo)]], o.vx == null ? 1 : o.vx, o.vy || 0));
+    var s = '<path d="' + d + '" fill="url(#' + g + 'v)"' + (o.edge === false ? '' : ' stroke="' + shade(c, -0.5) + '" stroke-opacity=".5" stroke-width=".7" stroke-linejoin="round"') + '/>';
+    if (weave) { var w = WEAVE[weave]; this.d.push('<pattern id="' + g + 't" width="' + w[0] + '" height="' + w[0] + '" patternUnits="userSpaceOnUse">' + w[1] + '</pattern>'); s += '<path d="' + d + '" fill="url(#' + g + 't)"/>'; }
+    if (o.glow !== false) {
+      this.d.push('<radialGradient id="' + g + 'g" cx=".3" cy=".15" r=".8"><stop offset="0" stop-color="#fff" stop-opacity="' + (o.gl || 0.3) + '"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>');
+      s += '<path d="' + d + '" fill="url(#' + g + 'g)"/>';
+    }
+    this.b.push(s); return this;
+  };
+  Art.prototype.add = function(s){ this.b.push(s); return this; };
+  Art.prototype.fill = function(d, c, op){ this.b.push('<path d="' + d + '" fill="' + c + '"' + (op != null ? ' fill-opacity="' + op + '"' : '') + '/>'); return this; };
+  Art.prototype.line = function(d, c, w, op, dash){
+    this.b.push('<path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="' + (w || 1) + '"' + (op != null ? ' stroke-opacity="' + op + '"' : '') + (dash ? ' stroke-dasharray="' + dash + '"' : '') + ' stroke-linecap="round" stroke-linejoin="round"/>');
+    return this;
+  };
+  // topstitching: lighter thread on dark cloth, darker on light cloth
+  Art.prototype.stitch = function(d, c){ return this.line(d, light(c) ? shade(c, -0.45) : shade(c, 0.6), 0.75, 0.7, "2 1.6"); };
+  Art.prototype.btn = function(x, y, r, c){
+    var g = this.uid();
+    this.d.push('<radialGradient id="' + g + '" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="' + shade(c, 0.5) + '"/><stop offset="1" stop-color="' + shade(c, -0.4) + '"/></radialGradient>');
+    this.b.push('<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="url(#' + g + ')"/>'); return this;
+  };
+  Art.prototype.grad = function(stops, x2, y2){ var g = this.uid(); this.d.push(lgr(g, stops, x2, y2)); return "url(#" + g + ")"; };
+  Art.prototype.metal = function(){ return this.grad([[0, "#F6F7F9"], [0.5, "#A2A6AE"], [1, "#5C6068"]], 1, 1); };
+  Art.prototype.wood = function(){ return this.grad([[0, "#DEAC70"], [1, "#87542A"]], 0, 1); };
+  Art.prototype.svg = function(vb){ return '<svg viewBox="' + (vb || "0 0 100 100") + '" aria-hidden="true"><defs>' + this.d.join("") + '</defs>' + this.b.join("") + '</svg>'; };
+
+  var SH = {
+    ss:"M38 8Q50 14 62 8L82 15Q91 19 96 33L84 41L81 35L81 93Q50 97 19 93L19 35L16 41L4 33Q9 19 18 15Z",
+    ssL:"M18 15Q9 19 4 33L16 41L19 35Q18 24 18 15Z", ssR:"M82 15Q91 19 96 33L84 41L81 35Q82 24 82 15Z",
+    ls:"M38 8Q50 14 62 8L82 15Q90 19 92 29L97 84Q92 88 85 87L81 40L81 93Q50 97 19 93L19 40L15 87Q8 88 3 84L8 29Q10 19 18 15Z",
+    lsL:"M8 29L3 84Q8 88 15 87L19 40Q17 28 18 15Q10 19 8 29Z", lsR:"M92 29L97 84Q92 88 85 87L81 40Q83 28 82 15Q90 19 92 29Z",
+    coat:"M37 6Q50 12 63 6L83 13Q91 17 92 27L97 80Q92 84 85 83L81 36L82 98Q50 101 18 98L19 36L15 83Q8 84 3 80L8 27Q9 17 17 13Z",
+    coatL:"M8 27L3 80Q8 84 15 83L19 36Q17 24 17 13Q9 17 8 27Z", coatR:"M92 27L97 80Q92 84 85 83L81 36Q83 24 83 13Q91 17 92 27Z",
+    hood:"M35 10Q31 -1 50 -1Q69 -1 65 10Q50 18 35 10Z", hoodIn:"M39 9Q38 2.5 50 2.5Q62 2.5 61 9Q50 14 39 9Z",
+    pants:"M24 6L76 6L77 13L81 96L57 96L51 36L49 36L43 96L19 96L23 13Z",
+    shorts:"M21 14L79 14L80 21L84 62L57 64L50 38L43 64L16 62L20 21Z",
+    tights:"M31 6L69 6L70 13L71 96L57 96L51 36L49 36L43 96L29 96L30 13Z"
+  };
+  function sleeves(a, L, R){ return a.fill(L, "#000", 0.05).fill(R, "#000", 0.15); }
+  function armholes(a, c, coat){ return a.line(coat ? "M19 36Q17 24 17 13" : "M19 40Q17 28 18 15", shade(c, -0.5), 0.8, 0.35).line(coat ? "M81 36Q83 24 83 13" : "M81 40Q83 28 82 15", shade(c, -0.5), 0.8, 0.35); }
+  function crew(a, c){ return a.fill("M39 8.6Q50 15.5 61 8.6Q50 12 39 8.6Z", shade(c, -0.38)).line("M38 8Q50 15 62 8", shade(c, -0.18), 2.4, 0.9); }
+  function cuffs(a, c, coat){
+    var d = shade(c, -0.12);
+    if (coat) return a.fill("M3.5 76L15.4 78.4L15 83Q8 84 3 80Z", d).fill("M96.5 76L84.6 78.4L85 83Q92 84 97 80Z", shade(c, -0.22));
+    return a.fill("M3.3 80L15.4 82.4L15 87Q8 88 3 84Z", d).fill("M96.7 80L84.6 82.4L85 87Q92 88 97 84Z", shade(c, -0.22));
+  }
+  function band(a, c, weave){ return a.cloth("M19 87Q50 91 81 87L81 93Q50 97 19 93Z", shade(c, -0.1), weave || "rib", {glow:false}); }
+  function folds(a){ return a.line("M31 48Q33 70 29 89", "#000", 1.6, 0.05).line("M67 46Q70 66 70 88", "#000", 1.8, 0.07); }
+  function cable(a, x, c){
+    var A = "M" + (x - 3) + " 24", B = "M" + (x + 3) + " 24";
+    for (var y = 24; y < 84; y += 8) { A += "Q" + (x + 5) + " " + (y + 4) + " " + (x - 3) + " " + (y + 8); B += "Q" + (x - 5) + " " + (y + 4) + " " + (x + 3) + " " + (y + 8); }
+    return a.line("M" + (x - 7) + " 23V86M" + (x + 7) + " 23V86", shade(c, -0.45), 0.9, 0.35).line(B, shade(c, -0.35), 1.6, 0.7).line(A, shade(c, 0.35), 1.6, 0.8);
+  }
+  function zip(a, x, y0, y1){ return a.line("M" + x + " " + y0 + "L" + x + " " + y1, "#24272C", 2.2, 0.9).line("M" + x + " " + (y0 + 1) + "L" + x + " " + (y1 - 1), "#CDD1D8", 1, 0.9, "1 1.2").fill("M" + (x - 1.4) + " " + (y0 + 2) + "H" + (x + 1.4) + "V" + (y0 + 8) + "H" + (x - 1.4) + "Z", "#DADDE3"); }
+  function pair(a, c, draw){ a.add('<g transform="translate(9 -5)">'); draw(a, shade(c, -0.2)); a.add("</g>"); draw(a, c); return a; }
+
+  var ART = {
+    tshirt:function(a){ var c = "#F2EEE5"; a.cloth(SH.ss, c, "cotton", {lo:-0.2}); sleeves(a, SH.ssL, SH.ssR); crew(a, c); folds(a);
+      a.stitch("M21 89.5Q50 93.5 79 89.5", c).stitch("M6.5 31.5L17 38.5", c).stitch("M93.5 31.5L83 38.5", c); },
+    longsleeve:function(a){ var c = "#E3D5BC"; a.cloth(SH.ls, c, "cotton"); sleeves(a, SH.lsL, SH.lsR); armholes(a, c); crew(a, c); cuffs(a, c); folds(a); band(a, c); },
+    thermal:function(a){ var c = "#C8C1DC"; a.cloth(SH.ls, c, "waffle"); sleeves(a, SH.lsL, SH.lsR); armholes(a, c); crew(a, c);
+      a.fill("M47 12L53 12L53 34L47 34Z", shade(c, -0.08)).btn(50, 18, 1.3, "#F1ECF8").btn(50, 24.5, 1.3, "#F1ECF8").btn(50, 31, 1.3, "#F1ECF8"); cuffs(a, c); band(a, c); },
+    sweatshirt:function(a){ var c = "#A5B1C5"; a.cloth(SH.hood, shade(c, -0.12), "cotton", {glow:false}).fill(SH.hoodIn, shade(c, -0.42));
+      a.cloth(SH.ls, c, "cotton"); sleeves(a, SH.lsL, SH.lsR); armholes(a, c);
+      a.cloth("M31 60L69 60L73 81L27 81Z", shade(c, -0.05), null, {glow:false}).line("M31 60Q28 70 27 81M69 60Q72 70 73 81", shade(c, -0.45), 0.9, 0.5);
+      a.line("M45 13L44 29M55 13L56 29", "#F5F0E7", 1.3).fill("M43 29h2v3h-2zM55 29h2v3h-2z", "#C9CDD4"); cuffs(a, c); band(a, c); },
+    hirka:function(a){ var c = "#C58A4B"; a.cloth(SH.ls, c, "knit"); sleeves(a, SH.lsL, SH.lsR); armholes(a, c);
+      a.fill("M38 8Q50 14 62 8L56.5 13L50 53L43.5 13Z", "#EEE7DA").line("M43.5 13L50 53L50 94M56.5 13L50 53", shade(c, -0.3), 3.4, 0.95);
+      a.btn(52.6, 60, 1.9, "#5A3A22").btn(52.6, 71, 1.9, "#5A3A22").btn(52.6, 82, 1.9, "#5A3A22");
+      a.cloth("M24 63L40 63L40 77L24 77Z", c, "knit", {glow:false}).cloth("M60 63L76 63L76 77L60 77Z", shade(c, -0.08), "knit", {glow:false}); cuffs(a, c); band(a, c); },
+    kazak:function(a){ var c = "#B4453D"; a.cloth(SH.ls, c, "knit"); sleeves(a, SH.lsL, SH.lsR); armholes(a, c);
+      cable(a, 35, c); cable(a, 65, c); a.cloth("M37 7Q50 14 63 7L64 11.5Q50 19 36 11.5Z", shade(c, -0.12), "rib", {glow:false}).fill("M40 8.3Q50 13.5 60 8.3Q50 11 40 8.3Z", shade(c, -0.45));
+      cuffs(a, c); band(a, c); },
+    ceket:function(a){ var c = "#7A8954"; a.cloth(SH.ls, c, "tweed"); sleeves(a, SH.lsL, SH.lsR); armholes(a, c);
+      a.fill("M38 8Q50 14 62 8L57 15L50 50L43 15Z", "#E9DFC7").line("M44 16L50 46M56 16L50 46", "#CDBE9C", 0.7);
+      a.cloth("M38 8L43 15L50 50L39 34L34 22L36 11Z", shade(c, 0.12), "tweed", {glow:false}).cloth("M62 8L57 15L50 50L61 34L66 22L64 11Z", shade(c, -0.12), "tweed", {glow:false});
+      a.stitch("M40 13L48 45", c).line("M50 50L50 94", shade(c, -0.5), 1, 0.45).line("M25 44L37 42.5", shade(c, -0.5), 1.4, 0.4);
+      a.fill("M24 73H41V77.5H24Z", "#000", 0.12).fill("M59 73H76V77.5H59Z", "#000", 0.16).btn(53.3, 59, 2.3, "#5A3E26").btn(53.3, 72, 2.3, "#5A3E26");
+      a.stitch("M21 89.5Q50 93.5 79 89.5", c).stitch("M4.5 81.5L15 83.5", c); },
+    mont:function(a){ var c = "#3D6354"; a.cloth("M36 3L64 3L64 12Q50 17 36 12Z", shade(c, -0.08), "twill", {glow:false}); a.cloth(SH.ls, c, "twill"); sleeves(a, SH.lsL, SH.lsR); armholes(a, c);
+      zip(a, 50, 4, 94); a.line("M60 31L73 29", "#202326", 1.3, 0.8);
+      a.fill("M23 62H41V67H23Z", "#000", 0.15).fill("M59 62H77V67H59Z", "#000", 0.2).btn(32, 64.5, 1.2, "#B9BEC6").btn(68, 64.5, 1.2, "#B9BEC6"); cuffs(a, c); band(a, c, "twill");
+      a.stitch("M37 4H63", c); },
+    kaban:function(a){ var c = "#AE7C4B"; a.cloth(SH.coat, c, "wool"); sleeves(a, SH.coatL, SH.coatR); armholes(a, c, true);
+      a.fill("M37 6Q50 12 63 6L58 14L50 50L42 14Z", "#2F3D60").line("M44 15L50 46M56 15L50 46", "#44547D", 0.8);
+      a.cloth("M37 6L42 14L50 50L35 37L29 22L33 9Z", shade(c, 0.14), "wool", {glow:false}).cloth("M63 6L58 14L50 50L65 37L71 22L67 9Z", shade(c, -0.14), "wool", {glow:false});
+      a.stitch("M38 12L48 46", c).line("M58 50L58 98", shade(c, -0.5), 1, 0.4);
+      [58, 72, 86].forEach(function(y){ a.btn(42.5, y, 2.6, "#3A2615").btn(58, y, 2.6, "#3A2615"); });
+      a.fill("M21 80L37 79V84L21 85Z", "#000", 0.12).fill("M63 79L79 80V85L63 84Z", "#000", 0.16).stitch("M20 94Q50 97.5 80 94", c).stitch("M4.5 77L15 79", c); },
+    sisme:function(a){ var c = "#2E4074", g = a.uid();
+      a.add('<clipPath id="' + g + 'c"><path d="' + SH.ls + '"/></clipPath>').d.push(lgr(g + "q", [[0, shade(c, 0.34)], [0.42, c], [1, shade(c, -0.45)]], 0, 1));
+      a.add('<path d="' + SH.ls + '" fill="' + shade(c, -0.3) + '"/><g clip-path="url(#' + g + 'c)">');
+      [8, 21, 34, 47, 60, 73, 86].forEach(function(y){ a.add('<rect x="0" y="' + y + '" width="100" height="13.5" fill="url(#' + g + 'q)"/>'); });
+      a.add('<rect x="0" y="0" width="100" height="100" fill="' + a.grad([[0, "#fff", 0.12], [0.5, "#fff", 0], [1, "#000", 0.35]]) + '"/>');
+      [8, 21, 34, 47, 60, 73].forEach(function(y){ a.line("M22 " + (y + 4) + "Q35 " + (y + 2) + " 46 " + (y + 4) + "M56 " + (y + 4) + "Q66 " + (y + 2) + " 77 " + (y + 4), "#D5DEFF", 1.5, 0.4); });
+      a.add("</g>"); armholes(a, c); a.cloth("M37 3L63 3L63 12Q50 16 37 12Z", shade(c, 0.05), null, {glow:false}); zip(a, 50, 4, 93);
+      a.fill("M66 26H76V29H66Z", "#E4E9F0", 0.9); },
+    parka:function(a){ var c = "#6B7240"; a.cloth(SH.hood, shade(c, -0.14), "twill", {glow:false}).fill(SH.hoodIn, shade(c, -0.45));
+      a.cloth(SH.coat, c, "twill"); sleeves(a, SH.coatL, SH.coatR); armholes(a, c, true);
+      a.line("M34 11Q50 21 66 11", "#E8DEC8", 6.5).line("M34 11Q50 21 66 11", "#FFFFFF", 2, 0.5, "1.4 2.2");
+      a.fill("M47 15L53 15L53 98L47 98Z", shade(c, -0.08)); [30, 46, 62, 78].forEach(function(y){ a.btn(50, y, 1.5, "#3B3E2A"); });
+      a.cloth("M23 33H40V40H23Z", shade(c, -0.06), "twill", {glow:false}).cloth("M60 33H77V40H60Z", shade(c, -0.14), "twill", {glow:false});
+      a.cloth("M21 64H40V80H21Z", shade(c, -0.04), "twill", {glow:false}).cloth("M60 64H79V80H60Z", shade(c, -0.12), "twill", {glow:false});
+      a.fill("M21 64H40V68H21ZM60 64H79V68H60Z", "#000", 0.14).line("M19 56Q50 59 81 56", shade(c, -0.4), 1, 0.6).stitch("M20 94Q50 97.5 80 94", c); },
+    yagmurluk:function(a){ var c = "#E3AF37"; a.cloth(SH.hood, shade(c, -0.12), null, {glow:false}).fill(SH.hoodIn, shade(c, -0.4));
+      a.cloth(SH.coat, c, null, {gl:0.45}); sleeves(a, SH.coatL, SH.coatR); armholes(a, c, true);
+      a.line("M51 12L51 98", shade(c, -0.5), 1, 0.4); [26, 42, 58, 74].forEach(function(y){ a.btn(55, y, 2, "#2E2E2E"); });
+      a.line("M11.5 32Q8.5 52 7.5 74", "#fff", 2.2, 0.5).line("M29 22Q27 56 29 92", "#fff", 3.2, 0.2).line("M20 15Q50 21 80 15", shade(c, -0.5), 0.8, 0.25);
+      a.fill("M22 66L37 65V70L22 71Z", "#000", 0.13).fill("M63 65L78 66V71L63 70Z", "#000", 0.17); },
+    ruzgarlik:function(a){ var c = "#2D8C82"; a.cloth(SH.ls, c, "waffle"); sleeves(a, SH.lsL, SH.lsR); armholes(a, c);
+      a.fill("M18.5 15.5L38 8Q50 14 62 8L81.5 15.5L81 30L19 30Z", shade(c, -0.2)).cloth("M37 4Q50 0 63 4L64 11Q50 16 36 11Z", shade(c, -0.06), null, {glow:false});
+      zip(a, 50, 5, 94); a.fill("M19 46H81V48.4H19Z", "#E8EDF3", 0.85).fill("M3.5 80L15.2 82L15 87Q8 88 3 84Z", "#1F2A2C").fill("M96.5 80L84.8 82L85 87Q92 88 97 84Z", "#1F2A2C"); band(a, c, null); },
+    jean:function(a){ var c = "#3E629D", o = "#E3A15A"; a.cloth(SH.pants, c, "twill"); a.fill("M23 6H77V13H23Z", "#000", 0.14).fill("M57 30L54 62L57 96L81 96L78 62Z", "#000", 0.12);
+      a.add('<ellipse cx="32" cy="66" rx="6.5" ry="13" fill="#fff" fill-opacity=".09"/><ellipse cx="68" cy="66" rx="6" ry="12" fill="#fff" fill-opacity=".05"/>');
+      a.line("M50 13V34Q50 40 44 41", o, 0.9, 1, "1.8 1.4").line("M24 16Q34 22 38 13M76 16Q66 22 62 13", o, 0.9, 1, "1.8 1.4").line("M23.5 12.2H76.5M19.6 93H43M57 93H80.5", o, 0.8, 1, "1.8 1.4");
+      a.fill("M28 4.8h2.6v9.2H28zM48.7 4.8h2.6v9.2h-2.6zM69.4 4.8H72v9.2h-2.6z", shade(c, -0.25)).btn(50, 9.5, 2.1, "#C9A04F").btn(37.5, 15, 1.1, "#C9A04F").btn(62.5, 15, 1.1, "#C9A04F"); },
+    pantolon:function(a){ var c = "#4A4C58"; a.cloth(SH.pants, c, "tweed"); a.fill("M23 6H77V13H23Z", "#000", 0.16).fill("M57 30L54 62L57 96L81 96L78 62Z", "#000", 0.12);
+      a.line("M33 16L31 95M67 16L69 95", "#fff", 1, 0.13).line("M26 14L31 27M74 14L69 27", "#000", 1, 0.3);
+      a.fill("M28 4.8h2.6v9.2H28zM48.7 4.8h2.6v9.2h-2.6zM69.4 4.8H72v9.2h-2.6z", shade(c, -0.2)).btn(50, 9.5, 1.9, "#2B2C32").stitch("M23.5 12.2H76.5", c); },
+    sort:function(a){ var c = "#7BA5D5"; a.cloth(SH.shorts, c, "twill"); a.fill("M20 14H80V21H20Z", "#000", 0.1).fill("M57 34L54 50L57 64L84 62L81 44Z", "#000", 0.1);
+      a.cloth("M16.4 56L43.6 58.4L43 64L16 62Z", shade(c, 0.12), "twill", {glow:false}).cloth("M56.4 58.4L83.6 56L84 62L57 64Z", shade(c, -0.05), "twill", {glow:false});
+      a.line("M50 21V36", shade(c, -0.5), 0.9, 0.5).line("M46 17Q50 20 54 17M48 18L46 26M52 18L54 26", "#F2EDE3", 1).stitch("M24 24Q33 29 37 21M76 24Q67 29 63 21", c); },
+    tayt:function(a){ var c = "#2A2C38"; a.cloth(SH.tights, c, null, {gl:0.2}); a.cloth("M30 6H70V14H30Z", shade(c, 0.1), null, {glow:false});
+      a.line("M37 18Q35 56 37.5 94", "#fff", 2.6, 0.2).line("M64 18Q66 56 63.5 94", "#fff", 1.6, 0.1).line("M45 16L46 94M55 16L54 94", "#8E93AE", 0.7, 0.6, "1.6 1.3"); },
+    sneaker:function(a){ pair(a, "#F3F0E8", function(a, c){
+      a.cloth("M8 74Q8 54 22 54L37 54Q43 54 47 60L55 66L76 69Q89 71 89 80L89 82L8 82Z", c, null, {lo:-0.18});
+      a.fill("M8 74Q8 60 14 56L20 56L20 82L8 82Z", "#A8543A").line("M22 76Q40 66 62 72", shade(c, -0.3), 1.2, 0.7).stitch("M23 79Q41 69 63 75", c);
+      a.line("M33 58.5L38.5 55.5M36.5 61.5L42 58.5M40 64.5L45.5 61.5", "#CFC6B4", 1.5);
+      a.cloth("M6 82L91 82L91 86Q91 90 87 90L10 90Q6 90 6 86Z", "#E3D3B1", null, {glow:false}).line("M7 84.6H90", "#000", 0.8, 0.15); }); },
+    spor:function(a){ pair(a, "#3BA79A", function(a, c){
+      a.cloth("M8 76Q8 58 22 56L38 56Q44 56 48 61L56 66L76 68Q88 70 88 78L88 80L8 80Z", c, "mesh");
+      a.fill("M20 78Q34 62 52 66Q48 72 30 80Z", shade(c, 0.35), 0.8).fill("M8 72Q8 62 12 58L17 58L17 80L8 80Z", "#E9EEF3");
+      a.line("M33 60L38 57.5M36 63L41 60.5", "#F3F6F8", 1.4);
+      a.cloth("M6 80L90 80Q93 80 92 84L90 89L10 89Q6 89 6 85Z", "#F7F5F0", null, {glow:false}).line("M10 85Q30 82 50 86T89 84", c, 1.1, 0.6).fill("M8 89L89 89L88 92L9 92Z", "#2B2E36"); }); },
+    bot:function(a){ pair(a, "#8C5B33", function(a, c){
+      a.cloth("M16 32Q30 28 44 32L46 62Q49 68 64 71Q82 74 86 82L86 86L14 86L14 64Z", c, null, {gl:0.35});
+      a.cloth("M33 35L41 35L44 61L31 61Z", "#3A2A1E", "rib", {glow:false, edge:false}).fill("M40 26L46 26L45.5 33L40.5 33Z", "#2F2219").line("M18 37Q30 33 41 36", "#FFE7C4", 1.4, 0.25);
+      a.cloth("M12 86L88 86Q90 91 86 93L12 93Z", "#2A2019", null, {glow:false}).stitch("M15 84.5H85", "#2A2019"); }); },
+    yuruyus:function(a){ pair(a, "#A47F4F", function(a, c){
+      a.cloth("M16 28Q30 25 46 28L48 58Q52 64 66 67Q82 70 86 78L86 84L14 84L14 60Z", c, "wool");
+      a.cloth("M16 28Q30 25 46 28L46 34Q30 31 16 34Z", "#4A3322", null, {glow:false}).cloth("M62 70Q82 72 86 78L86 84L62 84Z", "#3B2B1E", null, {glow:false});
+      a.line("M44 36L50 39.5M44 42L50 45.5M44 48L50 51.5M45 54L51 57.5", "#C8462F", 1.6); [36, 42, 48, 54].forEach(function(y){ a.btn(43.5, y, 1.2, "#B7BCC4"); });
+      a.cloth("M12 84L88 84L88 90L12 90Z", "#24201C", null, {glow:false}).line("M16 90V93M26 90V93M36 90V93M46 90V93M56 90V93M66 90V93M76 90V93M85 90V93", "#24201C", 2.4).stitch("M15 82.5H85", c); }); },
+    sandalet:function(a){ pair(a, "#A8693B", function(a, c){
+      a.cloth("M8 76Q8 71 15 71L84 71Q92 71 92 76Q92 81 85 81L15 81Q8 81 8 76Z", "#CDA574", "wool", {glow:false, edge:false}).cloth("M8 79Q9 85 16 85L85 85Q91 85 92 79L92 82Q90 89 84 89L16 89Q9 89 8 82Z", "#3B2A1E", null, {glow:false});
+      a.line("M24 72Q31 57 43 72", shade(c, -0.3), 6.4).line("M24 72Q31 57 43 72", c, 5).line("M50 72Q60 56 72 72", shade(c, -0.3), 6.4).line("M50 72Q60 56 72 72", c, 5);
+      a.line("M26 68Q31 59 40 66", "#fff", 1, 0.3).line("M52 68Q60 58 69 66", "#fff", 1, 0.3).add('<rect x="32" y="59.5" width="5" height="5" rx="1" fill="none" stroke="#C9CDD4" stroke-width="1.4"/>'); }); },
+    bere:function(a){ var c = "#B5532F"; a.cloth("M18 64Q18 26 50 24Q82 26 82 64Z", c, "knit");
+      [26, 34, 42, 50, 58, 66, 74].forEach(function(x){ a.line("M" + x + " 63Q" + (x + (50 - x) * 0.3) + " 38 50 25", shade(c, -0.4), 0.9, 0.35); });
+      a.cloth("M14 60Q50 54 86 60L86 76Q50 70 14 76Z", shade(c, -0.08), "rib");
+      var g = a.uid(); a.d.push('<radialGradient id="' + g + '" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#FFFCF4"/><stop offset="1" stop-color="#D6C7A9"/></radialGradient>');
+      a.add('<circle cx="50" cy="18" r="10" fill="url(#' + g + ')"/>'); [[41, 14], [59, 14], [43, 25], [57, 25], [50, 9], [50, 27]].forEach(function(p){ a.add('<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3.2" fill="#F4ECDB"/>'); }); },
+    sapka:function(a){ var c = "#2E3B60"; a.cloth("M14 66Q14 32 48 30Q82 32 84 64Z", c, "twill");
+      a.line("M48 31Q44 48 40 66", shade(c, -0.5), 1, 0.5).line("M48 31Q60 46 66 65", shade(c, 0.4), 1, 0.35).stitch("M22 58Q28 40 46 34M54 34Q72 40 76 58", c);
+      a.btn(48, 30.5, 2.4, c).cloth("M66 62Q90 60 96 68Q92 75 70 72Z", shade(c, -0.15), "twill", {glow:false}).stitch("M70 66Q88 64 92 69", c).line("M14 66Q50 72 84 64", "#000", 1.2, 0.3); },
+    semsiye:function(a){ var c = "#8C2B39"; a.cloth("M6 52Q50 4 94 52Q83 45 72 52Q61 45 50 52Q39 45 28 52Q17 45 6 52Z", c, null, {hi:0.12, lo:-0.38, gl:0.22});
+      a.fill("M50 9Q30 20 28 52Q39 45 50 52Z", "#fff", 0.12).fill("M50 9Q70 20 72 52Q83 45 94 52Q86 26 50 9Z", "#000", 0.2);
+      a.line("M50 9Q30 20 28 52M50 9Q70 20 72 52M50 9Q49 30 50 52M50 9Q14 22 6 52M50 9Q86 22 94 52", shade(c, -0.5), 0.9, 0.5);
+      a.fill("M49 3H51V9H49Z", "#B9BEC6").line("M50 52V85", a.metal(), 1.8).line("M50 84Q50 93 43 93Q37 93 37 87", a.wood(), 4.2); },
+    gozluk:function(a){ var f = "#6B3A1F", L = "M8 44Q8 38 14 38L40 38Q45 38 45 44L44 54Q43 64 32 64L22 64Q10 64 9 54Z", R = "M55 44Q55 38 60 38L86 38Q92 38 92 44L91 54Q90 64 78 64L68 64Q57 64 56 54Z";
+      a.line("M8 41L1 39M92 41L99 39", f, 2.4).cloth(L, f, "wool", {gl:0.35}).cloth(R, f, "wool", {gl:0.35}).line("M45 43Q50 38.5 55 43", f, 3.2);
+      var lens = a.grad([[0, "#46607E"], [1, "#121822"]], 0, 1);
+      a.add('<path d="M12 45Q12 41 16 41L39 41Q42 41 42 45L41 53Q40 61 31 61L23 61Q13 61 12.5 53Z" fill="' + lens + '"/><path d="M58 45Q58 41 62 41L85 41Q88 41 88 45L87.5 53Q87 61 77 61L69 61Q60 61 59 53Z" fill="' + lens + '"/>');
+      a.fill("M15 45L25 43L18 56Z", "#fff", 0.28).fill("M61 45L71 43L64 56Z", "#fff", 0.22); },
+    atki:function(a){ var g = a.uid();
+      a.d.push('<pattern id="' + g + '" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#A63A33"/><rect y="4.5" width="14" height="4" fill="#1F2C4F" fill-opacity=".55"/><rect x="4.5" width="4" height="14" fill="#1F2C4F" fill-opacity=".45"/><path d="M0 11.5H14M11.5 0V14" stroke="#F1E3C8" stroke-opacity=".7" stroke-width=".8"/></pattern>');
+      var t = "url(#" + g + ")", fold = a.grad([[0, "#fff", 0.2], [0.5, "#fff", 0], [1, "#000", 0.28]]);
+      a.add('<path d="M58 24L88 24L91 74L62 76Z" fill="' + t + '"/><path d="M58 24L88 24L91 74L62 76Z" fill="#000" fill-opacity=".24"/>').line("M63 76V84M67 75.8V85M71 75.6V84M75 75.4V85M79 75.2V84M83 75V85M87 74.8V84", "#E9D9BC", 1.3);
+      a.add('<path d="M12 24L42 24L39 86L10 88Z" fill="' + t + '"/><path d="M12 24L42 24L39 86L10 88Z" fill="' + fold + '"/>').line("M11 88V97M15 87.7V98M19 87.4V97M23 87.1V98M27 86.8V97M31 86.5V98M35 86.2V97M38.5 86V97", "#F1E3C8", 1.3);
+      a.add('<path d="M8 16Q50 4 92 16L90 28Q50 20 10 28Z" fill="' + t + '"/><path d="M8 16Q50 4 92 16L90 28Q50 20 10 28Z" fill="#fff" fill-opacity=".12"/>').line("M10 27Q50 19 90 27", "#000", 1.6, 0.25); },
+    eldiven:function(a){ var c = "#3D6A52"; function glove(a, c){
+        a.cloth("M24 72L50 72L50 92L24 92Z", shade(c, -0.1), "rib", {glow:false});
+        a.cloth("M23 72Q18 52 21 34Q24 18 37 18Q50 18 52 34Q54 52 51 72Z", c, "knit").cloth("M23 56Q12 52 11 41Q11 35 16 36Q22 39 25 47Z", shade(c, -0.06), "knit", {glow:false});
+        a.line("M30 19.5V34M37 18.5V34M44 19.5V34", shade(c, -0.5), 0.9, 0.45); }
+      a.add('<g transform="translate(26 -3)">'); glove(a, shade(c, -0.22)); a.add("</g>"); glove(a, c); },
+    su:function(a){ a.cloth("M40 8H60V20H40Z", "#2E4074", null, {glow:false}).line("M46 8Q50 1 54 8", "#2E4074", 2);
+      a.cloth("M37 26Q37 20 43 20L57 20Q63 20 63 26L65 88Q65 94 59 94L41 94Q35 94 35 88Z", "#A7D2EA", null, {gl:0.6, lo:-0.15});
+      a.fill("M35.7 52L64.2 52L65 88Q65 94 59 94L41 94Q35 94 35 88Z", "#3F8CC4", 0.42).line("M41 28L40 88", "#fff", 2.2, 0.55).line("M36 52H64", "#fff", 0.8, 0.6); },
+    krem:function(a){ var c = "#EFA03A"; a.cloth("M30 10L70 10L64 74L36 74Z", c, null, {gl:0.4}).fill("M30 10H70V16H30Z", shade(c, -0.15)).line("M34 11V15M40 11V15M46 11V15M52 11V15M58 11V15M64 11V15", "#000", 0.7, 0.2);
+      a.add('<circle cx="50" cy="40" r="7" fill="#FFF3C4"/>').line("M50 29V31M50 49V51M39 40H41M59 40H61M42.2 32.2L43.6 33.6M56.4 46.4L57.8 47.8M42.2 47.8L43.6 46.4M56.4 33.6L57.8 32.2", "#FFF3C4", 1.5);
+      a.cloth("M38 74H62V90Q62 94 58 94H42Q38 94 38 90Z", "#F4EFE6", null, {glow:false}); },
+    corap:function(a){ var c = "#EDE5D4"; function sock(a, c){
+        a.cloth("M30 8L52 8L52 54L72 68Q80 74 75 82Q70 89 62 84L34 66Q30 63 30 58Z", c, "knit");
+        a.fill("M30 8H52V12H30Z", shade(c, -0.1)).line("M30 17H52M30 23H52", "#B8473F", 2.4).fill("M68 70Q80 74 75 82Q71 87 64 83Z", shade(c, -0.12)).fill("M30 54Q30 64 40 66L44 58Z", shade(c, -0.1)); }
+      a.add('<g transform="translate(15 -4)">'); sock(a, shade(c, -0.15)); a.add("</g>"); sock(a, c); }
+  };
+  function art(g){ var a = new Art(); (ART[g] || ART.tshirt)(a); return a.svg(); }
+
+  // The same piece on the rail: tops on a wooden hanger, bottoms in clips, small things on a peg, the scarf over the
+  // bar, the umbrella by its handle; shoes and the like stand on the floor below. Each returns its own viewBox height.
+  var HANG = ["tshirt","longsleeve","thermal","sweatshirt","hirka","kazak","ceket","mont","kaban","sisme","parka","yagmurluk","ruzgarlik"];
+  var PEG = {bere:[6, 88], sapka:[-14, 68], gozluk:[-22, 48], eldiven:[6, 94], corap:[8, 104]};
+  function rackKind(g){ return HANG.indexOf(g) >= 0 ? "hang" : BOTTOMS.indexOf(g) >= 0 ? "clip" : PEG[g] ? "peg" : g === "atki" ? "drape" : g === "semsiye" ? "hook" : "floor"; }
+  function rackArt(g){
+    var a = new Art(), k = rackKind(g), m, hook = function(y){ return a.line("M50 " + y + "L50 15C50 10 56 9 56 4C56 -.5 51 -2 47.5 .8", m, 2.2); };
+    if (k === "floor") { var shoe = SHOES.indexOf(g) >= 0, sg = a.uid();
+      a.d.push('<radialGradient id="' + sg + '"><stop offset="0" stop-color="#000" stop-opacity=".32"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>');
+      a.add('<ellipse cx="52" cy="' + (shoe ? 92 : 95) + '" rx="46" ry="5" fill="url(#' + sg + ')"/>'); (ART[g] || ART.tshirt)(a);
+      return a.svg(shoe ? "0 20 100 78" : "0 0 100 100");
+    }
+    m = a.metal();
+    if (k === "hang") { hook(24); a.fill("M48 21H52V26H48Z", m).line("M13 36Q50 18 87 36", a.wood(), 6); a.add('<g transform="translate(0 26)">'); ART[g](a); a.add("</g>"); return a.svg("0 -2 100 132"); }
+    if (k === "clip") { hook(22); a.line("M16 22H84", m, 2.4); a.add('<g transform="translate(0 20)">'); ART[g](a); a.add("</g>").fill("M21.5 18H28.5V31H21.5ZM71.5 18H78.5V31H71.5Z", "#4E525A"); return a.svg("0 -2 100 120"); }
+    if (k === "peg") { var p = PEG[g];
+      a.add('<g transform="translate(0 ' + p[0] + ')' + (g === "eldiven" ? ' rotate(180 50 50)' : '') + '">'); ART[g](a); a.add("</g>");
+      a.add('<rect x="46.5" y="-2" width="7" height="22" rx="2.5" fill="' + a.wood() + '"/>').line("M50 -1V19", "#6E4A20", 0.7, 0.5).add('<circle cx="50" cy="8" r="2.2" fill="none" stroke="#9AA0A8" stroke-width="1.2"/>');
+      return a.svg("0 -2 100 " + p[1]);
+    }
+    if (k === "drape") { a.add('<g transform="translate(0 -9)">'); ART.atki(a); a.add("</g>"); return a.svg("0 -2 100 92"); }
+    // the umbrella, closed, hanging by its handle
+    var c = "#8C2B39";
+    a.line("M52 62L52 14C52 4 39.5 2 38.5 11.5", a.wood(), 5).fill("M49.5 54H54.5V60H49.5Z", m);
+    a.cloth("M52 56C64 72 66 118 54 128L50 128C38 118 40 72 52 56Z", c, null, {gl:0.35}).line("M52 60C57 90 57 116 53 127", "#fff", 1.1, 0.25).line("M52 60C46 90 46 116 51 127", "#000", 1.1, 0.25);
+    a.fill("M42 92L61 87V95L42 100Z", shade(c, -0.45)).btn(57, 91, 1.8, "#C9CDD4").fill("M51.2 128H52.8L52.4 136H51.6Z", m);
+    return a.svg("0 -2 100 140");
+  }
   var G = {tshirt:"Tişört", longsleeve:"Uzun kollu", thermal:"Termal içlik", sweatshirt:"Sweatshirt", hirka:"Hırka", kazak:"Kazak", ceket:"İnce ceket", mont:"Mont", kaban:"Kaban", sisme:"Şişme mont", parka:"Parka", yagmurluk:"Yağmurluk", ruzgarlik:"Rüzgârlık", jean:"Jean", pantolon:"Kalın pantolon", sort:"Şort", tayt:"Tayt", sneaker:"Sneaker", spor:"Spor ayakkabı", bot:"Bot", yuruyus:"Yürüyüş botu", sandalet:"Sandalet", bere:"Bere", sapka:"Şapka", semsiye:"Şemsiye", gozluk:"Güneş gözlüğü", atki:"Atkı", eldiven:"Eldiven", su:"Su", krem:"Güneş kremi", corap:"Yedek çorap"};
   // What each sticker stands for: where it goes, what else works, and one practical tip.
   var INFO = {
@@ -2107,28 +2350,46 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   // a clock time on this device ("09:05"; English keeps the 24-hour clock the rest of the app uses)
   function clock(ms){ return LANG === "en" ? hmOf(ms) : new Date(ms).toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}); }
   var ROT = [-5, 4, -2, 6, -4, 3];
+  // Each band's daytime sky, top to bottom (the light of a frosty morning, of a mild noon, of a hot afternoon); light enough
+  // everywhere for dark text. At night and in dark mode the sky is deep blue with the band's colour as the glow (CSS).
+  var SKY_DAY = [["#AFC2EC","#D2DDF4","#EEF2FA"], ["#B1CBEC","#D7E5F5","#F2EEEA"], ["#A6D3CB","#CFE8E1","#EEF5EF"], ["#C2DAA4","#DDEBCA","#F2F4E3"],
+                 ["#E4C470","#F1E2B6","#E6E8CD"], ["#F3BB6C","#F8DAAA","#FCEEDB"], ["#F3A766","#F8CEA4","#FDEBD9"], ["#EC8B66","#F6C2A6","#FCE5D8"]];
+  var NIGHT_TOP = "#0A0F21";
+  // Film grain for the sky, drawn once.
+  function makeGrain(){
+    try {
+      var n = 160, c = document.createElement("canvas"); c.width = c.height = n;
+      var g = c.getContext("2d"), im = g.createImageData(n, n), d = im.data;
+      for (var i = 0; i < d.length; i += 4) { var v = Math.random() * 255 | 0; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
+      g.putImageData(im, 0, 0);
+      document.documentElement.style.setProperty("--grain", 'url("' + c.toDataURL("image/png") + '")');
+    } catch (e) {}
+  }
   function render(opts){
     var inp = currentInput(), live = inp.kind === "live";
     var day = live ? dayPlan() : null, useDay = !!(day && day.inp && day.lead);
     var P = prefs(), pc = plan(inp, P), p = useDay ? plan(day.inp, P) : pc;
     var preview = day && day.inp && !day.lead ? plan(day.inp, P) : null;
     var root = document.documentElement;
+    var sky = SKY_DAY[p.L];
     root.style.setProperty("--lv", LV[p.L].color);
+    root.style.setProperty("--d1", sky[0]); root.style.setProperty("--d2", sky[1]); root.style.setProperty("--d3", sky[2]);
     var night = live && (useDay ? day.inp.now.isDay === 0 : inp.now.isDay === 0);
     if (night) root.setAttribute("data-night", "1"); else root.removeAttribute("data-night");
     var tc = document.querySelector('meta[name="theme-color"]');
     var dark = night || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
-    if (tc) tc.setAttribute("content", dark ? "#15171f" : LV[p.L].color);
-    if (window.NeGiysemAndroid) { try { window.NeGiysemAndroid.setTheme(dark ? "#15171f" : LV[p.L].color, !!dark); } catch (e) {} }
+    if (tc) tc.setAttribute("content", dark ? NIGHT_TOP : sky[0]);
+    if (window.NeGiysemAndroid) { try { window.NeGiysemAndroid.setTheme(dark ? NIGHT_TOP : sky[0], !!dark); } catch (e) {} }
 
     var pname = live ? nm(livePlaceName()) : tx("Elle ayar");
     $("placeLabel").textContent = pname; $("placeBtn").title = pname;
     $("placeBtn").setAttribute("aria-label", tx("Yer: {0}. Değiştir", pname));
     var soft = [lvName(p.L)]; if (useDay) soft.unshift(tx(day.offset ? "Yarınki günüme göre" : "Günüme göre"));
     if (S.profiles.length > 1) soft.unshift(forWhom(curProf()));
-    $("pills").innerHTML = soft.map(function(x){ return '<span class="pill soft">' + esc(x) + '</span>'; }).join("") + p.pills.map(function(x){ return '<span class="pill">' + esc(x) + '</span>'; }).join("");
+    // (the band's name is on the tag; the share picture still has it as a pill)
+    $("pills").innerHTML = soft.filter(function(x){ return x !== lvName(p.L); }).map(function(x){ return '<span class="pill soft">' + esc(x) + '</span>'; }).join("") + p.pills.map(function(x){ return '<span class="pill">' + esc(x) + '</span>'; }).join("");
     $("headline").innerHTML = headHTML(p.head);
-    $("bigTemp").textContent = deg(inp.now.t);
+    $("bigTemp").textContent = deg(inp.now.t); $("tagLevel").textContent = lvName(p.L);
     $("nowIcon").innerHTML = icon(kindOf(inp.now.code, inp.now.isDay));
     $("nowCond").textContent = tx(live ? (COND[inp.now.code] || "") : (SKY[S.manual.sky] || SKY.partly).label);
     $("nowFeels").textContent = tx("Hissedilen {0}", deg(inp.now.app)) + (useDay
@@ -2140,7 +2401,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var wearEl = $("wear");
     CUR = {wear:p.wear, take:p.take}; hideTip();
     wearEl.innerHTML = p.wear.map(function(w, i){
-      return '<div class="stk' + (w.need ? ' need' : '') + '" style="--r:' + ROT[i % ROT.length] + 'deg" data-k="w:' + i + '" tabindex="0" role="button" aria-label="' + esc(w.label + ": " + w.why.join(", ")) + '"><div class="art">' + art(w.g) + '</div><span class="lab">' + esc(w.label) + '</span></div>';
+      return '<div class="stk ' + (rackKind(w.g) === "floor" ? "floor" : "hang") + (w.need ? ' need' : '') + '" data-k="w:' + i + '" tabindex="0" role="button" aria-label="' + esc(w.label + ": " + w.why.join(", ")) + '"><div class="art">' + rackArt(w.g) + '</div><span class="lab">' + esc(w.label) + '</span></div>';
     }).join("");
     if (sig !== lastWearSig) { wearEl.classList.remove("pop"); void wearEl.offsetWidth; wearEl.classList.add("pop"); lastWearSig = sig; }
     var tk = $("take");
@@ -2914,8 +3175,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     return o;
   }
   // An inline SVG (sticker, weather icon, logo) as a standalone image; data: URLs keep the canvas exportable.
-  function svgURL(svg, px, ink, field){
-    var s = String(svg).replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" width="' + px + '" height="' + px + '" ');
+  function svgURL(svg, px, ink, field, hpx){
+    var s = String(svg).replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" width="' + px + '" height="' + (hpx || px) + '" ');
     if (ink) s = s.replace(/currentColor/g, ink);
     s = s.replace(/var\(--field\)/g, field || "#ffffff");
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
@@ -2930,18 +3191,21 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     while (s.length > 1 && x.measureText(s + "…").width > max) s = s.slice(0, -1);
     return s.replace(/\s+$/, "") + "…";
   }
-  // a sticker: white outline (the image's silhouette drawn around it), a soft shadow, then the art
-  function drawSticker(x, img, cx, cy, s, rot, halo, shadow){
-    var c = document.createElement("canvas"); c.width = c.height = Math.ceil(s);
-    var g = c.getContext("2d"); g.drawImage(img, 0, 0, s, s); g.globalCompositeOperation = "source-in"; g.fillStyle = halo; g.fillRect(0, 0, c.width, c.height);
-    var hw = Math.max(2, s * 0.035);
+  // an image with a soft shadow, and (for the mark) a white outline drawn from its silhouette
+  function drawSticker(x, img, cx, cy, s, rot, halo, shadow, h){
+    h = h || s;
     x.save(); x.translate(cx, cy); x.rotate(rot * Math.PI / 180);
-    if (shadow) { x.shadowColor = shadow; x.shadowBlur = s * 0.12; x.shadowOffsetY = s * 0.08; x.drawImage(c, -s / 2, -s / 2, s, s); x.shadowColor = "transparent"; x.shadowBlur = 0; x.shadowOffsetY = 0; }
-    for (var a = 0; a < 16; a++) x.drawImage(c, -s / 2 + Math.cos(a * Math.PI / 8) * hw, -s / 2 + Math.sin(a * Math.PI / 8) * hw, s, s);
-    x.drawImage(img, -s / 2, -s / 2, s, s);
+    if (halo) {
+      var c = document.createElement("canvas"); c.width = Math.ceil(s); c.height = Math.ceil(h);
+      var g = c.getContext("2d"); g.drawImage(img, 0, 0, s, h); g.globalCompositeOperation = "source-in"; g.fillStyle = halo; g.fillRect(0, 0, c.width, c.height);
+      var hw = Math.max(2, s * 0.035);
+      for (var a = 0; a < 16; a++) x.drawImage(c, -s / 2 + Math.cos(a * Math.PI / 8) * hw, -h / 2 + Math.sin(a * Math.PI / 8) * hw, s, h);
+    }
+    if (shadow) { x.shadowColor = shadow; x.shadowBlur = s * 0.1; x.shadowOffsetY = s * 0.07; }
+    x.drawImage(img, -s / 2, -h / 2, s, h);
     x.restore();
   }
-  // The verdict as words; the braced part keeps a flag so it gets the white sticker box, like .hl on the page.
+  // The verdict as words; the braced part is set in italic and underlined with a stitched thread, like .hl on the page.
   function headWords(head){
     var words = [], cur = [], hl = false, buf = "";
     function flush(){ if (buf) { cur.push({t:buf, hl:hl}); buf = ""; } }
@@ -2954,133 +3218,197 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     flush(); if (cur.length) words.push(cur);
     return words;
   }
-  function placeLine(x, ws, pad, sp){
+  function placeLine(x, ws, fonts){
     var cx = 0, parts = [], runs = [], run = null;
+    x.font = fonts[0]; var sp = x.measureText(" ").width;
     ws.forEach(function(wd, wi){
-      if (wi) { if (run && !wd[0].hl) { cx += pad; run.x1 = cx; run = null; } cx += sp; }
+      if (wi) { if (run && !wd[0].hl) run = null; cx += sp; }
       wd.forEach(function(pc){
-        if (pc.hl && !run) { run = {x0:cx, parts:[]}; runs.push(run); cx += pad; }
-        else if (!pc.hl && run) { cx += pad; run.x1 = cx; run = null; }
-        (run ? run.parts : parts).push({t:pc.t, x:cx}); cx += x.measureText(pc.t).width;
+        x.font = fonts[pc.hl ? 1 : 0];
+        var w = x.measureText(pc.t).width;
+        if (pc.hl) { if (!run) { run = {x0:cx}; runs.push(run); } run.x1 = cx + w; } else run = null;
+        parts.push({t:pc.t, x:cx, hl:pc.hl}); cx += w;
       });
     });
-    if (run) { cx += pad; run.x1 = cx; }
     return {w:cx, parts:parts, runs:runs};
   }
   function layoutHead(x, head, FD, maxW){
     var words = headWords(String(head || "")), best = null;
-    [112, 102, 92, 84, 76, 68, 62].some(function(size){
-      x.font = "800 " + size + "px " + FD;
-      var pad = size * 0.2, sp = x.measureText(" ").width, lines = [], cur = [], fits = true;
+    [112, 102, 92, 84, 76, 68].some(function(size){
+      var fonts = ["400 " + size + "px " + FD, "italic 400 " + size + "px " + FD], lines = [], cur = [], fits = true;
       words.forEach(function(wd){
-        if (placeLine(x, [wd], pad, sp).w > maxW) fits = false;
-        if (cur.length && placeLine(x, cur.concat([wd]), pad, sp).w > maxW) { lines.push(cur); cur = [wd]; } else cur.push(wd);
+        if (placeLine(x, [wd], fonts).w > maxW) fits = false;
+        if (cur.length && placeLine(x, cur.concat([wd]), fonts).w > maxW) { lines.push(cur); cur = [wd]; } else cur.push(wd);
       });
       if (cur.length) lines.push(cur);
-      best = {size:size, lh:Math.round(size * 1.07), lines:lines.map(function(l){ return placeLine(x, l, pad, sp); })};
-      return fits && lines.length <= (size >= 84 ? 3 : 4);
+      best = {size:size, fonts:fonts, lh:Math.round(size * 1.04), lines:lines.map(function(l){ return placeLine(x, l, fonts); })};
+      return fits && lines.length <= (size >= 92 ? 3 : 4);
     });
     return best;
   }
-  function drawHead(x, hd, X, Y, FD, ink, hlBg, hlInk){
-    x.font = "800 " + hd.size + "px " + FD;
+  function drawHead(x, hd, X, Y, ink, stitch){
     hd.lines.forEach(function(ln, i){
       var base = Y + i * hd.lh + hd.size * 0.8;
-      x.fillStyle = ink; ln.parts.forEach(function(pt){ x.fillText(pt.t, X + pt.x, base); });
-      ln.runs.forEach(function(r){
-        var w = r.x1 - r.x0, h = hd.size * 1.04, cx = X + r.x0 + w / 2, cy = base - hd.size * 0.3;
-        x.save(); x.translate(cx, cy); x.rotate(-2 * Math.PI / 180);
-        x.fillStyle = hlBg; rrect(x, -w / 2, -h / 2, w, h, hd.size * 0.22); x.fill();
-        x.fillStyle = hlInk; r.parts.forEach(function(pt){ x.fillText(pt.t, X + pt.x - cx, base - cy); });
-        x.restore();
-      });
+      x.fillStyle = ink;
+      ln.parts.forEach(function(pt){ x.font = hd.fonts[pt.hl ? 1 : 0]; x.fillText(pt.t, X + pt.x, base); });
+      x.save(); x.strokeStyle = stitch; x.lineWidth = Math.max(3, hd.size * 0.03); x.setLineDash([hd.size * 0.11, hd.size * 0.08]);
+      ln.runs.forEach(function(r){ var uy = base + hd.size * 0.16; x.beginPath(); x.moveTo(X + r.x0, uy); x.lineTo(X + r.x1, uy); x.stroke(); });
+      x.restore();
     });
   }
+  // the paper tag with the temperature, hanging from a pin (pivot: its top centre)
+  function drawTag(x, X, Y, w, h, rot, temp, level, icon, FD, FB, hole){
+    var ch = h * 0.14, cw = w * 0.22;
+    function shape(i){ x.beginPath(); x.moveTo(-w / 2 + cw + i, i); x.lineTo(w / 2 - cw - i, i); x.lineTo(w / 2 - i, ch + i * 0.6); x.lineTo(w / 2 - i, h - i); x.lineTo(-w / 2 + i, h - i); x.lineTo(-w / 2 + i, ch + i * 0.6); x.closePath(); }
+    x.save(); x.translate(X, Y); x.rotate(rot * Math.PI / 180);
+    x.strokeStyle = "#7A6A4A"; x.lineWidth = 3;
+    x.beginPath(); x.moveTo(0, -76); x.quadraticCurveTo(-14, -16, 0, 44); x.moveTo(0, -76); x.quadraticCurveTo(14, -16, 0, 44); x.stroke();
+    var pg = x.createRadialGradient(-4, -80, 1, 0, -76, 12); pg.addColorStop(0, "#F4DFA6"); pg.addColorStop(1, "#9A7430");
+    x.fillStyle = pg; x.beginPath(); x.arc(0, -76, 11, 0, Math.PI * 2); x.fill();
+    var gr = x.createRadialGradient(-w * 0.2, h * 0.18, 10, 0, h * 0.5, h * 0.75); gr.addColorStop(0, "#FFFDF6"); gr.addColorStop(1, "#E6D9BC");
+    x.shadowColor = "rgba(40,28,8,.32)"; x.shadowBlur = 40; x.shadowOffsetY = 26;
+    shape(0); x.fillStyle = gr; x.fill(); x.shadowColor = "transparent"; x.shadowBlur = 0; x.shadowOffsetY = 0;
+    x.save(); x.setLineDash([11, 8]); x.lineWidth = 3; x.strokeStyle = "rgba(156,74,42,.55)"; shape(16); x.stroke(); x.restore();
+    var eg = x.createRadialGradient(-6, 38, 2, 0, 44, 24); eg.addColorStop(0, "#F6E3A8"); eg.addColorStop(1, "#8E6C2E");
+    x.fillStyle = eg; x.beginPath(); x.arc(0, 44, 22, 0, Math.PI * 2); x.fill();
+    x.fillStyle = hole; x.beginPath(); x.arc(0, 44, 10, 0, Math.PI * 2); x.fill();
+    x.fillStyle = "#1d1b14"; x.textAlign = "center"; x.font = "400 " + Math.round(w * 0.5) + "px " + FD; x.fillText(fitText(x, temp, w - 30), 0, h * 0.53);
+    x.fillStyle = "#9C4A2A"; x.font = "800 " + Math.round(w * 0.105) + "px " + FB; try { x.letterSpacing = "3px"; } catch (e) {}
+    x.fillText(fitText(x, level, w - 40), 0, h * 0.7); try { x.letterSpacing = "0px"; } catch (e) {}
+    x.textAlign = "left";
+    if (icon) x.drawImage(icon, -w * 0.12, h * 0.75, w * 0.24, w * 0.24);
+    x.restore();
+  }
+  // a woven label: cream, a dashed thread inside; returns its width
+  function drawLabel(x, cx, y, text, FB, size, rust, maxW){
+    x.font = "800 " + size + "px " + FB; try { x.letterSpacing = "2px"; } catch (e) {}
+    while (maxW && size > 18 && x.measureText(text).width + size * 1.5 > maxW) { size -= 2; x.font = "800 " + size + "px " + FB; }
+    if (maxW) text = fitText(x, text, maxW - size * 1.5);
+    var w = x.measureText(text).width + size * 1.5, h = size * 1.9, X = cx - w / 2;
+    x.save(); x.shadowColor = "rgba(40,28,8,.28)"; x.shadowBlur = 14; x.shadowOffsetY = 6;
+    var g = x.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, "#FBF6E9"); g.addColorStop(1, "#EBE0C6");
+    x.fillStyle = g; rrect(x, X, y, w, h, 6); x.fill(); x.restore();
+    x.save(); x.setLineDash([8, 6]); x.lineWidth = 2; x.strokeStyle = rust ? "rgba(156,74,42,.65)" : "rgba(29,27,20,.36)"; rrect(x, X + 7, y + 7, w - 14, h - 14, 3); x.stroke(); x.restore();
+    x.fillStyle = "#1d1b14"; x.textAlign = "center"; x.fillText(text, cx, y + h * 0.66); x.textAlign = "left"; try { x.letterSpacing = "0px"; } catch (e) {}
+    return w;
+  }
+  function vbOf(svg){ var m = /viewBox="([-\d.]+) ([-\d.]+) ([\d.]+) ([\d.]+)"/.exec(svg); return m ? [+m[1], +m[2], +m[3], +m[4]] : [0, 0, 100, 100]; }
   async function drawShare(sh){
-    var p = sh.p, inp = sh.inp, W = 1080, HH = 1920, M = 88, night = !!sh.night, lv = LV[p.L].color;
-    var bg = night ? mixHex(lv, "#0b0d16", 0.22) : lv, ink = night ? "#f6f4ee" : "#14161f", ink2 = night ? "rgba(246,244,238,.78)" : "rgba(20,22,31,.72)";
-    var chip = night ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.82)", board = night ? "rgba(255,255,255,.06)" : "rgba(255,255,255,.34)";
-    var pillBg = night ? lv : "#14161f", pillInk = night ? "#14161f" : "#ffffff", hlBg = night ? lv : "#ffffff", hlInk = "#14161f";
-    var halo = night ? "#f6f4ee" : "#ffffff", shadow = night ? "rgba(0,0,0,.55)" : "rgba(20,22,31,.28)";
+    var p = sh.p, inp = sh.inp, W = 1080, HH = 1920, M = 88, night = !!sh.night, lv = LV[p.L].color, sky = night ? ["#0A0F21", "#131B37", "#26305A"] : SKY_DAY[p.L];
+    var ink = night ? "#F3EFE6" : "#1d1b14", ink2 = night ? "rgba(243,239,230,.78)" : "rgba(29,27,20,.72)", stitch = night ? "#F3B98A" : "#9C4A2A";
+    var chip = night ? "rgba(255,255,255,.14)" : "rgba(255,252,244,.7)", pillBg = night ? "#F3EFE6" : "#1d1b14", pillInk = night ? "#141A30" : "#F7F1E3";
+    var shadow = night ? "rgba(0,0,0,.6)" : "rgba(60,45,15,.32)", lang = LANG === "en" ? "en" : "tr";
     var cs = getComputedStyle(document.documentElement);
-    var FD = cs.getPropertyValue("--font-display").trim() || "system-ui,sans-serif", FB = cs.getPropertyValue("--font-body").trim() || "system-ui,sans-serif";
-    try { if (document.fonts && document.fonts.ready) await Promise.race([document.fonts.ready, sleep(1500)]); } catch (e) {}
+    var FD = cs.getPropertyValue("--font-display").trim() || "Georgia,serif", FB = cs.getPropertyValue("--font-body").trim() || "system-ui,sans-serif";
+    try {
+      if (document.fonts && document.fonts.load) await Promise.race([Promise.all(["400 100px " + FD, "italic 400 100px " + FD, "800 30px " + FB, "700 30px " + FB].map(function(f){ return document.fonts.load(f); })), sleep(1500)]);
+      if (document.fonts && document.fonts.ready) await Promise.race([document.fonts.ready, sleep(1500)]);
+    } catch (e) {}
     var c = document.createElement("canvas"); c.width = W; c.height = HH;
     var x = c.getContext("2d"), wear = p.wear.slice(0, 6), take = p.take.slice(0, 4);
+    var hang = wear.filter(function(w){ return rackKind(w.g) !== "floor"; }).slice(0, 5), floor = wear.filter(function(w){ return rackKind(w.g) === "floor"; }).slice(0, 2);
 
-    // layout first (it decides the sticker size), then the images at that size
-    var head = layoutHead(x, p.head, FD, W - 2 * M), HEAD_TOP = 690, headBottom = HEAD_TOP + head.lines.length * head.lh;
-    var FOOT = HH - 160, tItems = [], tLines = [], line = [], lw = 0;
+    // layout first (it decides the sizes), then the images at those sizes
+    var HEAD_TOP = 650, head = layoutHead(x, p.head, FD, W - 2 * M), headBottom = HEAD_TOP + head.lines.length * head.lh;
+    var FOOT = HH - 150, tItems = [], tLines = [], line = [], lw = 0;
     x.font = "700 32px " + FB;
-    take.forEach(function(t){ var tw = Math.min(x.measureText(t.label).width, 560); tItems.push({it:t, tw:tw, w:10 + 60 + 14 + tw + 28}); });
-    x.font = "800 40px " + FD;
+    take.forEach(function(t){ var tw = Math.min(x.measureText(t.label).width, 560); tItems.push({it:t, tw:tw, w:14 + 64 + 14 + tw + 30}); });
+    x.font = "italic 400 52px " + FD;
     var takeLab = tx("Yanına al");
-    if (tItems.length) [{label:true, w:x.measureText(takeLab).width + 6}].concat(tItems).forEach(function(o){
-      if (line.length && lw + 14 + o.w > W - 2 * M) { tLines.push({items:line, w:lw}); line = []; lw = 0; }
-      lw += (line.length ? 14 : 0) + o.w; line.push(o);
+    if (tItems.length) [{label:true, w:x.measureText(takeLab).width + 8}].concat(tItems).forEach(function(o){
+      if (line.length && lw + 16 + o.w > W - 2 * M) { tLines.push({items:line, w:lw}); line = []; lw = 0; }
+      lw += (line.length ? 16 : 0) + o.w; line.push(o);
     });
     if (line.length) tLines.push({items:line, w:lw});
-    var takeH = tLines.length ? tLines.length * 80 + (tLines.length - 1) * 14 : 0, takeTop = FOOT - 30 - takeH;
-    var cols = wear.length <= 3 ? Math.max(1, wear.length) : Math.ceil(wear.length / 2), rows = wear.length > 3 ? 2 : 1, LAB = 76, cellW = (W - 2 * M) / cols;
-    var boardTop = headBottom + 44, boardBottom = takeH ? takeTop - 40 : FOOT - 40;
-    var s = Math.floor(Math.max(96, Math.min(300, cellW * 0.78, (boardBottom - boardTop - 60 - rows * LAB - (rows - 1) * 24) / rows)));
-    var srcs = wear.map(function(w){ return svgURL(art(w.g), s); }).concat(take.map(function(t){ return svgURL(art(t.g), 60); }));
-    srcs.push(svgURL(icon(kindOf(inp.now.code, inp.now.isDay)), 132, ink, bg));
+    var takeH = tLines.length ? tLines.length * 84 + (tLines.length - 1) * 16 : 0, takeTop = FOOT - 34 - takeH;
+    var rackTop = headBottom + 56, rackBottom = takeH ? takeTop - 44 : FOOT - 44, LAB = 66;
+    var hangSvg = hang.map(function(w){ return rackArt(w.g); }), floorSvg = floor.map(function(w){ return rackArt(w.g); });
+    var rh = Math.max.apply(null, [1].concat(hangSvg.map(function(v){ var b = vbOf(v); return b[3] / b[2]; })));
+    var rf = Math.max.apply(null, [0].concat(floorSvg.map(function(v){ var b = vbOf(v); return b[3] / b[2]; })));
+    // Up to four pieces share one row (shoes standing on the floor beside the hanging things); more get a floor row below.
+    var oneRow = hang.length + floor.length <= 4, cells = oneRow ? hang.length + floor.length : hang.length;
+    var cellW = (W - 2 * M) / Math.max(1, cells), fl = floor.length && !oneRow ? 1 : 0;
+    var s = Math.floor(Math.max(90, Math.min(250, cellW * 0.92, (rackBottom - rackTop - 24 - LAB - fl * (36 + LAB)) / (Math.max(rh, oneRow ? rf * 1.1 : 0) + fl * 1.1 * rf))));
+    var sf = Math.round(s * (oneRow ? 1.05 : 1.1));
+    var srcs = hangSvg.map(function(v){ var b = vbOf(v); return svgURL(v, s, null, null, Math.round(s * b[3] / b[2])); })
+      .concat(floorSvg.map(function(v){ var b = vbOf(v); return svgURL(v, sf, null, null, Math.round(sf * b[3] / b[2])); }))
+      .concat(take.map(function(t){ return svgURL(art(t.g), 64); }));
+    srcs.push(svgURL(icon(kindOf(inp.now.code, inp.now.isDay)), 72, "#1d1b14", "#F3EAD5"));
     var logo = document.querySelector(".logo svg"); srcs.push(logo ? svgURL(logo.outerHTML, 76) : "");
     var imgs = await Promise.all(srcs.map(function(u){ return u ? loadImg(u) : Promise.resolve(null); }));
 
+    // the sky, its glow and grain
+    var bg = x.createLinearGradient(0, 0, 0, HH); bg.addColorStop(0, sky[0]); bg.addColorStop(0.44, sky[1]); bg.addColorStop(1, sky[2]);
     x.fillStyle = bg; x.fillRect(0, 0, W, HH);
-    var d = new Date(); d.setDate(d.getDate() + (sh.offset || 0));
-    x.fillStyle = ink2; x.font = "700 36px " + FB;
+    var gl = x.createRadialGradient(W * 0.9, -40, 10, W * 0.9, -40, W * 0.95);
+    gl.addColorStop(0, night ? mixHex(lv, "#0A0F21", 0.45) : "rgba(255,250,230,.92)"); gl.addColorStop(1, night ? "rgba(10,15,33,0)" : "rgba(255,250,230,0)");
+    x.fillStyle = gl; x.fillRect(0, 0, W, HH);
+    try {
+      var nz = document.createElement("canvas"); nz.width = nz.height = 200; var ng = nz.getContext("2d"), im = ng.createImageData(200, 200);
+      for (var q = 0; q < im.data.length; q += 4) { var v = Math.random() * 255 | 0; im.data[q] = im.data[q + 1] = im.data[q + 2] = v; im.data[q + 3] = 255; }
+      ng.putImageData(im, 0, 0); x.save(); x.globalAlpha = night ? 0.12 : 0.22; x.globalCompositeOperation = "soft-light"; x.fillStyle = x.createPattern(nz, "repeat"); x.fillRect(0, 0, W, HH); x.restore();
+    } catch (e) {}
+
+    // the date, the place, the pills (left of the tag) and the tag
+    var d = new Date(), LW = W - 2 * M - 330; d.setDate(d.getDate() + (sh.offset || 0));
+    x.fillStyle = ink2; x.font = "700 34px " + FB;
     var dateTxt = LANG === "en" ? d.toLocaleDateString("en-US", {weekday:"long", month:"long", day:"numeric"}).toUpperCase()
       : d.toLocaleDateString("tr-TR", {day:"numeric", month:"long", weekday:"long"}).toLocaleUpperCase("tr");
-    x.fillText(fitText(x, dateTxt, W - 2 * M), M, 150);
-    x.fillStyle = ink; x.font = "800 80px " + FD; x.fillText(fitText(x, sh.place, W - 2 * M), M, 242);
-    var px = M; x.font = "700 32px " + FB;
-    sh.soft.map(function(t){ return [t, true]; }).concat(p.pills.map(function(t){ return [t, false]; })).forEach(function(pl){
-      var pw = x.measureText(pl[0]).width + 52; if (px + pw > W - M) return;
-      x.fillStyle = pl[1] ? chip : pillBg; rrect(x, px, 282, pw, 60, 30); x.fill();
-      x.fillStyle = pl[1] ? ink : pillInk; x.fillText(pl[0], px + 26, 323); px += pw + 12;
+    x.fillText(fitText(x, dateTxt, LW), M, 168);
+    x.fillStyle = ink; x.font = "400 96px " + FD; x.fillText(fitText(x, sh.place, LW), M, 266);
+    var px = M, py = 316; x.font = "700 30px " + FB;
+    sh.soft.filter(function(t){ return t !== lvName(p.L); }).map(function(t){ return [t, true]; }).concat(p.pills.map(function(t){ return [t, false]; })).forEach(function(pl){
+      var pw = x.measureText(pl[0]).width + 48; if (px + pw > M + LW) { px = M; py += 70; } if (py > 386) return;
+      x.fillStyle = pl[1] ? chip : pillBg; rrect(x, px, py, pw, 58, 29); x.fill();
+      x.fillStyle = pl[1] ? ink : pillInk; x.fillText(pl[0], px + 24, py + 39); px += pw + 12;
     });
-    // big temperature, the sky and the feels-like
-    x.fillStyle = ink; x.font = "800 270px " + FD;
-    var tt = deg(inp.now.t), tw = x.measureText(tt).width; x.fillText(tt, M - 8, 612);
-    var rx = M + tw + 30, rw = W - M - rx, ic = imgs[wear.length + take.length];
-    if (ic) x.drawImage(ic, rx, 404, 132, 132);
-    x.font = "700 44px " + FB; if (x.measureText(sh.cond).width > rw) x.font = "700 36px " + FB;
-    x.fillText(fitText(x, sh.cond, rw), rx, 594);
-    x.fillStyle = ink2; x.font = "500 36px " + FB; x.fillText(fitText(x, (sh.at ? sh.at + " · " : "") + tx("Hissedilen {0}", deg(inp.now.app)), rw), rx, 642);
-    drawHead(x, head, M, HEAD_TOP, FD, ink, hlBg, hlInk);
-    // the sticker board
-    x.fillStyle = board; rrect(x, M - 28, boardTop, W - 2 * M + 56, boardBottom - boardTop, 46); x.fill();
-    var gridH = rows * (s + LAB) + (rows - 1) * 24, gy = boardTop + (boardBottom - boardTop - gridH) / 2;
-    wear.forEach(function(w, i){
-      var r = rows === 2 && i >= cols ? 1 : 0, inRow = rows === 2 ? (r ? wear.length - cols : cols) : wear.length, ci = r ? i - cols : i, rot = ROT[i % ROT.length];
-      var cx = (W - inRow * cellW) / 2 + cellW * (ci + 0.5), cy = gy + r * (s + LAB + 24) + s / 2;
-      if (imgs[i]) drawSticker(x, imgs[i], cx, cy, s, rot, halo, shadow);
-      x.font = "700 32px " + FB;
-      var lt = fitText(x, w.label, cellW - 20), lwid = x.measureText(lt).width + 40;
-      x.save(); x.translate(cx, cy + s / 2 + 44); x.rotate(rot * Math.PI / 180);
-      x.fillStyle = chip; rrect(x, -lwid / 2, -28, lwid, 56, 28); x.fill();
-      x.fillStyle = ink; x.textAlign = "center"; x.fillText(lt, 0, 11); x.restore(); x.textAlign = "left";
+    var icn = imgs[hang.length + floor.length + take.length];
+    drawTag(x, W - M - 150, 150, 300, 390, 5, deg(inp.now.t), lvName(p.L).toLocaleUpperCase(lang), icn, FD, FB, sky[1]);
+    x.fillStyle = ink2; x.font = "500 32px " + FB; x.textAlign = "center";
+    x.fillText(fitText(x, (sh.at ? sh.at + " · " : "") + tx("Hissedilen {0}", deg(inp.now.app)), 330), W - M - 150, 600); x.textAlign = "left";
+    drawHead(x, head, M, HEAD_TOP, ink, stitch);
+
+    // the rail: hangers, clips and pegs on a steel bar; shoes on the floor below
+    // the rail block sits a little above the middle of the room it has
+    var hMax = Math.max.apply(null, [0].concat(hangSvg.map(function(v){ var b = vbOf(v); return s * (b[3] + b[1] - 3) / b[2]; }))
+      .concat(oneRow ? floorSvg.map(function(v){ var b = vbOf(v); return sf * b[3] / b[2]; }) : []));
+    var blockH = 8 + hMax + 58 + (fl ? 36 + sf * rf + 58 : 0);
+    var railY = rackTop + Math.max(0, (rackBottom - rackTop - blockH) * 0.4), top = railY + 8;
+    var rg = x.createLinearGradient(0, railY, 0, railY + 16); rg.addColorStop(0, "#FBFAF6"); rg.addColorStop(0.45, "#C6C9CF"); rg.addColorStop(1, "#868A93");
+    x.save(); x.shadowColor = shadow; x.shadowBlur = 14; x.shadowOffsetY = 8; x.fillStyle = rg; rrect(x, M - 30, railY, W - 2 * M + 60, 16, 8); x.fill(); x.restore();
+    var labY = 0, bottom = top;
+    hang.forEach(function(w, i){
+      var b = vbOf(hangSvg[i]), h = s * b[3] / b[2], cx = M + cellW * (i + 0.5), y0 = top - (3 - b[1]) * s / b[2];
+      if (imgs[i]) drawSticker(x, imgs[i], cx, y0 + h / 2, s, 0, null, shadow, h);
+      drawLabel(x, cx, y0 + h + 8, w.label.toLocaleUpperCase(lang), FB, 26, false, cellW - 16);
+      labY = Math.max(labY, y0 + h + 8 + 50); bottom = Math.max(bottom, y0 + h);
+    });
+    var fy = Math.max(labY + 36, top + 40);
+    floor.forEach(function(w, i){
+      var b = vbOf(floorSvg[i]), h = sf * b[3] / b[2], cx = oneRow ? M + cellW * (hang.length + i + 0.5) : W / 2 + (i - (floor.length - 1) / 2) * (sf + 60);
+      var y = oneRow ? Math.max(bottom, top + h) - h : fy; // beside the hanging things, the shoes stand where they end
+      if (imgs[hang.length + i]) drawSticker(x, imgs[hang.length + i], cx, y + h / 2, sf, 0, null, shadow, h);
+      drawLabel(x, cx, y + h + 8, w.label.toLocaleUpperCase(lang), FB, 26, false, (oneRow ? cellW : sf + 40) - 16);
     });
     // "Yanına al"
     tLines.forEach(function(ln, li){
-      var lx = (W - ln.w) / 2, ly = takeTop + li * 94;
+      var lx = (W - ln.w) / 2, ly = takeTop + li * 100;
       ln.items.forEach(function(o){
-        if (o.label) { x.fillStyle = ink; x.font = "800 40px " + FD; x.fillText(takeLab, lx, ly + 54); lx += o.w + 14; return; }
-        x.fillStyle = chip; rrect(x, lx, ly, o.w, 80, 40); x.fill();
-        var im = imgs[wear.length + take.indexOf(o.it)];
-        if (im) drawSticker(x, im, lx + 40, ly + 40, 60, 0, halo, null);
-        x.fillStyle = ink; x.font = "700 32px " + FB; x.fillText(fitText(x, o.it.label, o.tw + 1), lx + 84, ly + 51); lx += o.w + 14;
+        if (o.label) { x.fillStyle = ink; x.font = "italic 400 52px " + FD; x.fillText(takeLab, lx, ly + 56); lx += o.w + 16; return; }
+        x.save(); x.shadowColor = "rgba(40,28,8,.26)"; x.shadowBlur = 14; x.shadowOffsetY = 6;
+        var g = x.createLinearGradient(0, ly, 0, ly + 84); g.addColorStop(0, "#FBF6E9"); g.addColorStop(1, "#EBE0C6"); x.fillStyle = g; rrect(x, lx, ly, o.w, 84, 8); x.fill(); x.restore();
+        x.save(); x.setLineDash([8, 6]); x.lineWidth = 2; x.strokeStyle = "rgba(156,74,42,.65)"; rrect(x, lx + 7, ly + 7, o.w - 14, 70, 4); x.stroke(); x.restore();
+        var im2 = imgs[hang.length + floor.length + take.indexOf(o.it)];
+        if (im2) drawSticker(x, im2, lx + 14 + 32, ly + 42, 64, 0, null, "rgba(0,0,0,.2)");
+        x.fillStyle = "#1d1b14"; x.font = "700 32px " + FB; x.fillText(fitText(x, o.it.label, o.tw + 1), lx + 14 + 64 + 14, ly + 53); lx += o.w + 16;
       });
     });
     // the mark
-    var lg = imgs[imgs.length - 1], fy = HH - 96;
-    if (lg) drawSticker(x, lg, M + 38, fy - 20, 76, -6, halo, null); // outlined like a sticker, so the dark mark shows at night too
-    x.fillStyle = ink; x.font = "800 46px " + FD; x.fillText("Ne Giysem?", M + (lg ? 96 : 0), fy);
+    var lg = imgs[imgs.length - 1], fyy = HH - 90;
+    if (lg) drawSticker(x, lg, M + 38, fyy - 20, 76, -6, night ? "#F3EFE6" : null, null);
+    x.fillStyle = ink; x.font = "400 56px " + FD; x.fillText("Ne Giysem?", M + (lg ? 96 : 0), fyy);
     x.fillStyle = ink2; x.font = "500 30px " + FB; x.textAlign = "right";
-    x.fillText(tx(sh.offset ? "havaya göre yarının kıyafeti" : "havaya göre bugünün kıyafeti"), W - M, fy); x.textAlign = "left";
+    x.fillText(tx(sh.offset ? "havaya göre yarının kıyafeti" : "havaya göre bugünün kıyafeti"), W - M, fyy); x.textAlign = "left";
     return c;
   }
   function shareName(){ var d = new Date(); d.setDate(d.getDate() + ((SHOWN && SHOWN.offset) || 0)); return "ne-giysem-" + isoDate(d) + ".png"; }
@@ -4358,6 +4686,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   LANG = S.lang; applyLang();
   try { handForecast(); } catch (e) {} // the weather kept from last time, for a widget that has none yet
   // A stored state this version can't draw must not leave a broken screen: drop the stored weather and draw again.
+  makeGrain();
   try { render(); } catch (e) { S.live = null; S.dayWx = null; S.mode = "manual"; try { render(); } catch (e2) {} }
   if (IS_ART) {
     (async function(){

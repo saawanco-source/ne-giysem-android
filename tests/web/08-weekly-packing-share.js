@@ -265,13 +265,15 @@ H.run({
       const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height; const x = c.getContext("2d"); x.drawImage(bmp, 0, 0);
       const px = Array.from(x.getImageData(6, 6, 1, 1).data).slice(0, 3);
       const buf = new Uint8Array(await f.arrayBuffer()); let bin = ""; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
-      return { name: f.name, type: f.type, w: bmp.width, h: bmp.height, size: f.size, text: d.text, px, lv: getComputedStyle(document.documentElement).getPropertyValue("--lv").trim(), b64: btoa(bin) };
+      return { name: f.name, type: f.type, w: bmp.width, h: bmp.height, size: f.size, text: d.text, px, lv: getComputedStyle(document.documentElement).getPropertyValue("--d1").trim(), b64: btoa(bin) };
     });
     fs.writeFileSync(path.join(SHOTS, "08-share-card.png"), Buffer.from(info.b64, "base64"));
     const hex = "#" + info.px.map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
     note("shared:", info.name, info.type, info.w + "×" + info.h, info.size + " B", "| bg", hex, "lv", info.lv, "| text:", info.text);
     check("share: a 1080×1920 PNG file is handed to navigator.share", info.type === "image/png" && info.w === 1080 && info.h === 1920 && /^ne-giysem-\d{4}-\d{2}-\d{2}\.png$/.test(info.name), info.name);
-    check("share: background is the level colour", hex === info.lv.toUpperCase(), { hex, lv: info.lv });
+    // (the top of the band's sky, give or take the film grain)
+    const near = (a, b) => [1, 3, 5].every((k) => Math.abs(parseInt(a.slice(k, k + 2), 16) - parseInt(b.slice(k, k + 2), 16)) <= 20);
+    check("share: background is the top of the band's sky", near(hex, info.lv.toUpperCase()), { hex, sky: info.lv });
     check("share: caption is the headline without braces", info.text && !/[{}]/.test(info.text) && /Ne Giysem/.test(info.text), info.text);
     pageOk(s, "share");
     await s.close();

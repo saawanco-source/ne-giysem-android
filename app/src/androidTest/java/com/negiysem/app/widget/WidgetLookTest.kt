@@ -27,6 +27,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -207,8 +208,8 @@ class WidgetLookTest {
                     )
                     items += label to rect
                     // Readable on what is behind it (the widget, a pill, the warning's pill): WCAG AA 4.5:1.
-                    // Behind = the commonest colour in the text's box (the letters cover far less than half of it).
-                    val behind = commonest(bmp, rect) ?: bg
+                    // Behind = the commonest colour in the text's box, leaving out the letters themselves.
+                    val behind = behind(bmp, rect, over(view.currentTextColor, bg)) ?: bg
                     val ratio = contrast(over(view.currentTextColor, behind), behind)
                     if (ratio < 4.5) problems += "okunaksız $label (kontrast %.1f)".format(ratio)
                 }
@@ -230,16 +231,25 @@ class WidgetLookTest {
         }
     }
 
-    /** The colour most pixels in [r] have (every second pixel looked at); null for an empty box. */
-    private fun commonest(bmp: Bitmap, r: Rect): Int? {
+    /**
+     * The colour most of [r] has (every second pixel looked at), leaving out pixels close to [ink] (the letters): colours
+     * are counted in steps of 8 a channel, so the widget's film grain and gradient count as one colour, and the answer
+     * is the average of the biggest group. Null for an empty box, or when everything in it looks like the letters.
+     */
+    private fun behind(bmp: Bitmap, r: Rect, ink: Int): Int? {
         val box = Rect(r)
         if (!box.intersect(0, 0, bmp.width, bmp.height) || box.isEmpty) return null
-        val counts = HashMap<Int, Int>()
+        fun ch(c: Int, shift: Int) = (c shr shift) and 0xFF
+        val groups = HashMap<Int, IntArray>() // key -> count, red, green, blue sums
         for (yy in box.top until box.bottom step 2) for (xx in box.left until box.right step 2) {
             val c = bmp.getPixel(xx, yy)
-            counts[c] = (counts[c] ?: 0) + 1
+            if (abs(ch(c, 16) - ch(ink, 16)) + abs(ch(c, 8) - ch(ink, 8)) + abs(ch(c, 0) - ch(ink, 0)) < 60) continue
+            val key = ((ch(c, 16) shr 3) shl 10) or ((ch(c, 8) shr 3) shl 5) or (ch(c, 0) shr 3)
+            val g = groups.getOrPut(key) { IntArray(4) }
+            g[0]++; g[1] += ch(c, 16); g[2] += ch(c, 8); g[3] += ch(c, 0)
         }
-        return counts.maxByOrNull { it.value }?.key
+        val g = groups.values.maxByOrNull { it[0] } ?: return null
+        return (0xFF shl 24) or ((g[1] / g[0]) shl 16) or ((g[2] / g[0]) shl 8) or (g[3] / g[0])
     }
 
     /** [fg] (possibly see-through) laid over the opaque [bg]. */

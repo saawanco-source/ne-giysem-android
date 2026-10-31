@@ -475,6 +475,8 @@ jobs:
           [ -d widget-look ] || exit 0
           pip install -q pillow
           python3 .github/scripts/widget_sheet.py widget-look
+          # one widget at full size, for the widget picker's preview (app/src/main/res/drawable-nodpi/widget_preview.png)
+          cp widget-look/tr_f100_412x184.png widget-look/gorunum-onizleme.png 2>/dev/null || true
           files=$(ls widget-look/gorunum-*.png widget-look/rapor.txt 2>/dev/null)
           [ -n "$files" ] && gh release upload "$REL_TAG" $files --clobber || true
 

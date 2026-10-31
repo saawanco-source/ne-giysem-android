@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget's sky for "Sıcak" at night (deep blue, the band's colour as the glow), as on the app screen: the band's light from top to bottom, a glow in the top corner and
+     film grain (colours: web/index.html, SKY_DAY). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape><gradient android:angle="270" android:startColor="#FF0A0F21" android:centerColor="#FF131B37" android:endColor="#FF26305A" /><corners android:radius="26dp" /></shape>
+    </item>
+    <item>
+        <shape><gradient android:type="radial" android:centerX="0.92" android:centerY="0" android:gradientRadius="120%" android:startColor="#4DFFAD62" android:endColor="#00FFAD62" /><corners android:radius="26dp" /></shape>
+    </item>
+    <item><bitmap android:src="@drawable/sky_grain" android:tileMode="repeat" /></item>
+</layer-list>

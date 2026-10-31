@@ -88,7 +88,7 @@ class MainActivity : Activity() {
         adBox = FrameLayout(this).apply { visibility = View.GONE }
         web = WebView(this)
         val nightUi = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val startBg = Color.parseColor(if (nightUi) "#15171F" else "#FFD65E") // no yellow flash in dark mode
+        val startBg = getColor(if (nightUi) R.color.night_bg else R.color.start_bg) // the page's own sky, light or dark
         web.setBackgroundColor(startBg)
         root.setBackgroundColor(startBg)
         webBox.addView(web, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
@@ -469,7 +469,7 @@ class MainActivity : Activity() {
         @JavascriptInterface
         fun setTheme(color: String, dark: Boolean) {
             runOnUiThread {
-                val c = runCatching { Color.parseColor(color) }.getOrDefault(Color.parseColor("#FFD65E"))
+                val c = runCatching { Color.parseColor(color) }.getOrDefault(getColor(if (dark) R.color.night_bg else R.color.start_bg))
                 web.setBackgroundColor(c)
                 root.setBackgroundColor(c)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

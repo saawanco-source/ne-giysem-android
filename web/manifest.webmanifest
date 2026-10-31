@@ -9,8 +9,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#FFD65E",
-  "theme_color": "#FFD65E",
+  "background_color": "#F1E2B6",
+  "theme_color": "#E4C470",
   "categories": [
     "weather",
     "lifestyle",

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- The phone's colour palette (Material You; Samsung's "Renk paleti" fills the same colours). The home screen
-     resolves these itself, so the widget follows a new palette at once, without the app running.
-     Tone 100 is always very light and tone 900 always very dark, whatever the hue: the text colours stay readable. -->
-<resources>
-    <color name="widget_base_day">@android:color/system_accent1_100</color>
-    <color name="widget_base_night">@android:color/system_accent1_900</color>
-</resources>

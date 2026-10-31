@@ -20,6 +20,11 @@ interface TextMeter {
     /** Height of one line of text. */
     fun lineHeight(sp: Float, bold: Boolean): Float = block("Ağ", sp, bold, 100_000f, 1).first
 
+    /** The temperature and the verdict are set in the serif (as in the app): the same three, for it. */
+    fun serifWidth(text: String, sp: Float): Float = width(text, sp, true)
+    fun serifBlock(text: String, sp: Float, maxWidth: Float, maxLines: Int): Pair<Float, Int> = block(text, sp, true, maxWidth, maxLines)
+    fun serifLineHeight(sp: Float): Float = serifBlock("Ağ", sp, 100_000f, 1).first
+
     /** The phone's font size setting (1 = normal): text is already that much larger than its sp. */
     val fontScale: Float get() = 1f
 
@@ -206,22 +211,22 @@ object WidgetFit {
      * With [warn], a warning takes the second line's place, as a pill.
      */
     private fun header(i: FitInput, m: TextMeter, w: Float, temp: Float, place: Float, sub: Float, warn: Boolean = false): Header? {
-        val tempW = m.width(i.temp, temp, true) * SAFE
+        val tempW = m.serifWidth(i.temp, temp) * SAFE
         val textW = w - tempW - HEADER_GAP
         if (textW < max(56f, TEXT_SHARE * w)) return null
         if (warn && i.alert.isNotEmpty()) {
             val p = pill(m, i.alert, sub, textW) ?: return null
-            val h = max(m.lineHeight(temp, true) * SAFE, m.lineHeight(place, true) * SAFE + 2f + p.h)
+            val h = max(m.serifLineHeight(temp) * SAFE, m.lineHeight(place, true) * SAFE + 2f + p.h)
             return Header(h, tempW, textW, p)
         }
-        val h = max(m.lineHeight(temp, true) * SAFE, (m.lineHeight(place, true) + m.lineHeight(sub, true)) * SAFE)
+        val h = max(m.serifLineHeight(temp) * SAFE, (m.lineHeight(place, true) + m.lineHeight(sub, true)) * SAFE)
         return Header(h, tempW, textW)
     }
 
     /** Height of a text that must show whole within [maxLines]; null if it needs more. */
-    private fun whole(m: TextMeter, text: String, sp: Float, w: Float, maxLines: Int): Pair<Float, Int>? {
+    private fun whole(m: TextMeter, text: String, sp: Float, w: Float, maxLines: Int, serif: Boolean = false): Pair<Float, Int>? {
         if (text.isEmpty()) return 0f to 0
-        val (h, lines) = m.block(text, sp, true, w / SAFE, 50)
+        val (h, lines) = if (serif) m.serifBlock(text, sp, w / SAFE, 50) else m.block(text, sp, true, w / SAFE, 50)
         return if (lines > maxLines) null else h * SAFE to lines
     }
 
@@ -237,10 +242,10 @@ object WidgetFit {
             val temp = 28f * s
             val line = 12f * s
             val sticker = 40f * s
-            val tempW = m.width(i.temp, temp, true) * SAFE
+            val tempW = m.serifWidth(i.temp, temp) * SAFE
             val cw = m.clockWidth(clock) * SAFE
             val ch = m.clockHeight(clock) * SAFE
-            val row1 = m.lineHeight(temp, true) * SAFE
+            val row1 = m.serifLineHeight(temp) * SAFE
             // A warning takes the level name's place, as a pill.
             val warn = if (i.alertShort.isEmpty()) null else pill(m, i.alertShort, line, w) ?: if (force) null else return null
             val row2 = warn?.let { it.h + 2f } ?: (m.lineHeight(line, true) * SAFE)
@@ -276,8 +281,8 @@ object WidgetFit {
             val take = 12f * s
             val sticker = 40f * s
             val hd = header(i, m, w, temp, place, sub, warn = true) ?: if (force) Header(40f, 0f, w - 60f) else return null
-            val (headH, headLines) = (if (cut) m.lineHeight(head, true) * SAFE to 1 else whole(m, i.headline, head, w, 3))
-                ?: if (force) (m.lineHeight(head, true) * SAFE to 1) else return null
+            val (headH, headLines) = (if (cut) m.serifLineHeight(head) * SAFE to 1 else whole(m, i.headline, head, w, 3, serif = true))
+                ?: if (force) (m.serifLineHeight(head) * SAFE to 1) else return null
             var takeH = 0f
             var takeLines = 0
             var takeW = 0f
@@ -353,8 +358,8 @@ object WidgetFit {
                 }
                 pillsH += 6f
             }
-            val (headH, headLines) = whole(m, i.headline, head, w, if (cut) 2 else 4)
-                ?: if (cut || force) (m.lineHeight(head, true) * 2 * SAFE to 2) else return null
+            val (headH, headLines) = whole(m, i.headline, head, w, if (cut) 2 else 4, serif = true)
+                ?: if (cut || force) (m.serifLineHeight(head) * 2 * SAFE to 2) else return null
             val rowW = i.labels.take(n).sumOf { max(sticker, m.width(it, label, true) * SAFE).toDouble() }.toFloat() +
                 (n - 1) * TALL_STICKER_GAP
             if (rowW > w) ok = false

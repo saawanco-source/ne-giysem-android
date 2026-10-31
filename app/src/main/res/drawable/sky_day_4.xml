@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget's sky for "Serin" by day, as on the app screen: the band's light from top to bottom, a glow in the top corner and
+     film grain (colours: web/index.html, SKY_DAY). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape><gradient android:angle="270" android:startColor="#FFE4C470" android:centerColor="#FFF1E2B6" android:endColor="#FFE6E8CD" /><corners android:radius="26dp" /></shape>
+    </item>
+    <item>
+        <shape><gradient android:type="radial" android:centerX="0.92" android:centerY="0" android:gradientRadius="120%" android:startColor="#EBFFFAE6" android:endColor="#00FFFAE6" /><corners android:radius="26dp" /></shape>
+    </item>
+    <item><bitmap android:src="@drawable/sky_grain" android:tileMode="repeat" /></item>
+</layer-list>

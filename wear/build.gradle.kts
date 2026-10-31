@@ -54,7 +54,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // The stickers, the warning sign and the launcher art are the phone app's own files (copied at build time).
+    // The garment pictures, the warning sign and the launcher art are the phone app's own files (copied at build time).
     sourceSets.getByName("main").res.srcDir(layout.buildDirectory.dir("generated/shared-res"))
 }
 
@@ -66,7 +66,7 @@ kotlin {
 
 val sharedRes by tasks.registering(Sync::class) {
     from(rootProject.file("app/src/main/res")) {
-        include("drawable/g_*.xml", "drawable/ic_warn.xml", "mipmap-*dpi/ic_launcher_foreground.png")
+        include("drawable-nodpi/g_*.webp", "drawable/ic_warn.xml", "drawable/ic_launcher_background.xml", "mipmap-*dpi/ic_launcher_*.png")
     }
     into(layout.buildDirectory.dir("generated/shared-res"))
 }

@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="launcher_bg">#FFD65E</color>
+    <!-- The page's sky before it knows the weather (web/index.html: html background, light and dark). -->
+    <color name="start_bg">#F1E2B6</color>
     <color name="ink">#14161F</color>
-    <color name="night_bg">#15171F</color>
-    <!-- Widget base layer under the level colour. Before Android 12 there is no colour palette: plain white by day
-         (the level colour on top is opaque then) and the old dark navy by night. values-v31: the phone's palette. -->
-    <color name="widget_base_day">#FFFFFFFF</color>
-    <color name="widget_base_night">#FF0B0D16</color>
+    <color name="night_bg">#131B37</color>
 </resources>

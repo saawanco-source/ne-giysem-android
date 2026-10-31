@@ -253,21 +253,20 @@ function serve(dir) {
   });
   return new Promise((r) => srv.listen(0, "127.0.0.1", () => r({ url: `http://localhost:${srv.address().port}/`, close: () => srv.close() })));
 }
-const FONT_FILES = {
-  "Bricolage Grotesque": { weight: "200 800", files: ["bricolage-grotesque-latin-ext-opsz-normal.woff2", "bricolage-grotesque-latin-opsz-normal.woff2"] },
-  "Figtree": { weight: "300 900", files: ["figtree-latin-ext-wght-normal.woff2", "figtree-latin-wght-normal.woff2"] },
-};
 const RANGE = {
   "latin-ext": "U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF",
   "latin": "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD",
 };
+// Same families as the Google Fonts link in web/index.html, served from store/play/fonts (SIL OFL 1.1).
+const FONT_FILES = [
+  { fam: "Instrument Serif", style: "normal", weight: "400", file: "InstrumentSerif-Regular.ttf" },
+  { fam: "Instrument Serif", style: "italic", weight: "400", file: "InstrumentSerif-Italic.ttf" },
+  { fam: "Figtree", style: "normal", weight: "300 900", file: "figtree-latin-ext-wght-normal.woff2", range: RANGE["latin-ext"] },
+  { fam: "Figtree", style: "normal", weight: "300 900", file: "figtree-latin-wght-normal.woff2", range: RANGE.latin },
+];
 function fontCSS(base) {
-  // Same families as the Google Fonts link in web/index.html, served from store/play/fonts (SIL OFL 1.1).
-  let css = "";
-  for (const [fam, o] of Object.entries(FONT_FILES)) for (const f of o.files) {
-    css += `@font-face{font-family:"${fam}";font-style:normal;font-weight:${o.weight};font-display:block;src:url(${base}__fonts/${f}) format("woff2");unicode-range:${f.includes("latin-ext") ? RANGE["latin-ext"] : RANGE.latin};}\n`;
-  }
-  return css;
+  return FONT_FILES.map((f) => `@font-face{font-family:"${f.fam}";font-style:${f.style};font-weight:${f.weight};font-display:block;` +
+    `src:url(${base}__fonts/${f.file}) format("${f.file.endsWith(".ttf") ? "truetype" : "woff2"}")${f.range ? ";unicode-range:" + f.range : ""};}\n`).join("");
 }
 function fold(s) { return String(s || "").toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ş/g, "s").replace(/ç/g, "c").replace(/ğ/g, "g").replace(/ö/g, "o").replace(/ü/g, "u").trim(); }
 function searchHits(q) { const f = fold(q); return SEARCH_PLACES.filter((p) => fold([p.name, p.district, p.city, p.state].join(" ")).split(/\s+/).some((w) => w.startsWith(f.split(" ")[0]))); }
@@ -282,7 +281,7 @@ async function route(scene, now, base, log, r) {
   if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
     if (u.pathname.startsWith("/__fonts/")) {
       const f = path.join(FONTS, path.basename(u.pathname));
-      return fs.existsSync(f) ? r.fulfill({ status: 200, contentType: "font/woff2", body: fs.readFileSync(f) }) : r.abort();
+      return fs.existsSync(f) ? r.fulfill({ status: 200, contentType: f.endsWith(".ttf") ? "font/ttf" : "font/woff2", body: fs.readFileSync(f) }) : r.abort();
     }
     if (u.pathname.startsWith("/api/")) {
       // The app's own Cloudflare Pages Functions (web/functions/api): forecast is Open-Meteo-shaped, search passes Photon

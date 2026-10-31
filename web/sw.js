@@ -1,6 +1,6 @@
 // Ne Giysem? service worker: keeps the app shell and fonts available offline.
 // Weather and location requests always go to the network; the page keeps the last result itself.
-const SHELL_CACHE = "negiysem-shell-v13";
+const SHELL_CACHE = "negiysem-shell-v14";
 const FONT_CACHE = "negiysem-fonts-v1";
 const SHELL = [
   "./",

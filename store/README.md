@@ -17,9 +17,9 @@ Google Play yayını ve web sitesi için hazırlanan dosyalar. Durum: 24 Ekim 20
 | `play/target-audience.md` | Hedef yaş grupları (13+), Aileler programının dışında kalma. |
 | `play/ads-declaration.md` | Reklam beyanı, reklam kimliği, reklam yerleşimi kontrol listesi, rıza notları. |
 | `play/app-access.md` | “Giriş gerekmez” cevabı ve inceleme ekibi için not. |
-| `play/graphics/feature-graphic.png`, `feature-graphic-en.png` | Öne çıkan grafik (1024×500). Yeniden üret: `node store/play/graphics/make-feature-graphic.js` (çıkartmalar `web/index.html` içindeki `ART`’tan okunur). |
+| `play/graphics/feature-graphic.png`, `feature-graphic-en.png` | Öne çıkan grafik (1024×500). Yeniden üret: `NODE_PATH=$(npm root -g) node store/play/graphics/make-feature-graphic.js` (kıyafet çizimleri `web/index.html` içindeki `ART`/`rackArt`’tan okunur). Uygulama ikonu, web ikonları ve başlıktaki logo: `node tools/icons.js`. |
 | `play/screenshots/make-screenshots.js` → `out/*.png` | Telefon ekran görüntüleri (1082×1924, 9:16). Ağ tamamen taklit edilir; özellik henüz yoksa o kare atlanır ve listelenir. İngilizce: `SHOT_LANG=en` (TODO, İngilizce arayüz gelince doldur). |
-| `play/fonts/` | Ekran görüntüsü ve grafik için Bricolage Grotesque ve Figtree (SIL OFL 1.1, lisansları yanında). |
+| `play/fonts/` | Ekran görüntüsü ve grafik için Instrument Serif ve Figtree (SIL OFL 1.1, lisansları yanında). Instrument Serif saat yüzünde ve saat uygulamasında da var (`res/font`). |
 
 Simge için `web/icons/maskable-512.png` kullan (512×512, tam kare). `icon-512.png` köşeleri yuvarlatılmış ve saydam olduğu için Play’in simge kuralına uymuyor.
 

@@ -40,15 +40,16 @@ Metinler cihaz diline göre Türkçe (`values-tr`) ya da İngilizcedir (`values`
 |---|---|
 | `src/main/res/raw/watchface.xml` | Saat yüzü. **Elle düzenlenmez**, `tools/build_face.py` üretir |
 | `src/main/res/values*/strings.xml` | Metinler (aynı betik üretir) |
-| `src/main/res/drawable-nodpi/wf_*.png` | Kıyafet çıkartmaları, uygulamanın çizimlerinden (`tools/stickers.py`) |
+| `src/main/res/drawable-nodpi/wf_*.png` | Kıyafet resimleri, uygulamanın çizimlerinden (`node tools/garments.js`, depo kökünden) |
 | `src/main/res/drawable*-nodpi/preview.png` | Saat yüzü seçicisindeki önizleme (`tools/preview.py`) |
+| `src/main/res/font/instrument_serif.ttf` | Saat, sıcaklık ve başlık yazısı: uygulamanın serif yazı tipi (Instrument Serif, SIL OFL 1.1; lisans `store/play/fonts/OFL-InstrumentSerif.txt`) |
 | `tools/validate.py` | XML'i Google'ın WFF şemasıyla denetler (CI her değişiklikte çalıştırır) |
 
 Değişiklik yapınca depo kökünden:
 
 ```sh
 python3 watchface/tools/build_face.py      # XML + metinler
-python3 watchface/tools/stickers.py        # çıkartmalar değiştiyse (Playwright gerekir)
+node tools/garments.js                     # çizimler değiştiyse (web/index.html, ART; Playwright ve Pillow gerekir)
 python3 watchface/tools/preview.py out/    # önizleme ve mağaza görselleri
 ```
 

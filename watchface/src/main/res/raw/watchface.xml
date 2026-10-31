@@ -3,11 +3,21 @@
 <WatchFace width="450" height="450">
   <Metadata key="CLOCK_TYPE" value="DIGITAL" />
   <Metadata key="PREVIEW_TIME" value="10:08:32" />
-  <Scene backgroundColor="#FF0B0D16">
-    <PartDraw name="frame" x="0" y="0" width="450" height="450">
+  <Scene backgroundColor="#FF0A0F21">
+    <PartDraw name="sky" x="0" y="0" width="450" height="450">
       <Variant mode="AMBIENT" target="alpha" value="0" />
-      <Ellipse x="4" y="4" width="442" height="442">
-        <Stroke color="#26FFFFFF" thickness="3" />
+      <Rectangle x="0" y="0" width="450" height="450">
+        <Fill color="#FF0A0F21">
+          <LinearGradient startX="0" startY="0" endX="0" endY="450" colors="#FF0A0F21 #FF131B37 #FF26305A" positions="0 0.45 1" />
+        </Fill>
+      </Rectangle>
+      <Rectangle x="0" y="0" width="450" height="450">
+        <Fill color="#2EF3EAD5">
+          <RadialGradient centerX="370" centerY="20" radius="300" colors="#2EF3EAD5 #00F3EAD5" positions="0 1" />
+        </Fill>
+      </Rectangle>
+      <Ellipse x="9" y="9" width="432" height="432">
+        <Stroke color="#2EF3EFE6" thickness="1.5" dashIntervals="6 5" />
       </Ellipse>
     </PartDraw>
     <Group name="weather" x="0" y="0" width="450" height="450">
@@ -17,9 +27,9 @@
         </Expressions>
         <Compare expression="has_weather">
           <Group name="has_weather_g" x="0" y="0" width="450" height="450">
-            <PartText name="temp" x="88" y="180" width="130" height="46">
+            <PartText name="temp" x="88" y="178" width="130" height="50">
               <Text align="END" maxLines="1" ellipsis="TRUE">
-                <Font family="SYNC_TO_DEVICE" size="38" weight="BOLD" color="#FFFFFFFF">
+                <Font family="instrument_serif" size="42" weight="NORMAL" color="#FFF3EFE6">
                   <Template>%s°<Parameter expression="[WEATHER.TEMPERATURE]" />
                   </Template>
                 </Font>
@@ -38,16 +48,19 @@
               </Expressions>
               <Compare expression="lv0">
                 <Group name="lv0_g" x="0" y="0" width="450" height="450">
-                  <Group name="l0_chip" x="226" y="186" width="128" height="36">
+                  <Group name="l0_chip" x="226" y="186" width="132" height="36">
                     <Variant mode="AMBIENT" target="alpha" value="0" />
-                    <PartDraw name="l0_pill" x="0" y="0" width="128" height="36">
-                      <RoundRectangle x="0" y="0" width="128" height="36" cornerRadiusX="18" cornerRadiusY="18">
-                        <Fill color="#FF86AEFF" />
+                    <PartDraw name="l0_tag" x="0" y="0" width="132" height="36">
+                      <RoundRectangle x="0" y="0" width="132" height="36" cornerRadiusX="6" cornerRadiusY="6">
+                        <Fill color="#FFF3EAD5" />
                       </RoundRectangle>
+                      <Ellipse x="7" y="14" width="8" height="8">
+                        <Fill color="#FF131B37" />
+                      </Ellipse>
                     </PartDraw>
-                    <PartText name="l0_name" x="6" y="4" width="116" height="28">
+                    <PartText name="l0_name" x="18" y="4" width="108" height="28">
                       <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FF14161F">
+                        <Font family="SYNC_TO_DEVICE" size="18" weight="BOLD" color="#FF9C4A2A">
                           <Template>%s<Parameter expression="lvl_0" />
                           </Template>
                         </Font>
@@ -74,10 +87,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_bot" />
                         </PartImage>
-                        <PartText name="l0sn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l0sn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_snow" />
                               </Template>
                             </Font>
@@ -99,10 +112,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l0rn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l0rn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain" />
                               </Template>
                             </Font>
@@ -124,10 +137,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l0rl_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l0rl_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain_later" />
                               </Template>
                             </Font>
@@ -149,10 +162,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_eldiven" />
                         </PartImage>
-                        <PartText name="l0d_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l0d_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_0" />
                               </Template>
                             </Font>
@@ -165,16 +178,19 @@
               </Compare>
               <Compare expression="lv1">
                 <Group name="lv1_g" x="0" y="0" width="450" height="450">
-                  <Group name="l1_chip" x="226" y="186" width="128" height="36">
+                  <Group name="l1_chip" x="226" y="186" width="132" height="36">
                     <Variant mode="AMBIENT" target="alpha" value="0" />
-                    <PartDraw name="l1_pill" x="0" y="0" width="128" height="36">
-                      <RoundRectangle x="0" y="0" width="128" height="36" cornerRadiusX="18" cornerRadiusY="18">
-                        <Fill color="#FF9CCBF7" />
+                    <PartDraw name="l1_tag" x="0" y="0" width="132" height="36">
+                      <RoundRectangle x="0" y="0" width="132" height="36" cornerRadiusX="6" cornerRadiusY="6">
+                        <Fill color="#FFF3EAD5" />
                       </RoundRectangle>
+                      <Ellipse x="7" y="14" width="8" height="8">
+                        <Fill color="#FF131B37" />
+                      </Ellipse>
                     </PartDraw>
-                    <PartText name="l1_name" x="6" y="4" width="116" height="28">
+                    <PartText name="l1_name" x="18" y="4" width="108" height="28">
                       <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FF14161F">
+                        <Font family="SYNC_TO_DEVICE" size="18" weight="BOLD" color="#FF9C4A2A">
                           <Template>%s<Parameter expression="lvl_1" />
                           </Template>
                         </Font>
@@ -201,10 +217,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_bot" />
                         </PartImage>
-                        <PartText name="l1sn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l1sn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_snow" />
                               </Template>
                             </Font>
@@ -226,10 +242,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l1rn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l1rn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain" />
                               </Template>
                             </Font>
@@ -251,10 +267,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l1rl_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l1rl_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain_later" />
                               </Template>
                             </Font>
@@ -276,10 +292,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_bot" />
                         </PartImage>
-                        <PartText name="l1d_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l1d_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_1" />
                               </Template>
                             </Font>
@@ -292,16 +308,19 @@
               </Compare>
               <Compare expression="lv2">
                 <Group name="lv2_g" x="0" y="0" width="450" height="450">
-                  <Group name="l2_chip" x="226" y="186" width="128" height="36">
+                  <Group name="l2_chip" x="226" y="186" width="132" height="36">
                     <Variant mode="AMBIENT" target="alpha" value="0" />
-                    <PartDraw name="l2_pill" x="0" y="0" width="128" height="36">
-                      <RoundRectangle x="0" y="0" width="128" height="36" cornerRadiusX="18" cornerRadiusY="18">
-                        <Fill color="#FF86D6C6" />
+                    <PartDraw name="l2_tag" x="0" y="0" width="132" height="36">
+                      <RoundRectangle x="0" y="0" width="132" height="36" cornerRadiusX="6" cornerRadiusY="6">
+                        <Fill color="#FFF3EAD5" />
                       </RoundRectangle>
+                      <Ellipse x="7" y="14" width="8" height="8">
+                        <Fill color="#FF131B37" />
+                      </Ellipse>
                     </PartDraw>
-                    <PartText name="l2_name" x="6" y="4" width="116" height="28">
+                    <PartText name="l2_name" x="18" y="4" width="108" height="28">
                       <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FF14161F">
+                        <Font family="SYNC_TO_DEVICE" size="18" weight="BOLD" color="#FF9C4A2A">
                           <Template>%s<Parameter expression="lvl_2" />
                           </Template>
                         </Font>
@@ -328,10 +347,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_bot" />
                         </PartImage>
-                        <PartText name="l2sn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l2sn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_snow" />
                               </Template>
                             </Font>
@@ -353,10 +372,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l2rn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l2rn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain" />
                               </Template>
                             </Font>
@@ -378,10 +397,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l2rl_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l2rl_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain_later" />
                               </Template>
                             </Font>
@@ -403,10 +422,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_bot" />
                         </PartImage>
-                        <PartText name="l2d_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l2d_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_2" />
                               </Template>
                             </Font>
@@ -419,16 +438,19 @@
               </Compare>
               <Compare expression="lv3">
                 <Group name="lv3_g" x="0" y="0" width="450" height="450">
-                  <Group name="l3_chip" x="226" y="186" width="128" height="36">
+                  <Group name="l3_chip" x="226" y="186" width="132" height="36">
                     <Variant mode="AMBIENT" target="alpha" value="0" />
-                    <PartDraw name="l3_pill" x="0" y="0" width="128" height="36">
-                      <RoundRectangle x="0" y="0" width="128" height="36" cornerRadiusX="18" cornerRadiusY="18">
-                        <Fill color="#FFAEDD8E" />
+                    <PartDraw name="l3_tag" x="0" y="0" width="132" height="36">
+                      <RoundRectangle x="0" y="0" width="132" height="36" cornerRadiusX="6" cornerRadiusY="6">
+                        <Fill color="#FFF3EAD5" />
                       </RoundRectangle>
+                      <Ellipse x="7" y="14" width="8" height="8">
+                        <Fill color="#FF131B37" />
+                      </Ellipse>
                     </PartDraw>
-                    <PartText name="l3_name" x="6" y="4" width="116" height="28">
+                    <PartText name="l3_name" x="18" y="4" width="108" height="28">
                       <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FF14161F">
+                        <Font family="SYNC_TO_DEVICE" size="18" weight="BOLD" color="#FF9C4A2A">
                           <Template>%s<Parameter expression="lvl_3" />
                           </Template>
                         </Font>
@@ -455,10 +477,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_bot" />
                         </PartImage>
-                        <PartText name="l3sn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l3sn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_snow" />
                               </Template>
                             </Font>
@@ -480,10 +502,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l3rn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l3rn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain" />
                               </Template>
                             </Font>
@@ -505,10 +527,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l3rl_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l3rl_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain_later" />
                               </Template>
                             </Font>
@@ -530,10 +552,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_sneaker" />
                         </PartImage>
-                        <PartText name="l3d_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l3d_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_3" />
                               </Template>
                             </Font>
@@ -546,16 +568,19 @@
               </Compare>
               <Compare expression="lv4">
                 <Group name="lv4_g" x="0" y="0" width="450" height="450">
-                  <Group name="l4_chip" x="226" y="186" width="128" height="36">
+                  <Group name="l4_chip" x="226" y="186" width="132" height="36">
                     <Variant mode="AMBIENT" target="alpha" value="0" />
-                    <PartDraw name="l4_pill" x="0" y="0" width="128" height="36">
-                      <RoundRectangle x="0" y="0" width="128" height="36" cornerRadiusX="18" cornerRadiusY="18">
-                        <Fill color="#FFE6E86E" />
+                    <PartDraw name="l4_tag" x="0" y="0" width="132" height="36">
+                      <RoundRectangle x="0" y="0" width="132" height="36" cornerRadiusX="6" cornerRadiusY="6">
+                        <Fill color="#FFF3EAD5" />
                       </RoundRectangle>
+                      <Ellipse x="7" y="14" width="8" height="8">
+                        <Fill color="#FF131B37" />
+                      </Ellipse>
                     </PartDraw>
-                    <PartText name="l4_name" x="6" y="4" width="116" height="28">
+                    <PartText name="l4_name" x="18" y="4" width="108" height="28">
                       <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FF14161F">
+                        <Font family="SYNC_TO_DEVICE" size="18" weight="BOLD" color="#FF9C4A2A">
                           <Template>%s<Parameter expression="lvl_4" />
                           </Template>
                         </Font>
@@ -582,10 +607,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_bot" />
                         </PartImage>
-                        <PartText name="l4sn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l4sn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_snow" />
                               </Template>
                             </Font>
@@ -607,10 +632,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l4rn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l4rn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain" />
                               </Template>
                             </Font>
@@ -632,10 +657,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l4rl_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l4rl_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain_later" />
                               </Template>
                             </Font>
@@ -657,10 +682,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_sneaker" />
                         </PartImage>
-                        <PartText name="l4d_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l4d_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_4" />
                               </Template>
                             </Font>
@@ -673,16 +698,19 @@
               </Compare>
               <Compare expression="lv5">
                 <Group name="lv5_g" x="0" y="0" width="450" height="450">
-                  <Group name="l5_chip" x="226" y="186" width="128" height="36">
+                  <Group name="l5_chip" x="226" y="186" width="132" height="36">
                     <Variant mode="AMBIENT" target="alpha" value="0" />
-                    <PartDraw name="l5_pill" x="0" y="0" width="128" height="36">
-                      <RoundRectangle x="0" y="0" width="128" height="36" cornerRadiusX="18" cornerRadiusY="18">
-                        <Fill color="#FFFFD65E" />
+                    <PartDraw name="l5_tag" x="0" y="0" width="132" height="36">
+                      <RoundRectangle x="0" y="0" width="132" height="36" cornerRadiusX="6" cornerRadiusY="6">
+                        <Fill color="#FFF3EAD5" />
                       </RoundRectangle>
+                      <Ellipse x="7" y="14" width="8" height="8">
+                        <Fill color="#FF131B37" />
+                      </Ellipse>
                     </PartDraw>
-                    <PartText name="l5_name" x="6" y="4" width="116" height="28">
+                    <PartText name="l5_name" x="18" y="4" width="108" height="28">
                       <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FF14161F">
+                        <Font family="SYNC_TO_DEVICE" size="18" weight="BOLD" color="#FF9C4A2A">
                           <Template>%s<Parameter expression="lvl_5" />
                           </Template>
                         </Font>
@@ -709,10 +737,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_bot" />
                         </PartImage>
-                        <PartText name="l5sn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l5sn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_snow" />
                               </Template>
                             </Font>
@@ -734,10 +762,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l5rn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l5rn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain" />
                               </Template>
                             </Font>
@@ -759,10 +787,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l5rl_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l5rl_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain_later" />
                               </Template>
                             </Font>
@@ -784,10 +812,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_jean" />
                         </PartImage>
-                        <PartText name="l5d_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l5d_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_5" />
                               </Template>
                             </Font>
@@ -800,16 +828,19 @@
               </Compare>
               <Compare expression="lv6">
                 <Group name="lv6_g" x="0" y="0" width="450" height="450">
-                  <Group name="l6_chip" x="226" y="186" width="128" height="36">
+                  <Group name="l6_chip" x="226" y="186" width="132" height="36">
                     <Variant mode="AMBIENT" target="alpha" value="0" />
-                    <PartDraw name="l6_pill" x="0" y="0" width="128" height="36">
-                      <RoundRectangle x="0" y="0" width="128" height="36" cornerRadiusX="18" cornerRadiusY="18">
-                        <Fill color="#FFFFAD62" />
+                    <PartDraw name="l6_tag" x="0" y="0" width="132" height="36">
+                      <RoundRectangle x="0" y="0" width="132" height="36" cornerRadiusX="6" cornerRadiusY="6">
+                        <Fill color="#FFF3EAD5" />
                       </RoundRectangle>
+                      <Ellipse x="7" y="14" width="8" height="8">
+                        <Fill color="#FF131B37" />
+                      </Ellipse>
                     </PartDraw>
-                    <PartText name="l6_name" x="6" y="4" width="116" height="28">
+                    <PartText name="l6_name" x="18" y="4" width="108" height="28">
                       <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FF14161F">
+                        <Font family="SYNC_TO_DEVICE" size="18" weight="BOLD" color="#FF9C4A2A">
                           <Template>%s<Parameter expression="lvl_6" />
                           </Template>
                         </Font>
@@ -836,10 +867,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_bot" />
                         </PartImage>
-                        <PartText name="l6sn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l6sn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_snow" />
                               </Template>
                             </Font>
@@ -861,10 +892,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l6rn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l6rn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain" />
                               </Template>
                             </Font>
@@ -886,10 +917,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l6rl_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l6rl_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain_later" />
                               </Template>
                             </Font>
@@ -911,10 +942,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_sneaker" />
                         </PartImage>
-                        <PartText name="l6d_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l6d_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_6" />
                               </Template>
                             </Font>
@@ -927,16 +958,19 @@
               </Compare>
               <Compare expression="lv7">
                 <Group name="lv7_g" x="0" y="0" width="450" height="450">
-                  <Group name="l7_chip" x="226" y="186" width="128" height="36">
+                  <Group name="l7_chip" x="226" y="186" width="132" height="36">
                     <Variant mode="AMBIENT" target="alpha" value="0" />
-                    <PartDraw name="l7_pill" x="0" y="0" width="128" height="36">
-                      <RoundRectangle x="0" y="0" width="128" height="36" cornerRadiusX="18" cornerRadiusY="18">
-                        <Fill color="#FFFF8270" />
+                    <PartDraw name="l7_tag" x="0" y="0" width="132" height="36">
+                      <RoundRectangle x="0" y="0" width="132" height="36" cornerRadiusX="6" cornerRadiusY="6">
+                        <Fill color="#FFF3EAD5" />
                       </RoundRectangle>
+                      <Ellipse x="7" y="14" width="8" height="8">
+                        <Fill color="#FF131B37" />
+                      </Ellipse>
                     </PartDraw>
-                    <PartText name="l7_name" x="6" y="4" width="116" height="28">
+                    <PartText name="l7_name" x="18" y="4" width="108" height="28">
                       <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FF14161F">
+                        <Font family="SYNC_TO_DEVICE" size="18" weight="BOLD" color="#FF9C4A2A">
                           <Template>%s<Parameter expression="lvl_7" />
                           </Template>
                         </Font>
@@ -963,10 +997,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_bot" />
                         </PartImage>
-                        <PartText name="l7sn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l7sn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_snow" />
                               </Template>
                             </Font>
@@ -988,10 +1022,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l7rn_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l7rn_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain" />
                               </Template>
                             </Font>
@@ -1013,10 +1047,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_semsiye" />
                         </PartImage>
-                        <PartText name="l7rl_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l7rl_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_rain_later" />
                               </Template>
                             </Font>
@@ -1038,10 +1072,10 @@
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Image resource="wf_sapka" />
                         </PartImage>
-                        <PartText name="l7d_head" x="88" y="308" width="274" height="34">
+                        <PartText name="l7d_head" x="88" y="306" width="274" height="38">
                           <Variant mode="AMBIENT" target="alpha" value="0" />
                           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                            <Font family="SYNC_TO_DEVICE" size="20" weight="BOLD" color="#FFFFFFFF">
+                            <Font family="instrument_serif" size="24" weight="NORMAL" color="#FFF3EFE6">
                               <Template>%s<Parameter expression="head_7" />
                               </Template>
                             </Font>
@@ -1060,7 +1094,7 @@
             <PartText name="no_weather" x="88" y="240" width="274" height="40">
               <Variant mode="AMBIENT" target="alpha" value="0" />
               <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-                <Font family="SYNC_TO_DEVICE" size="22" weight="NORMAL" color="#B3FFFFFF">
+                <Font family="instrument_serif" size="24" weight="NORMAL" color="#B3F3EFE6">
                   <Template>%s<Parameter expression="no_weather" />
                   </Template>
                 </Font>
@@ -1072,7 +1106,7 @@
     </Group>
     <PartText name="date" x="75" y="38" width="300" height="34">
       <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-        <Font family="SYNC_TO_DEVICE" size="24" weight="NORMAL" color="#B3FFFFFF">
+        <Font family="SYNC_TO_DEVICE" size="24" weight="NORMAL" color="#B3F3EFE6">
           <Template>%s %s<Parameter expression="[DAY_OF_WEEK_S]" />
             <Parameter expression="[DAY]" />
           </Template>
@@ -1080,14 +1114,14 @@
       </Text>
       <Localization calendar="GREGORIAN" timeZone="SYNC_TO_DEVICE" />
     </PartText>
-    <DigitalClock x="0" y="72" width="450" height="104">
-      <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="450" height="104" alpha="255">
+    <DigitalClock x="0" y="68" width="450" height="112">
+      <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="450" height="112" alpha="255">
         <Variant mode="AMBIENT" target="alpha" value="0" />
-        <Font family="SYNC_TO_DEVICE" size="96" weight="BOLD" color="#FFFFFFFF" />
+        <Font family="instrument_serif" size="104" color="#FFF3EFE6" />
       </TimeText>
-      <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="450" height="104" alpha="0">
+      <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="450" height="112" alpha="0">
         <Variant mode="AMBIENT" target="alpha" value="255" />
-        <Font family="SYNC_TO_DEVICE" size="96" weight="THIN" color="#FFFFFFFF" />
+        <Font family="instrument_serif" size="104" color="#FFBDBAB3" />
       </TimeText>
     </DigitalClock>
     <ComplicationSlot name="outfit_card" x="88" y="180" width="274" height="168" slotId="0" supportedTypes="PHOTO_IMAGE EMPTY" displayName="outfit_slot" isCustomizable="TRUE">
@@ -1110,15 +1144,18 @@
         <PartDraw name="left_st_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
-        <PartImage name="left_st_icon" x="21" y="7" width="22" height="22" tintColor="#FFFFFFFF">
+        <PartImage name="left_st_icon" x="21" y="7" width="22" height="22" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="left_st_text" x="4" y="28" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="17" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="17" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1126,7 +1163,7 @@
         </PartText>
         <PartText name="left_st_title" x="4" y="46" width="56" height="14">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="11" weight="NORMAL" color="#B3FFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="11" weight="NORMAL" color="#B3F3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TITLE]" />
               </Template>
             </Font>
@@ -1137,25 +1174,28 @@
         <PartDraw name="left_rv_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartDraw name="left_rv_ring" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="3" y="3" width="58" height="58">
-            <Stroke color="#40FFFFFF" thickness="4" />
+            <Stroke color="#40F3EFE6" thickness="4" />
           </Ellipse>
           <Arc centerX="32" centerY="32" width="58" height="58" startAngle="0" endAngle="0">
-            <Stroke color="#FFFFFFFF" thickness="4" cap="ROUND" />
+            <Stroke color="#FFF3EAD5" thickness="4" cap="ROUND" />
             <Transform target="endAngle" value="clamp(360 * ([COMPLICATION.RANGED_VALUE_VALUE] - [COMPLICATION.RANGED_VALUE_MIN]) / ([COMPLICATION.RANGED_VALUE_MAX] - [COMPLICATION.RANGED_VALUE_MIN] + 0.000001), 0, 360)" />
           </Arc>
         </PartDraw>
-        <PartImage name="left_rv_icon" x="22" y="11" width="20" height="20" tintColor="#FFFFFFFF">
+        <PartImage name="left_rv_icon" x="22" y="11" width="20" height="20" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="left_rv_text" x="4" y="31" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1166,25 +1206,28 @@
         <PartDraw name="left_gp_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartDraw name="left_gp_ring" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="3" y="3" width="58" height="58">
-            <Stroke color="#40FFFFFF" thickness="4" />
+            <Stroke color="#40F3EFE6" thickness="4" />
           </Ellipse>
           <Arc centerX="32" centerY="32" width="58" height="58" startAngle="0" endAngle="0">
-            <Stroke color="#FFFFFFFF" thickness="4" cap="ROUND" />
+            <Stroke color="#FFF3EAD5" thickness="4" cap="ROUND" />
             <Transform target="endAngle" value="clamp(360 * ([COMPLICATION.GOAL_PROGRESS_VALUE] - 0) / ([COMPLICATION.GOAL_PROGRESS_TARGET_VALUE] - 0 + 0.000001), 0, 360)" />
           </Arc>
         </PartDraw>
-        <PartImage name="left_gp_icon" x="22" y="11" width="20" height="20" tintColor="#FFFFFFFF">
+        <PartImage name="left_gp_icon" x="22" y="11" width="20" height="20" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="left_gp_text" x="4" y="31" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1195,10 +1238,13 @@
         <PartDraw name="left_mi_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
-        <PartImage name="left_mi_icon" x="16" y="16" width="32" height="32" tintColor="#FFFFFFFF">
+        <PartImage name="left_mi_icon" x="16" y="16" width="32" height="32" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
       </Complication>
@@ -1206,7 +1252,10 @@
         <PartDraw name="left_si_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartImage name="left_si_img" x="10" y="10" width="44" height="44">
@@ -1218,7 +1267,7 @@
         <PartDraw name="left_empty" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="2" y="2" width="60" height="60">
-            <Stroke color="#33FFFFFF" thickness="2" />
+            <Stroke color="#33F3EFE6" thickness="1.5" dashIntervals="4 4" />
           </Ellipse>
         </PartDraw>
       </Complication>
@@ -1230,15 +1279,18 @@
         <PartDraw name="right_st_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
-        <PartImage name="right_st_icon" x="21" y="7" width="22" height="22" tintColor="#FFFFFFFF">
+        <PartImage name="right_st_icon" x="21" y="7" width="22" height="22" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="right_st_text" x="4" y="28" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="17" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="17" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1246,7 +1298,7 @@
         </PartText>
         <PartText name="right_st_title" x="4" y="46" width="56" height="14">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="11" weight="NORMAL" color="#B3FFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="11" weight="NORMAL" color="#B3F3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TITLE]" />
               </Template>
             </Font>
@@ -1257,25 +1309,28 @@
         <PartDraw name="right_rv_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartDraw name="right_rv_ring" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="3" y="3" width="58" height="58">
-            <Stroke color="#40FFFFFF" thickness="4" />
+            <Stroke color="#40F3EFE6" thickness="4" />
           </Ellipse>
           <Arc centerX="32" centerY="32" width="58" height="58" startAngle="0" endAngle="0">
-            <Stroke color="#FFFFFFFF" thickness="4" cap="ROUND" />
+            <Stroke color="#FFF3EAD5" thickness="4" cap="ROUND" />
             <Transform target="endAngle" value="clamp(360 * ([COMPLICATION.RANGED_VALUE_VALUE] - [COMPLICATION.RANGED_VALUE_MIN]) / ([COMPLICATION.RANGED_VALUE_MAX] - [COMPLICATION.RANGED_VALUE_MIN] + 0.000001), 0, 360)" />
           </Arc>
         </PartDraw>
-        <PartImage name="right_rv_icon" x="22" y="11" width="20" height="20" tintColor="#FFFFFFFF">
+        <PartImage name="right_rv_icon" x="22" y="11" width="20" height="20" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="right_rv_text" x="4" y="31" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1286,25 +1341,28 @@
         <PartDraw name="right_gp_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartDraw name="right_gp_ring" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="3" y="3" width="58" height="58">
-            <Stroke color="#40FFFFFF" thickness="4" />
+            <Stroke color="#40F3EFE6" thickness="4" />
           </Ellipse>
           <Arc centerX="32" centerY="32" width="58" height="58" startAngle="0" endAngle="0">
-            <Stroke color="#FFFFFFFF" thickness="4" cap="ROUND" />
+            <Stroke color="#FFF3EAD5" thickness="4" cap="ROUND" />
             <Transform target="endAngle" value="clamp(360 * ([COMPLICATION.GOAL_PROGRESS_VALUE] - 0) / ([COMPLICATION.GOAL_PROGRESS_TARGET_VALUE] - 0 + 0.000001), 0, 360)" />
           </Arc>
         </PartDraw>
-        <PartImage name="right_gp_icon" x="22" y="11" width="20" height="20" tintColor="#FFFFFFFF">
+        <PartImage name="right_gp_icon" x="22" y="11" width="20" height="20" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="right_gp_text" x="4" y="31" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1315,10 +1373,13 @@
         <PartDraw name="right_mi_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
-        <PartImage name="right_mi_icon" x="16" y="16" width="32" height="32" tintColor="#FFFFFFFF">
+        <PartImage name="right_mi_icon" x="16" y="16" width="32" height="32" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
       </Complication>
@@ -1326,7 +1387,10 @@
         <PartDraw name="right_si_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartImage name="right_si_img" x="10" y="10" width="44" height="44">
@@ -1338,7 +1402,7 @@
         <PartDraw name="right_empty" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="2" y="2" width="60" height="60">
-            <Stroke color="#33FFFFFF" thickness="2" />
+            <Stroke color="#33F3EFE6" thickness="1.5" dashIntervals="4 4" />
           </Ellipse>
         </PartDraw>
       </Complication>
@@ -1350,15 +1414,18 @@
         <PartDraw name="bottom_left_st_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
-        <PartImage name="bottom_left_st_icon" x="21" y="7" width="22" height="22" tintColor="#FFFFFFFF">
+        <PartImage name="bottom_left_st_icon" x="21" y="7" width="22" height="22" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="bottom_left_st_text" x="4" y="28" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="17" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="17" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1366,7 +1433,7 @@
         </PartText>
         <PartText name="bottom_left_st_title" x="4" y="46" width="56" height="14">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="11" weight="NORMAL" color="#B3FFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="11" weight="NORMAL" color="#B3F3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TITLE]" />
               </Template>
             </Font>
@@ -1377,25 +1444,28 @@
         <PartDraw name="bottom_left_rv_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartDraw name="bottom_left_rv_ring" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="3" y="3" width="58" height="58">
-            <Stroke color="#40FFFFFF" thickness="4" />
+            <Stroke color="#40F3EFE6" thickness="4" />
           </Ellipse>
           <Arc centerX="32" centerY="32" width="58" height="58" startAngle="0" endAngle="0">
-            <Stroke color="#FFFFFFFF" thickness="4" cap="ROUND" />
+            <Stroke color="#FFF3EAD5" thickness="4" cap="ROUND" />
             <Transform target="endAngle" value="clamp(360 * ([COMPLICATION.RANGED_VALUE_VALUE] - [COMPLICATION.RANGED_VALUE_MIN]) / ([COMPLICATION.RANGED_VALUE_MAX] - [COMPLICATION.RANGED_VALUE_MIN] + 0.000001), 0, 360)" />
           </Arc>
         </PartDraw>
-        <PartImage name="bottom_left_rv_icon" x="22" y="11" width="20" height="20" tintColor="#FFFFFFFF">
+        <PartImage name="bottom_left_rv_icon" x="22" y="11" width="20" height="20" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="bottom_left_rv_text" x="4" y="31" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1406,25 +1476,28 @@
         <PartDraw name="bottom_left_gp_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartDraw name="bottom_left_gp_ring" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="3" y="3" width="58" height="58">
-            <Stroke color="#40FFFFFF" thickness="4" />
+            <Stroke color="#40F3EFE6" thickness="4" />
           </Ellipse>
           <Arc centerX="32" centerY="32" width="58" height="58" startAngle="0" endAngle="0">
-            <Stroke color="#FFFFFFFF" thickness="4" cap="ROUND" />
+            <Stroke color="#FFF3EAD5" thickness="4" cap="ROUND" />
             <Transform target="endAngle" value="clamp(360 * ([COMPLICATION.GOAL_PROGRESS_VALUE] - 0) / ([COMPLICATION.GOAL_PROGRESS_TARGET_VALUE] - 0 + 0.000001), 0, 360)" />
           </Arc>
         </PartDraw>
-        <PartImage name="bottom_left_gp_icon" x="22" y="11" width="20" height="20" tintColor="#FFFFFFFF">
+        <PartImage name="bottom_left_gp_icon" x="22" y="11" width="20" height="20" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="bottom_left_gp_text" x="4" y="31" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1435,10 +1508,13 @@
         <PartDraw name="bottom_left_mi_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
-        <PartImage name="bottom_left_mi_icon" x="16" y="16" width="32" height="32" tintColor="#FFFFFFFF">
+        <PartImage name="bottom_left_mi_icon" x="16" y="16" width="32" height="32" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
       </Complication>
@@ -1446,7 +1522,10 @@
         <PartDraw name="bottom_left_si_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartImage name="bottom_left_si_img" x="10" y="10" width="44" height="44">
@@ -1458,7 +1537,7 @@
         <PartDraw name="bottom_left_empty" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="2" y="2" width="60" height="60">
-            <Stroke color="#33FFFFFF" thickness="2" />
+            <Stroke color="#33F3EFE6" thickness="1.5" dashIntervals="4 4" />
           </Ellipse>
         </PartDraw>
       </Complication>
@@ -1470,15 +1549,18 @@
         <PartDraw name="bottom_right_st_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
-        <PartImage name="bottom_right_st_icon" x="21" y="7" width="22" height="22" tintColor="#FFFFFFFF">
+        <PartImage name="bottom_right_st_icon" x="21" y="7" width="22" height="22" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="bottom_right_st_text" x="4" y="28" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="17" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="17" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1486,7 +1568,7 @@
         </PartText>
         <PartText name="bottom_right_st_title" x="4" y="46" width="56" height="14">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="11" weight="NORMAL" color="#B3FFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="11" weight="NORMAL" color="#B3F3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TITLE]" />
               </Template>
             </Font>
@@ -1497,25 +1579,28 @@
         <PartDraw name="bottom_right_rv_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartDraw name="bottom_right_rv_ring" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="3" y="3" width="58" height="58">
-            <Stroke color="#40FFFFFF" thickness="4" />
+            <Stroke color="#40F3EFE6" thickness="4" />
           </Ellipse>
           <Arc centerX="32" centerY="32" width="58" height="58" startAngle="0" endAngle="0">
-            <Stroke color="#FFFFFFFF" thickness="4" cap="ROUND" />
+            <Stroke color="#FFF3EAD5" thickness="4" cap="ROUND" />
             <Transform target="endAngle" value="clamp(360 * ([COMPLICATION.RANGED_VALUE_VALUE] - [COMPLICATION.RANGED_VALUE_MIN]) / ([COMPLICATION.RANGED_VALUE_MAX] - [COMPLICATION.RANGED_VALUE_MIN] + 0.000001), 0, 360)" />
           </Arc>
         </PartDraw>
-        <PartImage name="bottom_right_rv_icon" x="22" y="11" width="20" height="20" tintColor="#FFFFFFFF">
+        <PartImage name="bottom_right_rv_icon" x="22" y="11" width="20" height="20" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="bottom_right_rv_text" x="4" y="31" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1526,25 +1611,28 @@
         <PartDraw name="bottom_right_gp_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartDraw name="bottom_right_gp_ring" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="3" y="3" width="58" height="58">
-            <Stroke color="#40FFFFFF" thickness="4" />
+            <Stroke color="#40F3EFE6" thickness="4" />
           </Ellipse>
           <Arc centerX="32" centerY="32" width="58" height="58" startAngle="0" endAngle="0">
-            <Stroke color="#FFFFFFFF" thickness="4" cap="ROUND" />
+            <Stroke color="#FFF3EAD5" thickness="4" cap="ROUND" />
             <Transform target="endAngle" value="clamp(360 * ([COMPLICATION.GOAL_PROGRESS_VALUE] - 0) / ([COMPLICATION.GOAL_PROGRESS_TARGET_VALUE] - 0 + 0.000001), 0, 360)" />
           </Arc>
         </PartDraw>
-        <PartImage name="bottom_right_gp_icon" x="22" y="11" width="20" height="20" tintColor="#FFFFFFFF">
+        <PartImage name="bottom_right_gp_icon" x="22" y="11" width="20" height="20" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
         <PartText name="bottom_right_gp_text" x="4" y="31" width="56" height="20">
           <Text align="CENTER" maxLines="1" ellipsis="TRUE">
-            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFFFFFFF">
+            <Font family="SYNC_TO_DEVICE" size="16" weight="BOLD" color="#FFF3EFE6">
               <Template>%s<Parameter expression="[COMPLICATION.TEXT]" />
               </Template>
             </Font>
@@ -1555,10 +1643,13 @@
         <PartDraw name="bottom_right_mi_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
-        <PartImage name="bottom_right_mi_icon" x="16" y="16" width="32" height="32" tintColor="#FFFFFFFF">
+        <PartImage name="bottom_right_mi_icon" x="16" y="16" width="32" height="32" tintColor="#FFF3EFE6">
           <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
         </PartImage>
       </Complication>
@@ -1566,7 +1657,10 @@
         <PartDraw name="bottom_right_si_bg" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="0" y="0" width="64" height="64">
-            <Fill color="#FF1C1F2B" />
+            <Fill color="#1FF3EFE6" />
+          </Ellipse>
+          <Ellipse x="0.5" y="0.5" width="63" height="63">
+            <Stroke color="#33F3EFE6" thickness="1" />
           </Ellipse>
         </PartDraw>
         <PartImage name="bottom_right_si_img" x="10" y="10" width="44" height="44">
@@ -1578,7 +1672,7 @@
         <PartDraw name="bottom_right_empty" x="0" y="0" width="64" height="64">
           <Variant mode="AMBIENT" target="alpha" value="0" />
           <Ellipse x="2" y="2" width="60" height="60">
-            <Stroke color="#33FFFFFF" thickness="2" />
+            <Stroke color="#33F3EFE6" thickness="1.5" dashIntervals="4 4" />
           </Ellipse>
         </PartDraw>
       </Complication>

@@ -42,13 +42,13 @@ class PlanActivity : Activity() {
         PhoneListener.ask(this)
     }
 
-    private fun line(text: String, sp: Float, bold: Boolean = false, color: Int = 0xFFFFFFFF.toInt()) {
+    private fun line(text: String, sp: Float, bold: Boolean = false, color: Int = Art.CREAM, serif: Boolean = false) {
         box.addView(TextView(this).apply {
             this.text = text
             textSize = sp
             setTextColor(color)
             gravity = Gravity.CENTER
-            if (bold) typeface = Typeface.DEFAULT_BOLD
+            if (serif) typeface = Art.serif(this@PlanActivity) else if (bold) typeface = Typeface.DEFAULT_BOLD
             setPadding(0, (4 * resources.displayMetrics.density).toInt(), 0, 0)
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
     }
@@ -57,24 +57,24 @@ class PlanActivity : Activity() {
         box.removeAllViews()
         val plan = PlanStore(this).plan()
         if (plan == null) {
-            line(getString(R.string.app_name), 16f, bold = true)
-            line(getString(R.string.waiting), 13f, color = 0xB3FFFFFF.toInt())
+            line(getString(R.string.app_name), 18f, serif = true)
+            line(getString(R.string.waiting), 13f, color = 0xB3F3EFE6.toInt())
             return
         }
-        if (plan.place.isNotBlank()) line(plan.place, 13f, color = 0xB3FFFFFF.toInt())
+        if (plan.place.isNotBlank()) line(plan.place, 13f, color = 0xB3F3EFE6.toInt())
         box.addView(ImageView(this).apply {
-            setImageBitmap(Art.card(this@PlanActivity, plan))
+            setImageBitmap(Art.card(this@PlanActivity, plan, round = true))
             adjustViewBounds = true
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         plan.liveWarning()?.let { w ->
             line("⚠ " + w.title + (if (w.whenText.isNotBlank()) " · " + w.whenText else ""), 13f, bold = true, color = Art.warnBg(w.lv))
         }
         if (plan.take.isNotEmpty()) line(getString(R.string.take, plan.take.joinToString(", ") { it.label }), 13f)
-        if (plan.next.isNotBlank()) line(plan.next, 12f, color = 0xB3FFFFFF.toInt())
+        if (plan.next.isNotBlank()) line(plan.next, 12f, color = 0xB3F3EFE6.toInt())
         val age = System.currentTimeMillis() - plan.updated
         line(
             getString(R.string.updated, PlanStore.stamp(this, plan.updated)) + (if (age > PlanStore.MAX_AGE_MS) "\n" + getString(R.string.old) else ""),
-            11f, color = 0x80FFFFFF.toInt()
+            11f, color = 0x80F3EFE6.toInt()
         )
     }
 }

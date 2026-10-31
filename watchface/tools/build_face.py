@@ -22,11 +22,20 @@ import xml.etree.ElementTree as ET
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 RES = ROOT / "watchface/src/main/res"
 
-# Same bands and colours as the app (Outfit.kt: LEVEL_MIN, LEVEL_COLORS, LEVEL_NAMES).
+# Same bands as the app (Outfit.kt: LEVEL_MIN, LEVEL_NAMES).
 BANDS = [None, -3, 3, 8, 13, 17, 21, 26]
-COLORS = ["#FF86AEFF", "#FF9CCBF7", "#FF86D6C6", "#FFAEDD8E", "#FFE6E86E", "#FFFFD65E", "#FFFFAD62", "#FFFF8270"]
-INK = "#FF14161F"
-BG = "#FF0B0D16"
+# The app's night look ("Kumaş ve ışık"): deep blue sky, a soft light in the top corner, cream letters in the
+# app's serif (Instrument Serif, res/font, SIL Open Font License: store/play/fonts/OFL-InstrumentSerif.txt), the
+# level on a cream paper tag with rust letters. The sky is the same for every level: the phone's card can show
+# another level than the watch's own weather, so nothing outside the card is coloured by it.
+BG = "#FF0A0F21"
+SKY = ("#FF0A0F21", "#FF131B37", "#FF26305A")
+GLOW = ("#2EF3EAD5", "#00F3EAD5")
+CREAM = "#FFF3EFE6"
+CREAM_SOFT = "#B3F3EFE6"
+PAPER = "#FFF3EAD5"
+RUST = "#FF9C4A2A"
+SERIF = "instrument_serif"
 
 # Three stickers per level: what to wear (and, for mild levels, the layer to carry), from the app's OUT table.
 STICKERS = [
@@ -76,14 +85,15 @@ RAIN_LATER = f"(([WEATHER.CHANCE_OF_PRECIPITATION] >= 50) && !{RAIN_NOW} && !{SN
 
 # Layout on the 450 x 450 face (scaled to the watch).
 DATE = (75, 38, 300, 34, 24)        # x, y, width, height, font size
-CLOCK = (72, 104, 96)               # y, height, font size
+CLOCK = (68, 112, 104)              # y, height, font size
 CARD = (88, 180, 274, 168)          # the outfit card: x, y, width, height (the photo-image slot, same place)
-TEMP = (88, 180, 130, 46, 38)       # x, y, width, height, font size (right-aligned, before the level pill)
+TEMP = (88, 178, 130, 50, 42)       # x, y, width, height, font size (right-aligned, before the level tag)
 STICKER = 70
 STICKER_Y = 230
 STICKER_X = [225 - STICKER // 2 - 88, 225 - STICKER // 2, 225 - STICKER // 2 + 88]
-CHIP = (226, 186, 128, 36)          # x, y, width, height of the level-name pill
-HEAD = (88, 308, 274, 34, 20)       # x, y, width, height, font size of the headline
+CHIP = (226, 186, 132, 36)          # x, y, width, height of the level-name tag
+CHIP_TEXT = 18                      # its font size
+HEAD = (88, 306, 274, 38, 24)       # x, y, width, height, font size of the headline
 # The four small complication slots (64 px circles, inside the ring): left, right, bottom left, bottom right.
 SLOT = 64
 SLOTS = [
@@ -93,7 +103,8 @@ SLOTS = [
     (4, "bottom_right", 240, 356, "NEXT_EVENT", "SHORT_TEXT"),
 ]
 SLOT_TYPES = ["SHORT_TEXT", "RANGED_VALUE", "GOAL_PROGRESS", "MONOCHROMATIC_IMAGE", "SMALL_IMAGE", "EMPTY"]
-SLOT_BG = "#FF1C1F2B"
+SLOT_BG = "#1FF3EFE6"               # frosted glass over the sky
+SLOT_EDGE = "#33F3EFE6"
 # The outfit card from the Ne Giysem? watch app (wear/: OutfitComplicationService, photo image).
 NG_PROVIDER = "com.negiysem.app/com.negiysem.app.wear.OutfitComplicationService"
 
@@ -109,12 +120,13 @@ def hide_in_ambient(e):
     el(e, "Variant", mode="AMBIENT", target="alpha", value="0")
 
 
-def text(parent, name, x, y, w, h, size, color, weight="NORMAL", align="CENTER", template="%s", params=(), ambient=True):
+def text(parent, name, x, y, w, h, size, color, weight="NORMAL", align="CENTER", template="%s", params=(), ambient=True,
+         family="SYNC_TO_DEVICE"):
     pt = el(parent, "PartText", name=name, x=x, y=y, width=w, height=h)
     if not ambient:
         hide_in_ambient(pt)
     t = el(pt, "Text", align=align, maxLines=1, ellipsis="TRUE")
-    f = el(t, "Font", family="SYNC_TO_DEVICE", size=size, weight=weight, color=color)
+    f = el(t, "Font", family=family, size=size, weight=weight, color=color)
     tp = el(f, "Template")
     tp.text = template
     for p in params:
@@ -146,7 +158,7 @@ def stickers(g, names, tag):
 
 def headline(g, string_name, tag):
     x, y, w, h, size = HEAD
-    text(g, f"{tag}_head", x, y, w, h, size, "#FFFFFFFF", weight="BOLD", params=[string_name], ambient=False)
+    text(g, f"{tag}_head", x, y, w, h, size, CREAM, params=[string_name], ambient=False, family=SERIF)
 
 
 def snow_stickers(base):
@@ -155,17 +167,15 @@ def snow_stickers(base):
 
 
 def level_group(i):
-    color = COLORS[i]
-
     def fill(g):
-        # Level name chip next to the temperature. (No level-coloured ring: the phone's card can show another level
-        # than the watch's own weather, and the ring is outside the card, so it would disagree with it.)
+        # The level name on a paper tag next to the temperature, with the tag's eyelet on the left.
         cx, cy, cw, ch = CHIP
         chip = el(g, "Group", name=f"l{i}_chip", x=cx, y=cy, width=cw, height=ch)
         hide_in_ambient(chip)
-        pill = el(chip, "PartDraw", name=f"l{i}_pill", x=0, y=0, width=cw, height=ch)
-        el(el(pill, "RoundRectangle", x=0, y=0, width=cw, height=ch, cornerRadiusX=ch // 2, cornerRadiusY=ch // 2), "Fill", color=color)
-        text(chip, f"l{i}_name", 6, 4, cw - 12, ch - 8, 20, INK, weight="BOLD", params=[f"lvl_{i}"])
+        tag = el(chip, "PartDraw", name=f"l{i}_tag", x=0, y=0, width=cw, height=ch)
+        el(el(tag, "RoundRectangle", x=0, y=0, width=cw, height=ch, cornerRadiusX=6, cornerRadiusY=6), "Fill", color=PAPER)
+        el(el(tag, "Ellipse", x=7, y=ch // 2 - 4, width=8, height=8), "Fill", color=SKY[1])
+        text(chip, f"l{i}_name", 18, 4, cw - 24, ch - 8, CHIP_TEXT, RUST, weight="BOLD", params=[f"lvl_{i}"])
         # Stickers and headline: snow, rain now, rain later today, or the level's own.
         base = STICKERS[i]
         snow = snow_stickers(base)
@@ -195,41 +205,46 @@ def build():
     el(wf, "Metadata", key="PREVIEW_TIME", value="10:08:32")
     scene = el(wf, "Scene", backgroundColor=BG)
 
-    # A quiet frame around the edge (gone in ambient).
-    frame = el(scene, "PartDraw", name="frame", x=0, y=0, width=450, height=450)
-    hide_in_ambient(frame)
-    el(el(frame, "Ellipse", x=4, y=4, width=442, height=442), "Stroke", color="#26FFFFFF", thickness=3)
+    # The night sky: deep blue from top to bottom with a soft light in the top right (gone in ambient: black there).
+    sky = el(scene, "PartDraw", name="sky", x=0, y=0, width=450, height=450)
+    hide_in_ambient(sky)
+    el(el(el(sky, "Rectangle", x=0, y=0, width=450, height=450), "Fill", color=SKY[0]), "LinearGradient",
+       startX=0, startY=0, endX=0, endY=450, colors=" ".join(SKY), positions="0 0.45 1")
+    el(el(el(sky, "Rectangle", x=0, y=0, width=450, height=450), "Fill", color=GLOW[0]), "RadialGradient",
+       centerX=370, centerY=20, radius=300, colors=" ".join(GLOW), positions="0 1")
+    # A stitched seam around the edge, like the app's cards.
+    el(el(sky, "Ellipse", x=9, y=9, width=432, height=432), "Stroke", color="#2EF3EFE6", thickness=1.5, dashIntervals="6 5")
 
     weather = el(scene, "Group", name="weather", x=0, y=0, width=450, height=450)
 
     def available(g):
         # Temperature as the watch shows it (°C or °F), kept in ambient mode.
         tx, ty, tw, th, ts = TEMP
-        text(g, "temp", tx, ty, tw, th, ts, "#FFFFFFFF", weight="BOLD", align="END", template="%s°",
-             params=["[WEATHER.TEMPERATURE]"])
+        text(g, "temp", tx, ty, tw, th, ts, CREAM, align="END", template="%s°",
+             params=["[WEATHER.TEMPERATURE]"], family=SERIF)
         condition(g, [level_group(i) for i in range(8)])
 
     def missing(g):
         x, y, w, h = CARD
-        text(g, "no_weather", x, y + 60, w, 40, 22, "#B3FFFFFF", params=["no_weather"], ambient=False)
+        text(g, "no_weather", x, y + 60, w, 40, 24, CREAM_SOFT, params=["no_weather"], ambient=False, family=SERIF)
 
     condition(weather, [("has_weather", "[WEATHER.IS_AVAILABLE]", available)], default=missing)
 
     # Day and date.
     dx, dy, dw, dh, ds = DATE
-    date = text(scene, "date", dx, dy, dw, dh, ds, "#B3FFFFFF", template="%s %s", params=["[DAY_OF_WEEK_S]", "[DAY]"])
+    date = text(scene, "date", dx, dy, dw, dh, ds, CREAM_SOFT, template="%s %s", params=["[DAY_OF_WEEK_S]", "[DAY]"])
     el(date, "Localization", calendar="GREGORIAN", timeZone="SYNC_TO_DEVICE")
     date.insert(0, date[-1])
     date.remove(date[-1])
 
-    # The time: bold when active, thin in ambient mode.
+    # The time in the app's serif: cream when active, a dimmer grey in ambient mode.
     cy, ch, cs = CLOCK
     clock = el(scene, "DigitalClock", x=0, y=cy, width=450, height=ch)
-    for weight, alpha, ambient_alpha in (("BOLD", 255, 0), ("THIN", 0, 255)):
+    for color, alpha, ambient_alpha in ((CREAM, 255, 0), ("#FFBDBAB3", 0, 255)):
         tt = el(clock, "TimeText", format="hh:mm", hourFormat="SYNC_TO_DEVICE", align="CENTER",
                 x=0, y=0, width=450, height=ch, alpha=alpha)
         el(tt, "Variant", mode="AMBIENT", target="alpha", value=ambient_alpha)
-        el(tt, "Font", family="SYNC_TO_DEVICE", size=cs, weight=weight, color="#FFFFFFFF")
+        el(tt, "Font", family=SERIF, size=cs, color=color)
 
     outfit_card(scene)
     for slot in SLOTS:
@@ -267,27 +282,28 @@ def small_slot(scene, slot_id, name, x, y, provider, provider_type):
         d = el(parent, "PartDraw", name=f"{name}_{tag}_bg", x=0, y=0, width=s, height=s)
         hide_in_ambient(d)
         el(el(d, "Ellipse", x=0, y=0, width=s, height=s), "Fill", color=SLOT_BG)
+        el(el(d, "Ellipse", x=0.5, y=0.5, width=s - 1, height=s - 1), "Stroke", color=SLOT_EDGE, thickness=1)
 
     def icon(parent, tag, size, top, source="[COMPLICATION.MONOCHROMATIC_IMAGE]"):
-        pi = el(parent, "PartImage", name=f"{name}_{tag}_icon", x=(s - size) // 2, y=top, width=size, height=size, tintColor="#FFFFFFFF")
+        pi = el(parent, "PartImage", name=f"{name}_{tag}_icon", x=(s - size) // 2, y=top, width=size, height=size, tintColor=CREAM)
         el(pi, "Image", resource=source)
 
-    def label(parent, tag, top, h, size, source, color="#FFFFFFFF", weight="BOLD"):
+    def label(parent, tag, top, h, size, source, color=CREAM, weight="BOLD"):
         text(parent, f"{name}_{tag}", 4, top, s - 8, h, size, color, weight=weight, params=[source])
 
     def ring(parent, tag, value):
         d = el(parent, "PartDraw", name=f"{name}_{tag}_ring", x=0, y=0, width=s, height=s)
         hide_in_ambient(d)
-        el(el(d, "Ellipse", x=3, y=3, width=s - 6, height=s - 6), "Stroke", color="#40FFFFFF", thickness=4)
+        el(el(d, "Ellipse", x=3, y=3, width=s - 6, height=s - 6), "Stroke", color="#40F3EFE6", thickness=4)
         arc = el(d, "Arc", centerX=s // 2, centerY=s // 2, width=s - 6, height=s - 6, startAngle=0, endAngle=0)
-        el(arc, "Stroke", color="#FFFFFFFF", thickness=4, cap="ROUND")
+        el(arc, "Stroke", color=PAPER, thickness=4, cap="ROUND")
         el(arc, "Transform", target="endAngle", value=value)
 
     c = el(cs, "Complication", type="SHORT_TEXT")
     disc(c, "st")
     icon(c, "st", 22, 7)
     label(c, "st_text", 28, 20, 17, "[COMPLICATION.TEXT]")
-    label(c, "st_title", 46, 14, 11, "[COMPLICATION.TITLE]", color="#B3FFFFFF", weight="NORMAL")
+    label(c, "st_title", 46, 14, 11, "[COMPLICATION.TITLE]", color=CREAM_SOFT, weight="NORMAL")
 
     for kind, v, lo, hi in (("RANGED_VALUE", "[COMPLICATION.RANGED_VALUE_VALUE]", "[COMPLICATION.RANGED_VALUE_MIN]", "[COMPLICATION.RANGED_VALUE_MAX]"),
                             ("GOAL_PROGRESS", "[COMPLICATION.GOAL_PROGRESS_VALUE]", "0", "[COMPLICATION.GOAL_PROGRESS_TARGET_VALUE]")):
@@ -312,7 +328,7 @@ def small_slot(scene, slot_id, name, x, y, provider, provider_type):
     c = el(cs, "Complication", type="EMPTY")
     d = el(c, "PartDraw", name=f"{name}_empty", x=0, y=0, width=s, height=s)
     hide_in_ambient(d)
-    el(el(d, "Ellipse", x=2, y=2, width=s - 4, height=s - 4), "Stroke", color="#33FFFFFF", thickness=2)
+    el(el(d, "Ellipse", x=2, y=2, width=s - 4, height=s - 4), "Stroke", color=SLOT_EDGE, thickness=1.5, dashIntervals="4 4")
 
 
 def strings(lang):

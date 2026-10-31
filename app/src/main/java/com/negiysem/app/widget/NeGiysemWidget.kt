@@ -48,6 +48,7 @@ import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
+import androidx.glance.text.FontFamily
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -226,41 +227,34 @@ private val STICKERS = mapOf(
     "tshirt" to R.drawable.g_tshirt, "yagmurluk" to R.drawable.g_yagmurluk, "yuruyus" to R.drawable.g_yuruyus
 )
 
-/**
- * [base] is the widget's bottom layer: the phone's colour palette (Android 12+, see values-v31/colors.xml), resolved
- * by the home screen so it follows a palette change at once. [overlay] is the level colour on top of it, partly
- * see-through, so the level keeps its own colour but takes on the palette's tint (like Windows' Mica, without blur).
- * [bg] is roughly the colour that results; it colours text on dark pills.
- */
-private class Palette(val base: ColorProvider, val overlay: Color, val bg: Color, val ink: Color, val sub: Color, val night: Boolean)
+/** The band's sky, as on the app screen (res/drawable/sky_*.xml): its daytime light, or deep blue at night. */
+private val SKY_DAY = intArrayOf(
+    R.drawable.sky_day_0, R.drawable.sky_day_1, R.drawable.sky_day_2, R.drawable.sky_day_3,
+    R.drawable.sky_day_4, R.drawable.sky_day_5, R.drawable.sky_day_6, R.drawable.sky_day_7
+)
+private val SKY_NIGHT = intArrayOf(
+    R.drawable.sky_night_0, R.drawable.sky_night_1, R.drawable.sky_night_2, R.drawable.sky_night_3,
+    R.drawable.sky_night_4, R.drawable.sky_night_5, R.drawable.sky_night_6, R.drawable.sky_night_7
+)
 
-/** Share of the level colour over the palette by day (night keeps the old 24 % over a dark base). */
-private const val DAY_LEVEL = 0.6f
-private const val NIGHT_LEVEL = 0.24f
+/**
+ * [sky] is the widget's background picture; [ink] and [sub] its text colours; [pillBg]/[pillInk] the dark (by night:
+ * light) pills, like the app's.
+ */
+private class Palette(val sky: Int, val ink: Color, val sub: Color, val pillBg: Color, val pillInk: Color, val night: Boolean)
 
 private fun palette(d: WidgetData): Palette {
-    val lv = Color(Outfit.LEVEL_COLORS[d.level])
     val night = d.ok && !d.isDay
-    // Before Android 12 there's no palette to blend with: the level colour alone by day, as before.
-    val hasPalette = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    if (!night) {
-        val share = if (hasPalette) DAY_LEVEL else 1f
-        return Palette(ColorProvider(R.color.widget_base_day), lv.copy(alpha = share), lv, Color(0xFF14161F), Color(0xB014161F), false)
-    }
-    val base = Color(0xFF0B0D16)
-    val mixed = Color(
-        red = lv.red * NIGHT_LEVEL + base.red * (1 - NIGHT_LEVEL),
-        green = lv.green * NIGHT_LEVEL + base.green * (1 - NIGHT_LEVEL),
-        blue = lv.blue * NIGHT_LEVEL + base.blue * (1 - NIGHT_LEVEL),
-        alpha = 1f
-    )
-    return Palette(ColorProvider(R.color.widget_base_night), lv.copy(alpha = NIGHT_LEVEL), mixed, Color(0xFFF6F4EE), Color(0xB8F6F4EE), true)
+    return if (!night) Palette(SKY_DAY[d.level], Color(0xFF1D1B14), Color(0xB81D1B14), Color(0xFF1D1B14), Color(0xFFF7F1E3), false)
+    else Palette(SKY_NIGHT[d.level], Color(0xFFF3EFE6), Color(0xC7F3EFE6), Color(0xFFF3EFE6), Color(0xFF141A30), true)
 }
 
 private fun deg(v: Double): String = if (v.isNaN()) "—" else Outfit.deg(v)
 
-private fun style(color: Color, size: Float, bold: Boolean = true) =
-    TextStyle(color = ColorProvider(color), fontSize = size.sp, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
+/** [serif]: the temperature and the verdict, in the phone's serif like the app's (measured as such by AndroidMeter). */
+private fun style(color: Color, size: Float, bold: Boolean = true, serif: Boolean = false) =
+    TextStyle(color = ColorProvider(color), fontSize = size.sp, fontWeight = if (bold && !serif) FontWeight.Bold else FontWeight.Normal,
+        fontFamily = if (serif) FontFamily.Serif else null)
 
 @Composable
 private fun Sticker(g: Garment, size: Float) {
@@ -283,6 +277,8 @@ private class AndroidMeter(context: Context) : TextMeter {
     }.getOrNull() ?: Typeface.DEFAULT
     private val boldFace = if (Build.VERSION.SDK_INT >= 28) Typeface.create(family, 700, false) else Typeface.create(family, Typeface.BOLD)
     private val normalFace = if (Build.VERSION.SDK_INT >= 28) Typeface.create(family, 400, false) else family
+    // Glance's FontFamily.Serif at normal weight: the system's "serif" family.
+    private val serifFace = Typeface.create(Typeface.SERIF, Typeface.NORMAL)
 
     private fun paint(sp: Float, face: Typeface) = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, dm)
@@ -292,10 +288,17 @@ private class AndroidMeter(context: Context) : TextMeter {
     override fun width(text: String, sp: Float, bold: Boolean) =
         paint(sp, if (bold) boldFace else normalFace).measureText(text) / dm.density
 
-    override fun block(text: String, sp: Float, bold: Boolean, maxWidth: Float, maxLines: Int): Pair<Float, Int> {
+    override fun serifWidth(text: String, sp: Float) = paint(sp, serifFace).measureText(text) / dm.density
+
+    override fun block(text: String, sp: Float, bold: Boolean, maxWidth: Float, maxLines: Int) =
+        layout(text, sp, if (bold) boldFace else normalFace, maxWidth, maxLines)
+
+    override fun serifBlock(text: String, sp: Float, maxWidth: Float, maxLines: Int) = layout(text, sp, serifFace, maxWidth, maxLines)
+
+    private fun layout(text: String, sp: Float, face: Typeface, maxWidth: Float, maxLines: Int): Pair<Float, Int> {
         val t = text.ifEmpty { " " }
         val layout = StaticLayout.Builder
-            .obtain(t, 0, t.length, paint(sp, if (bold) boldFace else normalFace), maxOf(1, (maxWidth * dm.density).toInt()))
+            .obtain(t, 0, t.length, paint(sp, face), maxOf(1, (maxWidth * dm.density).toInt()))
             .setIncludePad(true)
             .setMaxLines(maxLines)
             .setEllipsize(TextUtils.TruncateAt.END)
@@ -365,25 +368,26 @@ private fun fitFor(context: Context, d: WidgetData, width: Float, height: Float)
     )
 }
 
-/** The warning pill's colours, as on the app screen: yellow for "Dikkat", orange for "Tehlikeli", dark text. */
-private fun warnBg(lv: Int) = Color(if (lv == 2) 0xFFFF8A5B else 0xFFFFE27A)
-private fun warnInk(lv: Int) = Color(if (lv == 2) 0xFF2A0C00 else 0xFF2A2100)
+/** The warning's colour, as on the app screen's safety tape: amber for "Dikkat", orange for "Tehlikeli". */
+private fun tape(lv: Int) = Color(if (lv == 2) 0xFFFF7A1A else 0xFFF2B705)
 
-/** The warning sign and words on their own coloured pill. */
+/** The warning sign and words: a dark pill with the sign in the tape's colour by day; the tape's colour at night. */
 @Composable
-private fun WarningPill(d: WidgetData, f: Fit) {
+private fun WarningPill(d: WidgetData, p: Palette, f: Fit) {
     val lv = d.warning?.lv ?: 1
+    val bg = if (p.night) tape(lv) else Color(0xF214161F)
+    val ink = if (p.night) Color(0xFF1A0B02) else Color(0xFFF3EFE6)
     Row(
-        modifier = GlanceModifier.background(warnBg(lv)).cornerRadius(999.dp)
+        modifier = GlanceModifier.background(bg).cornerRadius(999.dp)
             .padding(horizontal = WidgetFit.PILL_PAD_H.dp, vertical = WidgetFit.PILL_PAD_V.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             provider = ImageProvider(R.drawable.ic_warn), contentDescription = null,
-            colorFilter = ColorFilter.tint(ColorProvider(warnInk(lv))), modifier = GlanceModifier.size(f.alertIcon.dp)
+            colorFilter = ColorFilter.tint(ColorProvider(if (p.night) ink else tape(lv))), modifier = GlanceModifier.size(f.alertIcon.dp)
         )
         Spacer(GlanceModifier.width(WidgetFit.ICON_GAP.dp))
-        Text(f.alert, style = style(warnInk(lv), f.alertSp), maxLines = 1, modifier = GlanceModifier.width(f.alertW.dp))
+        Text(f.alert, style = style(ink, f.alertSp), maxLines = 1, modifier = GlanceModifier.width(f.alertW.dp))
     }
 }
 
@@ -398,18 +402,16 @@ private fun Body(d: WidgetData) {
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(p.base)
+            .background(ImageProvider(p.sky))
             .cornerRadius(26.dp)
             .clickable(actionStartActivity<MainActivity>())
     ) {
-        Box(modifier = GlanceModifier.fillMaxSize().background(p.overlay)) {
-            when (f.kind) {
-                FitKind.SMALL -> SmallLayout(d, p, f)
-                FitKind.WIDE -> WideLayout(d, p, f)
-                FitKind.TALL -> TallLayout(d, p, f)
-            }
-            CornerClock(p, f)
+        when (f.kind) {
+            FitKind.SMALL -> SmallLayout(d, p, f)
+            FitKind.WIDE -> WideLayout(d, p, f)
+            FitKind.TALL -> TallLayout(d, p, f)
         }
+        CornerClock(p, f)
     }
 }
 
@@ -448,11 +450,11 @@ private fun Stickers(d: WidgetData, f: Fit) {
 private fun SmallLayout(d: WidgetData, p: Palette, f: Fit) {
     Column(modifier = GlanceModifier.fillMaxSize().padding(f.padH.dp)) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(deg(d.temp), style = style(p.ink, f.temp), modifier = GlanceModifier.width(f.textW.dp), maxLines = 1)
+            Text(deg(d.temp), style = style(p.ink, f.temp, serif = true), modifier = GlanceModifier.width(f.textW.dp), maxLines = 1)
         }
         if (f.alert.isNotEmpty()) {
             Spacer(GlanceModifier.height(2.dp))
-            WarningPill(d, f)
+            WarningPill(d, p, f)
         } else {
             Text(staleText(d) ?: if (d.ok) Outfit.levelName(d.level, d.lang) else "Ne Giysem?", style = style(p.sub, f.sub), maxLines = 1)
         }
@@ -468,13 +470,13 @@ private fun SmallLayout(d: WidgetData, p: Palette, f: Fit) {
 @Composable
 private fun Header(d: WidgetData, p: Palette, f: Fit) {
     Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(deg(d.temp), style = style(p.ink, f.temp), maxLines = 1)
+        Text(deg(d.temp), style = style(p.ink, f.temp, serif = true), maxLines = 1)
         Spacer(GlanceModifier.width(WidgetFit.HEADER_GAP.dp))
         Column(modifier = GlanceModifier.width(f.textW.dp)) {
             Text(placeLine(d), style = style(p.ink, f.place), maxLines = 1)
             if (f.kind == FitKind.WIDE && f.alert.isNotEmpty()) {
                 Spacer(GlanceModifier.height(2.dp))
-                WarningPill(d, f)
+                WarningPill(d, p, f)
             } else {
                 Text(subLine(d), style = style(p.sub, f.sub, bold = d.next.isNotEmpty() || staleText(d) != null), maxLines = 1)
             }
@@ -487,7 +489,7 @@ private fun WideLayout(d: WidgetData, p: Palette, f: Fit) {
     Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = f.padH.dp, vertical = f.padV.dp)) {
         Header(d, p, f)
         Spacer(GlanceModifier.height((4f * f.scale).dp))
-        Text(d.headline, style = style(p.ink, f.head), maxLines = f.headLines)
+        Text(d.headline, style = style(p.ink, f.head, serif = true), maxLines = f.headLines)
         if (f.takeMode == TakeMode.OWN_LINE) {
             Spacer(GlanceModifier.height(2.dp))
             Text(takeLine(d), style = style(p.sub, f.take), maxLines = f.takeLines)
@@ -511,20 +513,20 @@ private fun TallLayout(d: WidgetData, p: Palette, f: Fit) {
         Spacer(GlanceModifier.height((6f * f.scale).dp))
         if (f.pills > 0 || f.alert.isNotEmpty()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (f.alert.isNotEmpty()) WarningPill(d, f)
+                if (f.alert.isNotEmpty()) WarningPill(d, p, f)
                 d.pills.take(f.pills).forEachIndexed { i, s ->
                     if (i > 0 || f.alert.isNotEmpty()) Spacer(GlanceModifier.width(4.dp))
                     Text(
                         s,
-                        modifier = GlanceModifier.background(p.ink).cornerRadius(999.dp)
+                        modifier = GlanceModifier.background(p.pillBg).cornerRadius(999.dp)
                             .padding(horizontal = WidgetFit.PILL_PAD_H.dp, vertical = WidgetFit.PILL_PAD_V.dp),
-                        style = style(p.bg, f.pill), maxLines = 1
+                        style = style(p.pillInk, f.pill), maxLines = 1
                     )
                 }
             }
             Spacer(GlanceModifier.height(6.dp))
         }
-        Text(d.headline, style = style(p.ink, f.head), maxLines = f.headLines)
+        Text(d.headline, style = style(p.ink, f.head, serif = true), maxLines = f.headLines)
         Spacer(GlanceModifier.defaultWeight())
         Row(modifier = GlanceModifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             d.wear.take(f.stickers).forEachIndexed { i, g ->

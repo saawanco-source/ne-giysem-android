@@ -103,9 +103,9 @@ varsayılan ayar). Deneme uygulaması bu adresin sunucusunu kullanır (RELEASE.m
 - **Rota sayacı:** rota önerilerinin ziyaretçi başına saatlik sınırı IP adresini saklamaz; sayacın adı IP'den gizli bir
   anahtarla üretilen, geri çevrilemeyen ve her saat değişen bir koddur. Anahtar `RATE_SECRET` adlı **Secret**'tır
   (isteğe bağlı: uzun, rastgele bir metin; parola yöneticisine ürettir); yoksa `GOOGLE_ROUTES_KEY` kullanılır.
-- **Yayından önce denetim (önerilir):** proje → **Settings → Builds** → **Build command**: `node ../tools/csp.js --check`
-  (kök klasör `web` olduğu için `../`). Sayfanın kodu ile güvenlik politikası eşleşmezse Cloudflare derlemeyi durdurur ve
-  eski sürüm yayında kalır.
+- **Yayından önce denetim (31 Ekim 2026'da ayarlandı):** proje → **Settings → Builds** → **Build command**:
+  `node ../tools/csp.js --check` (kök klasör `web` olduğu için `../`). Sayfanın kodu ile güvenlik politikası eşleşmezse
+  Cloudflare derlemeyi durdurur ve eski sürüm yayında kalır.
 - **Cloudflare'ın sayfaya kod ekleyen özellikleri kapalı kalsın:** kendi alan adını bağlarsan o alan adında *Email Address
   Obfuscation*, *Rocket Loader*, *Web Analytics* (otomatik ekleme) ve *Zaraz*'ı açma; sayfaların politikası bu eklenen kodu
   engeller (gizlilik sayfalarındaki e-posta adresi `email_off` ile zaten korunuyor).

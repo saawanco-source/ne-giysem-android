@@ -144,7 +144,17 @@ class Store(context: Context) {
     }
 
     companion object {
-        fun deviceLang(): String = if (Locale.getDefault().language == "tr") "tr" else "en"
+        /**
+         * The language until the person picks one on the app screen: English for everyone while the app is tested with
+         * people from other countries (the page's CONFIG.lang in web/index.html says the same). "device" would follow
+         * the phone: Turkish on a Turkish phone, English anywhere else.
+         */
+        const val DEFAULT_LANG = "en"
+
+        fun deviceLang(): String = when (DEFAULT_LANG) {
+            "tr", "en" -> DEFAULT_LANG
+            else -> if (Locale.getDefault().language == "tr") "tr" else "en"
+        }
 
         /** The compact snapshot the widget draws; its texts are in [lang], which the widget's own words follow too. */
         fun widgetSnapshot(

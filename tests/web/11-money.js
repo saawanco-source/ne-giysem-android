@@ -10,7 +10,7 @@ const MONEY = { shops: [{ name: "Amazon", url: "https://www.amazon.com.tr/s?k={q
 async function open(t, o) {
   const s = await t.open(Object.assign({ seed: seed() }, o.base || {}));
   const reqs = []; s.page.on("request", (r) => reqs.push(r.url()));
-  if (o.config) await s.context.addInitScript((c) => { window.NG_CONFIG = c; }, o.config);
+  if (o.config) await s.context.addInitScript((c) => { window.NG_CONFIG = Object.assign(window.NG_CONFIG || {}, c); }, o.config);
   if (o.android) await s.context.addInitScript(() => { window.NeGiysemAndroid = { saveState() {}, setTheme() {}, reset() {}, hasLocation: () => false }; });
   await s.goto(); await sleep(500);
   s.reqs = reqs; return s;

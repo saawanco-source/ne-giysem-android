@@ -54,6 +54,8 @@ async function open(opts = {}) {
   page.on('console', m => { if ((m.type() === 'error' || m.type() === 'warning') && !/ERR_FAILED/.test(m.text())) errors.push('console.' + m.type() + ': ' + m.text()); });
   let fixture = fx({});
   let meteoCalls = 0;
+  // written for a Turkish phone that follows its own language (the live default is English: tests/web/12-english.js)
+  await page.addInitScript(() => { window.NG_CONFIG = Object.assign({ lang: 'device' }, window.NG_CONFIG || {}); });
   await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
   await page.route(/bigdatacloud/, r => r.abort());
   await page.addInitScript(() => { window.NG_API = ""; }); // legacy direct services, mocked below (CONFIG.api points at the live server)

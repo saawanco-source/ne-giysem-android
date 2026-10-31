@@ -7,7 +7,7 @@
      `node tools/csp.js`; the web tests check) and talk only to its own server and, when that can't be reached, to MET
      Norway, Photon and BigDataCloud directly. No other site gets anything from this page. AdSense, a custom domain or a
      new service must be added here first. The site adds the rest (framing, HTTPS) in web/_headers. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-cBDQf+frFx9T81bk+pPFBltPU8EmoHVSJihqdJO2dXs='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-pwsWTl88or+ryU1gCWnCQlBNKlIp56bKCmk9h/3oIxo='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
 <meta name="referrer" content="same-origin">
 <!-- The app's own server; the Android build puts the preview site's address here for a test build. -->
 <meta name="ng-api" content="https://ne-giysem.pages.dev">
@@ -776,7 +776,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     // Donation page, website only (Google Play doesn't allow outside payments in the app).
     donate: "",
     // Where "Sorun bildir" sends its e-mail (also on the privacy pages).
-    contact: "saawanco@gmail.com"
+    contact: "saawanco@gmail.com",
+    // The language until the person picks one in "Sana göre" (then it is stored): "en" or "tr" for everyone, or
+    // "device" (Turkish on a Turkish phone, English anywhere else). English for everyone while the app is being
+    // tested with people from other countries; the Android app follows the page (Store.kt, DEFAULT_LANG).
+    lang: "en"
   };
   if (window.NG_CONFIG && typeof window.NG_CONFIG === "object") Object.keys(window.NG_CONFIG).forEach(function(k){ CONFIG[k] = window.NG_CONFIG[k]; }); // tests
   var API = (function(){
@@ -803,8 +807,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   var IN_APP = !!window.NeGiysemAndroid;
 
   /* ================= state ================= */
-  // Language: Turkish on a Turkish device, English anywhere else, until the person picks one (then it is stored).
-  function deviceLang(){ return /^tr/i.test(String(navigator.language || "")) ? "tr" : "en"; }
+  // Language until the person picks one (then it is stored): CONFIG.lang, or with "device" the phone's own language.
+  function deviceLang(){
+    if (CONFIG.lang === "tr" || CONFIG.lang === "en") return CONFIG.lang;
+    return /^tr/i.test(String(navigator.language || "")) ? "tr" : "en";
+  }
   var S = {lang:deviceLang(), langSet:false, places:[], sel:"auto", hours:6, feel:"normal", act:"city", manual:{temp:17, sky:"partly", wind:"breezy"}, mode:"manual", live:null,
            routes:[], trips:[], dayMode:true, dayWx:null, choice:{date:"", picks:{}}, fix:null,
            rainOff:"", pack:{place:"", days:3, start:0, ticks:{}}, gRoutes:false,
@@ -4414,7 +4421,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     S.manual = {temp:17, sky:"partly", wind:"breezy"}; S.mode = "manual"; S.live = null;
     S.routes = []; S.trips = []; S.dayMode = true; S.dayWx = null; S.choice = {date:"", picks:{}}; S.fix = null;
     S.rainOff = ""; S.pack = {place:"", days:3, start:0, ticks:{}}; S.gRoutes = false; GR.byKey = {};
-    S.lang = deviceLang(); S.langSet = false; // back to the device's language
+    S.lang = deviceLang(); S.langSet = false; // back to the default language
     if (S.lang !== LANG) { LANG = S.lang; applyLang(); }
     SEARCH.cache = {}; lastWearSig = "";
     closeSearch(); togglePanel(false); $("routine").hidden = true; hideTip(); closeSheet(true);

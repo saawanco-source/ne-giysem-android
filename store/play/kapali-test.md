@@ -74,6 +74,37 @@ Grup bağlantısı: `https://groups.google.com/g/ne-giysem-test` (grup adına g�
 > Görüşlerini Play Store'daki uygulama sayfasından "özel geri bildirim" olarak ya da uygulamada
 > "Sana göre → Sorun bildir" ile gönderebilirsin. Teşekkürler!
 
+### Reddit (İngilizce, r/TestersCommunity)
+
+Karşılıklı test topluluğu: başkalarının uygulamasını kurup 14 gün tutarsın, onlar da seninkini. Kendi kişisel Reddit
+hesabın yerine yalnızca bu iş için açtığın bir hesap kullan (ör. saawanco); gönderide kişisel bilgi olmasın.
+
+> **Title:** [Closed test] Ne Giysem? – what to wear today, from your local weather (Android, free, no account) – I'll test back!
+>
+> Hi! I'm a solo developer and I need testers for Google Play's 14-day closed test.
+>
+> What it is: Ne Giysem? ("What should I wear?") looks at the weather where you are and tells you at a glance what to
+> wear today – layers, umbrella, sunglasses and so on. It has a home-screen widget, plans your day (commute, evening),
+> warns about severe weather and works with Wear OS watches. Free, no account, no tracking: your places and settings
+> stay on your phone.
+>
+> How to join (2 minutes):
+> 1. Join the Google Group: https://groups.google.com/g/ne-giysem-test
+> 2. Opt in: https://play.google.com/apps/testing/com.negiysem.app
+> 3. Install it from Google Play and open it a few times over the next days (the widget is worth a try).
+> 4. Please stay opted in for the full 14 days.
+>
+> Privacy: only I can see the group's member list, members can't see each other, and the group is deleted after the
+> test. Privacy policy: https://ne-giysem.pages.dev/privacy.html
+>
+> Test for test: comment your opt-in link (and group, if you use one) and I'll install your app and keep it for the
+> full 14 days. Feedback is welcome through Google Play's private feedback or the app's "Report a problem".
+>
+> Thanks!
+
+Uygulama 31 Ekim 2026'dan beri herkese **İngilizce** açılıyor (Türkçe "Sana göre → Dil"den seçilir; `CONFIG.lang`
+ve `Store.DEFAULT_LANG`). Grubun açıklaması ve hoş geldin mesajı İngilizce + Türkçe.
+
 ## 4. Grup açıklaması ve hoş geldin mesajı
 
 > Ne Giysem? Android uygulamasının Google Play kapalı testi. Katıldıktan sonra test bağlantısını aç, "Test kullanıcısı

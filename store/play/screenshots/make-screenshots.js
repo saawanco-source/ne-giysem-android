@@ -34,7 +34,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
    TODO(en): when the English UI lands, fill in how to turn it on, e.g. a stored setting
    (state => { state.lang = "en"; }) or a click on the language toggle. Until then SHOT_LANG=en skips every scene. */
 const LANGS = {
-  tr: { locale: "tr-TR", seed: null },
+  tr: { locale: "tr-TR", seed: (state) => { state.lang = "tr"; } },  // the app opens in English until Türkçe is picked
   en: { locale: "en-US", seed: (state) => { state.lang = "en"; } },
 };
 

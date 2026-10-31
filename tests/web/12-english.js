@@ -114,6 +114,26 @@ H.run({
     }
   },
 
+  async liveDefaultIsEnglish(t) {
+    // The live setting (CONFIG.lang "en"): even a Turkish phone opens in English until Türkçe is picked, and deleting
+    // all data goes back to English.
+    const calls = [];
+    const s = await t.open({ liveLang: true, seed: seed(fc(9)) }); // Turkish phone
+    await androidBridge(s, calls);
+    await s.goto(); await sleep(400);
+    const a = await s.page.evaluate(() => ({ lang: document.documentElement.lang, feels: document.getElementById("nowFeels").textContent, pressed: document.querySelector('[data-key="lang"] [aria-pressed="true"]').dataset.val }));
+    check("live default: a Turkish phone opens in English", a.lang === "en" && a.pressed === "en" && /^Feels like/.test(a.feels), a);
+    // (the page tells the Android app only when something is saved; until then the app's own default, also English, holds)
+    check("live default: English is not stored as a choice, and anything sent to the Android app says 'en'", !((await s.stored()) || {}).lang && (calls.length === 0 || calls[calls.length - 1].lang === "en"), { stored: ((await s.stored()) || {}).lang, last: calls.slice(-1).map((c) => c.lang) });
+    await scrollTo(s, '[data-key="lang"]');
+    await s.page.tap('[data-key="lang"] [data-val="tr"]'); await sleep(300);
+    check("live default: Türkçe can be picked and is stored", await s.page.evaluate(() => document.documentElement.lang) === "tr" && (await s.stored()).lang === "tr", (await s.stored()).lang);
+    const r = await s.page.$("#resetBtn"); await r.click(); await r.click(); await sleep(300);
+    check("live default: deleting all data goes back to English", await s.page.evaluate(() => document.documentElement.lang) === "en", true);
+    pageOk(s, "live default");
+    await s.close();
+  },
+
   async switchInApp(t) {
     const calls = [];
     const s = await t.open({ seed: seed(fc(9)) }); // Turkish phone
@@ -389,7 +409,7 @@ H.run({
   async moneyEnglish(t) {
     const MONEY = { shops: [{ name: "Amazon", url: "https://www.amazon.com.tr/s?k={q}&tag=test-21" }], adsense: { client: "ca-pub-1234567890", slot: "42" }, donate: "https://example.org/destek" };
     const s = await t.open({ ctx: EN, seed: seed(fc(5)), api: true });
-    await s.context.addInitScript((c) => { window.NG_CONFIG = c; }, MONEY);
+    await s.context.addInitScript((c) => { window.NG_CONFIG = Object.assign(window.NG_CONFIG || {}, c); }, MONEY);
     await s.goto(); await sleep(500);
     const c = await s.page.$eval("#consent", (e) => ({ hidden: e.hidden, text: e.innerText, href: e.querySelector("a").getAttribute("href") }));
     check("ads consent in English, English privacy page", !c.hidden && /^To keep Ne Giysem\? free/.test(c.text) && /Allow/.test(c.text) && /Don't personalize/.test(c.text) && c.href === "privacy.html", c);

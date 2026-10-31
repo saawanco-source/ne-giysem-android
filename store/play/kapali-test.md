@@ -26,7 +26,7 @@ sırada senin ve test kullanıcılarının gizliliğini korumak için yapılacak
 
 | Ayar | Seçim | Neden |
 |---|---|---|
-| Grubu kimler arayabilir | Yalnızca grup üyeleri | Grup dizinde listelenmez; yalnızca bağlantıyı alan bulur |
+| Grubu kimler görebilir/arayabilir | Web üzerindeki herkes | Üye olmayan biri bağlantıdan grubu açıp katılabilsin diye (yalnızca ad ve tanım görünür; üyeler ve yazışmalar görünmez) |
 | Kimler katılabilir | Web'deki herkes katılabilir | Onay beklemeden testçi olunur |
 | Konuşmaları kimler görebilir | Grup yöneticileri | Grupta yazışma yok |
 | Kimler yayın yapabilir (gönderi) | Grup sahipleri | Spam ve istenmeyen e-posta olmaz |
@@ -34,7 +34,10 @@ sırada senin ve test kullanıcılarının gizliliğini korumak için yapılacak
 | Grup sahipleriyle kimler iletişim kurabilir | Grup yöneticileri | Senin adresin üyelere açılmaz; geri bildirim Play'den gelir |
 | E-postayla gönderi / konuşma geçmişi | Kapalı | Grup yalnızca test erişimi için |
 
+- **Hoş geldin mesajı:** katılım bağlantısı, adımlar ve gizlilik notu (31 Ekim 2026'da yazıldı).
 - Tek sahip saawanco hesabı olsun; başka bir hesabını (okul, kişisel) yönetici ya da üye olarak **ekleme**.
+- **Durum (31 Ekim 2026):** grup kuruldu: `ne-giysem-test@googlegroups.com`, <https://groups.google.com/g/ne-giysem-test>.
+  Ayarlar yukarıdaki gibi; ayrıca e-postayla gönderi ve konuşma geçmişi kapalı.
 - Üye listesini dışa aktarma, kopyalama ya da başka bir yerde saklama. Üyelere toplu e-posta gönderme.
 
 ## 2. Play Console'da kapalı teste bağla

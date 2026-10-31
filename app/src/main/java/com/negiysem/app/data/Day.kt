@@ -5,6 +5,9 @@ import org.json.JSONObject
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.Calendar
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -136,15 +139,17 @@ object Day {
         return s
     }
 
+    /**
+     * The trip's start [dayOffset] days from today, as the page's Date does it: a wall-clock time that happens twice
+     * (the night the clocks go back) is the earlier one, and one that doesn't happen (clocks forward) moves on by the
+     * gap. Calendar took the later one of a repeated hour, so the widget could pick another route than the app.
+     */
     private fun atTime(hhmm: String, dayOffset: Int): Long {
         val parts = hhmm.split(":")
-        val c = Calendar.getInstance()
-        c.add(Calendar.DAY_OF_YEAR, dayOffset)
-        c.set(Calendar.HOUR_OF_DAY, parts.getOrNull(0)?.toIntOrNull() ?: 8)
-        c.set(Calendar.MINUTE, parts.getOrNull(1)?.toIntOrNull() ?: 0)
-        c.set(Calendar.SECOND, 0)
-        c.set(Calendar.MILLISECOND, 0)
-        return c.timeInMillis
+        val local = LocalDate.now().plusDays(dayOffset.toLong()).atStartOfDay()
+            .plusHours((parts.getOrNull(0)?.toIntOrNull() ?: 8).toLong())
+            .plusMinutes((parts.getOrNull(1)?.toIntOrNull() ?: 0).toLong())
+        return ZonedDateTime.of(local, ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
 
     private data class Item(val trip: Trip, val route: Route?, val ex: Ex?, val offset: Int)

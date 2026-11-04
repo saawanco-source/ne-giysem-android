@@ -32,7 +32,7 @@ fun main(args: Array<String>) {
                 }
                 val day = routine?.let { Day.compute(it, byPlace, lang = lang) }
                 val miss = c.optJSONArray("missing")?.let { a -> (0 until a.length()).map { a.optString(it) }.toSet() } ?: emptySet()
-                val plan = Outfit.plan(day?.input ?: input, c.optString("feel", "normal"), c.optString("act", "city"), c.optString("who", "me"), miss, lang)
+                val plan = Outfit.plan(day?.input ?: input, c.optString("feel", "normal"), c.optString("act", "city"), c.optString("who", "me"), miss, lang, c.optInt("cal", 0))
                 r.put("useDay", day?.input != null)
                 r.put("level", plan.level)
                 r.put("head", plan.headline)

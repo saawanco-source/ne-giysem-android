@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status bar icon for the evening note about tomorrow: a T-shirt, white only (Android tints it). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M8.5,3 L3,5.8 1.5,10.6 5,11.8 5,21 19,21 19,11.8 22.5,10.6 21,5.8 15.5,3C15,4.6 13.7,5.6 12,5.6 10.3,5.6 9,4.6 8.5,3z" />
+</vector>

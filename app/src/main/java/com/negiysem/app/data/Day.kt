@@ -232,4 +232,74 @@ object Day {
     }
 
     fun roundMinutes(v: Double) = v.roundToInt()
+
+    /** The forecast's hours from index [i0] to [i1] as the engine's window, the first one as "now" (page: schoolDay, dayInput). */
+    private fun span(wx: JSONObject, i0: Int, i1: Int, filter: (String) -> Boolean = { true }): Outfit.Input? {
+        val h = wx.optJSONObject("hourly") ?: return null
+        val times = h.optJSONArray("time") ?: return null
+        val rl = Alerts.rainLevels(h)
+        val win = ArrayList<Outfit.Hour>()
+        var first: W? = null
+        for (j in i0..minOf(i1, times.length() - 1)) {
+            val t = times.optString(j); if (!filter(t)) continue
+            val temp = h.optJSONArray("temperature_2m").dbl(j)
+            val app = h.optJSONArray("apparent_temperature").dbl(j).let { if (it.isNaN()) temp else it }
+            if (app.isNaN()) continue
+            val w = W(time = t, app = app, t = if (temp.isNaN()) app else temp,
+                p = h.optJSONArray("precipitation_probability").dbl(j).let { if (it.isNaN()) 0.0 else it },
+                code = h.optJSONArray("weather_code")?.optInt(j, 3) ?: 3,
+                wind = h.optJSONArray("wind_speed_10m").dbl(j).let { if (it.isNaN()) 0.0 else it },
+                day = (h.optJSONArray("is_day")?.optInt(j, 1) ?: 1) == 1, mm = h.optJSONArray("precipitation").dbl(j),
+                gust = h.optJSONArray("wind_gusts_10m").dbl(j).let { if (it.isNaN()) 0.0 else it }, rl = rl.getOrElse(j) { 0 }, dir = null)
+            if (first == null) first = w
+            win.add(Outfit.Hour(w.time, w.app, w.p, w.code, w.wind, w.mm, w.t, w.gust, w.rl))
+        }
+        val f = first ?: return null
+        val daily = wx.optJSONObject("daily"); val dTimes = daily?.optJSONArray("time")
+        var di = -1
+        if (dTimes != null) for (i in 0 until dTimes.length()) if (dTimes.optString(i) == f.time.take(10)) { di = i; break }
+        val uv = if (di >= 0) daily?.optJSONArray("uv_index_max").dbl(di).takeIf { !it.isNaN() } else null
+        return Outfit.Input(
+            now = Outfit.Now(t = f.t, app = f.app, code = f.code, isDay = true, wind = f.wind, gust = 0.0, dir = null, rh = null, precip = 0.0),
+            window = win, uvMax = uv, uvDay = win.any { (it.time.substring(11, 13).toIntOrNull() ?: 0) in 10..16 }, trip = true
+        )
+    }
+    private fun idxAt(wx: JSONObject, ms: Long): Int {
+        val times = wx.optJSONObject("hourly")?.optJSONArray("time") ?: return -1
+        val key = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH").withZone(ZoneOffset.UTC)
+            .format(Instant.ofEpochMilli(ms + wx.optLong("utc_offset_seconds", 0L) * 1000))
+        for (k in 0 until times.length()) if (times.optString(k).take(13) == key) return k
+        return -1
+    }
+
+    data class School(val input: Outfit.Input, val offset: Int, val inAt: String, val outAt: String, val inApp: Double, val outApp: Double)
+
+    /**
+     * A child's school day (page: schoolDay): today on a weekday while school isn't over, from 15:00 on tomorrow's when
+     * tomorrow is a weekday. "Now" is the hour school starts (or the current hour once it has), the window runs to the
+     * hour it ends.
+     */
+    fun school(wx: JSONObject, inAt: String, outAt: String, now: Long = System.currentTimeMillis()): School? {
+        val cal = Calendar.getInstance().apply { timeInMillis = now }
+        val nowHm = "%02d:%02d".format(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE))
+        fun weekday(k: Int): Boolean { val c = Calendar.getInstance().apply { timeInMillis = now; add(Calendar.DAY_OF_MONTH, k) }; return c.get(Calendar.DAY_OF_WEEK) in Calendar.MONDAY..Calendar.FRIDAY }
+        val off = if (weekday(0) && nowHm < outAt) 0 else if (cal.get(Calendar.HOUR_OF_DAY) >= 15 && weekday(1)) 1 else return null
+        val a = atTime(inAt, off); val b = atTime(outAt, off)
+        val start = if (off == 0) maxOf(a, now) else a
+        val i0 = idxAt(wx, start); if (i0 < 0) return null
+        val i1 = maxOf(i0, idxAt(wx, b - 1))
+        val inp = span(wx, i0, i1) ?: return null
+        return School(inp, off, inAt, outAt, inp.window.first().app, inp.window.last().app)
+    }
+
+    /** Tomorrow's daytime (08–20) at the place (page: dayInput), for the evening note. */
+    fun tomorrow(wx: JSONObject): Outfit.Input? {
+        val times = wx.optJSONObject("hourly")?.optJSONArray("time") ?: return null
+        val off = wx.optLong("utc_offset_seconds", 0L)
+        val ds = Instant.ofEpochMilli(System.currentTimeMillis() + off * 1000 + 86_400_000L).atZone(ZoneOffset.UTC).toLocalDate().toString()
+        var i0 = -1; var i1 = -1
+        for (k in 0 until times.length()) if (times.optString(k).take(10) == ds) { if (i0 < 0) i0 = k; i1 = k }
+        if (i0 < 0) return null
+        return span(wx, i0, i1) { (it.substring(11, 13).toIntOrNull() ?: 0) in 8..20 }
+    }
 }

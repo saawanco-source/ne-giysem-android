@@ -7,7 +7,7 @@
      `node tools/csp.js`; the web tests check) and talk only to its own server and, when that can't be reached, to MET
      Norway, Photon and BigDataCloud directly. No other site gets anything from this page. AdSense, a custom domain or a
      new service must be added here first. The site adds the rest (framing, HTTPS) in web/_headers. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-pwsWTl88or+ryU1gCWnCQlBNKlIp56bKCmk9h/3oIxo='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-cdek8NCiJEPr9VEAxADNam4LGGmaZSoyhi4JKUS45fY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
 <meta name="referrer" content="same-origin">
 <!-- The app's own server; the Android build puts the preview site's address here for a test build. -->
 <meta name="ng-api" content="https://ne-giysem.pages.dev">
@@ -160,9 +160,9 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .apk-hint p+p{margin-top:4px}
 
 /* layout */
-.grid{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"hero" "board" "trip" "day" "week" "me" "edit";gap:22px;margin-top:22px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"hero" "board" "trip" "day" "week" "need" "me" "edit";gap:22px;margin-top:22px}
 @media (min-width:900px){
-  .grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:"hero board" "trip board" "day board" "week board" "me board" "edit edit";grid-template-rows:auto auto auto auto 1fr auto;column-gap:40px;margin-top:34px}
+  .grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:"hero board" "trip board" "day board" "week board" "need board" "me board" "edit edit";grid-template-rows:auto auto auto auto auto 1fr auto;column-gap:40px;margin-top:34px}
   .board{position:sticky;top:calc(20px + env(safe-area-inset-top,0px));align-self:start}
 }
 .hero{grid-area:hero;min-width:0}
@@ -467,6 +467,36 @@ html.sheet-open,html.sheet-open body{overflow:hidden}
 .pk-it .n{font:400 1.6rem/1 var(--font-display);font-variant-numeric:tabular-nums;flex:none}
 .pk-it.done .pl b,.pk-it.done .n{text-decoration:line-through;text-decoration-thickness:2px}
 .pk-it.done .art,.pk-it.done .pl{opacity:.55}
+/* today against yesterday, "Bugün nasıldı?", the missing piece, the calendar and school hours */
+.vs{display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:14.5px;font-weight:600;line-height:1.35}
+.vs[hidden]{display:none}
+.vs-ic{display:inline-grid;place-items:center;flex:none;width:24px;height:24px;border-radius:50%;background:var(--chip);font-weight:800;font-size:14px}
+.vs.cold .vs-ic{background:#9CCBF7;color:#14233a}
+.vs.warm .vs-ic{background:#FFAD62;color:#3a1f05}
+.fb{position:relative;margin:14px 0 0;max-width:34rem;background:var(--card);border-radius:20px;padding:12px 44px 12px 14px;box-shadow:inset 0 0 0 1px var(--card-line),0 14px 26px -18px var(--shadow)}
+.fb[hidden]{display:none}
+.fb p{margin:0 0 10px;font-size:14px;color:var(--ink2)}
+.fb p b{display:block;color:var(--ink);font-size:15px;margin-bottom:2px}
+.fb .chips{display:flex;flex-wrap:wrap;gap:6px}
+.fb .x{position:absolute;top:4px;right:4px}
+.linkish{border:0;background:none;padding:6px 2px;margin:-6px 0;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.need{grid-area:need;min-width:0;display:flex;gap:14px;align-items:flex-start}
+.need[hidden]{display:none}
+.nd-art{flex:none;width:64px;height:64px}
+.nd-art svg{width:100%;height:100%}
+.nd-txt{min-width:0;flex:1}
+.nd-txt p{margin:0 0 6px}
+.nd-txt .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pk-calb{display:inline-flex;align-items:center;gap:6px}
+.pk-calb svg{width:18px;height:18px;flex:none}
+.pk-cal{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:12px;align-items:flex-end}
+.pk-cal label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--ink2)}
+.pk-cal input,.pf-times input{border:1.5px solid var(--input-line);background:var(--input);color:var(--ink);border-radius:12px;padding:8px 10px;font:inherit;min-height:44px;min-width:0}
+.pk-cal .src{flex-basis:100%;margin:0}
+.pf-school{display:flex;flex-direction:column;gap:8px}
+.pf-school[hidden]{display:none}
+.pf-times{display:flex;flex-wrap:wrap;gap:10px 16px}
+.pf-times label{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
 .pk-note{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:16px;background:var(--card);border-radius:18px;padding:14px}
 .pk-note p{margin:0;font-size:14px}
 .pk-out{width:100%;min-height:9em;margin-top:8px;border:1.5px solid var(--input-line);background:var(--input);color:var(--ink);border-radius:12px;padding:10px;font:inherit;font-size:13px}
@@ -539,6 +569,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <div class="pills" id="pills"></div>
       <h1 class="head" id="headline" tabindex="-1">Bugün ne giysem?</h1>
       <p class="meta"><span class="t1" id="nowCond"></span><span class="t2" id="nowFeels"></span></p>
+      <p class="vs" id="vsYday" hidden></p>
+      <div class="fb" id="fbCard" role="group" aria-label="Bugün nasıldı?" data-i18n-attr="aria-label" hidden></div>
       <div class="hero-acts" id="heroActs" hidden>
         <button type="button" class="chip act-chip" id="shareBtn" aria-label="Bugünün önerisini görsel olarak paylaş" data-i18n-attr="aria-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3.5"/><path d="m7.5 8 4.5-4.5L16.5 8"/><path d="M5 12.5V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6.5"/></svg>
@@ -616,6 +648,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <p class="src" data-i18n>Gündüz saatlerinin (08–20) hissedilen sıcaklığı ve senin ayarlarınla. Ayrıntı için bir güne dokun.</p>
     </section>
 
+    <section class="need card" id="needCard" hidden aria-label="Dolabında eksik" data-i18n-attr="aria-label"></section>
+
     <section class="me card" aria-label="Kişisel ayarlar" data-i18n-attr="aria-label">
       <h2 data-i18n>Sana göre</h2>
       <div class="row">
@@ -637,6 +671,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           <button type="button" data-val="normal" data-i18n>Normal</button>
           <button type="button" data-val="warm" data-i18n>Sıcak tutarım</button>
         </div>
+        <p class="src" id="calHint" hidden></p>
       </div>
       <div class="row">
         <span class="rl" id="lAct" data-i18n>Ne yapacaksın?</span>
@@ -670,6 +705,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         <span class="rl" data-i18n>Hava uyarıları</span>
         <div class="chips"><button type="button" class="chip" id="alertsBtn" aria-pressed="false">Telefonuma bildir</button></div>
         <p class="src" id="alertsHint"></p>
+      </div>
+      <div class="row" id="eveRow" hidden>
+        <span class="rl" data-i18n>Akşam hatırlatması</span>
+        <div class="chips"><button type="button" class="chip" id="eveBtn" aria-pressed="false">Her akşam yarını bildir</button></div>
+        <p class="src" id="eveHint"></p>
       </div>
       <div class="row">
         <span class="rl" id="lLang"><span lang="tr">Dil</span> · <span lang="en">Language</span></span>
@@ -812,9 +852,23 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (CONFIG.lang === "tr" || CONFIG.lang === "en") return CONFIG.lang;
     return /^tr/i.test(String(navigator.language || "")) ? "tr" : "en";
   }
+  // A person's own correction from their "Bugün nasıldı?" answers, in degrees: −1 for every "üşüdüm" (dressed warmer),
+  // +1 for every "terledim"; at most 4 either way.
+  function calOf(v){ v = Math.round(+v); return isFinite(v) ? Math.max(-4, Math.min(4, v)) : 0; }
+  // A child's school hours on weekdays ({in:"08:00", out:"15:30"}), or null.
+  function schoolOf(o){
+    if (!o || typeof o !== "object") return null;
+    var ok = function(t){ return typeof t === "string" && /^([01]?\d|2[0-3]):[0-5]\d$/.test(t); };
+    if (!ok(o["in"]) || !ok(o.out) || o.out <= o["in"]) return null;
+    return {"in":o["in"], out:o.out};
+  }
   var S = {lang:deviceLang(), langSet:false, places:[], sel:"auto", hours:6, feel:"normal", act:"city", manual:{temp:17, sky:"partly", wind:"breezy"}, mode:"manual", live:null,
            routes:[], trips:[], dayMode:true, dayWx:null, choice:{date:"", picks:{}}, fix:null,
            rainOff:"", pack:{place:"", days:3, start:0, ticks:{}}, gRoutes:false,
+           // hist: the felt temperature hour by hour for the last few days at the place on screen ("dünden 5° soğuk");
+           // fbDay: the day the person last answered "Bugün nasıldı?" (their answers move each person's cal).
+           // needOff: "don't show" for a missing piece, until a date ({yagmurluk:"2026-11-10"}).
+           hist:null, fbDay:"", needOff:{},
            // People the app dresses: each with an age group, cold sensitivity and the pieces missing from their wardrobe.
            // The active person's sensitivity lives in S.feel while they are chosen.
            profiles:[{id:"me", name:"Ben", who:"me", feel:"normal", missing:[]}], prof:"me"};
@@ -836,7 +890,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var ps = d.profiles.filter(function(p){ return p && str(p.id) && typeof p.name === "string"; }).slice(0, 8).map(function(p){
         return {id:p.id.slice(0, 40), name:p.name.trim().slice(0, 24) || "Kişi", who:["me","child","elder"].indexOf(p.who) >= 0 ? p.who : "me",
           feel:["cold","normal","warm"].indexOf(p.feel) >= 0 ? p.feel : "normal",
-          missing:Array.isArray(p.missing) ? p.missing.filter(function(g){ return typeof g === "string" && /^[a-z]{2,12}$/.test(g); }).slice(0, 40) : []};
+          missing:Array.isArray(p.missing) ? p.missing.filter(function(g){ return typeof g === "string" && /^[a-z]{2,12}$/.test(g); }).slice(0, 40) : [],
+          cal:calOf(p.cal), school:schoolOf(p.school)};
       });
       if (ps.length) S.profiles = ps;
     }
@@ -870,6 +925,14 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     // the day the rain warning was closed, and the packing list (place, days, start, ticked items per trip)
     if (typeof d.rainOff === "string" && /^\d{4}-\d{1,2}-\d{1,2}$/.test(d.rainOff)) S.rainOff = d.rainOff;
     if (d.gRoutes === true) S.gRoutes = true;
+    if (d.hist && typeof d.hist.at === "string" && d.hist.d && typeof d.hist.d === "object") {
+      var hd = {}; Object.keys(d.hist.d).slice(-4).forEach(function(k){ var a = d.hist.d[k];
+        if (/^\d{4}-\d{2}-\d{2}$/.test(k) && Array.isArray(a) && a.length === 24) hd[k] = a.map(function(v){ return fin(v) ? v : null; }); });
+      S.hist = {at:d.hist.at.slice(0, 40), d:hd};
+    }
+    if (typeof d.fbDay === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.fbDay)) S.fbDay = d.fbDay;
+    if (d.needOff && typeof d.needOff === "object" && !Array.isArray(d.needOff)) Object.keys(d.needOff).slice(0, 20).forEach(function(g){
+      if (/^[a-z]{2,12}$/.test(g) && typeof d.needOff[g] === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.needOff[g])) S.needOff[g] = d.needOff[g]; });
     if (d.outdated === true) S.outdated = true;
     var pk = d.pack;
     if (pk && typeof pk === "object" && !Array.isArray(pk)) {
@@ -877,6 +940,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       if ([1,2,3,4,5,6,7].indexOf(pk.days) >= 0) S.pack.days = pk.days;
       if (pk.start === 0 || pk.start === 1) S.pack.start = pk.start;
       if (typeof pk.on === "string" && /^\d{4}-\d{2}-\d{2}$/.test(pk.on)) S.pack.on = pk.on;
+      // A trip picked on the calendar (any dates up to a year ahead, at most 21 days long).
+      var isD = function(v){ return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v); };
+      if (isD(pk.from) && isD(pk.to) && pk.to >= pk.from && pk.to <= addDays(pk.from, 20)) { S.pack.from = pk.from; S.pack.to = pk.to; }
       if (pk.ticks && typeof pk.ticks === "object" && !Array.isArray(pk.ticks)) Object.keys(pk.ticks).slice(-6).forEach(function(k){
         if (Array.isArray(pk.ticks[k])) S.pack.ticks[String(k).slice(0, 120)] = pk.ticks[k].filter(function(x){ return typeof x === "string"; }).slice(0, 60);
       });
@@ -890,19 +956,25 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   function forWhom(pr){ return pr.id === "me" && pr.name === "Ben" ? tx("Benim için") : tx("{0} için", personName(pr)); }
   function personName(pr){ return pr.id === "me" && pr.name === "Ben" ? tx("Ben") : nm(pr.name); }
   // What the outfit engine needs to know about the person being dressed.
-  function prefs(){ var pr = curProf(); return {feel:S.feel, act:S.act, who:pr.who, missing:pr.missing, lang:S.lang}; }
-  function save(){
+  function prefs(){ var pr = curProf(); return {feel:S.feel, act:S.act, who:pr.who, missing:pr.missing, lang:S.lang, cal:pr.cal || 0}; }
+  // The page's own copy only (the felt-temperature history changes with every new forecast; the widget doesn't need it).
+  function saveQuiet(){
     curProf().feel = S.feel;
     // The language is stored only once the person has picked one; until then it follows the device.
     try { localStorage.setItem(KEY, JSON.stringify({lang:S.langSet ? S.lang : undefined, places:S.places, sel:S.sel, hours:S.hours, feel:S.feel, act:S.act, manual:S.manual, mode:S.mode, live:S.live,
       routes:S.routes, trips:S.trips, dayMode:S.dayMode, dayWx:S.dayWx, choice:S.choice, fix:S.fix, rainOff:S.rainOff, pack:S.pack,
-      profiles:S.profiles, prof:S.prof, gRoutes:S.gRoutes || undefined, outdated:S.outdated || undefined})); } catch (e) {}
+      profiles:S.profiles, prof:S.prof, gRoutes:S.gRoutes || undefined, outdated:S.outdated || undefined, hist:S.hist || undefined, fbDay:S.fbDay || undefined,
+      needOff:S.needOff && Object.keys(S.needOff).length ? S.needOff : undefined})); } catch (e) {}
+  }
+  function save(){
+    saveQuiet();
     // Android app: share the chosen place, preferences, language and routine with the home-screen widget
     if (window.NeGiysemAndroid) {
       var pl = S.live && S.live.place ? {name:livePlaceName(), lat:S.live.place.lat, lon:S.live.place.lon} : null;
       var places = S.places.map(function(p){ return {id:p.id, name:p.name, lat:p.lat, lon:p.lon}; });
       var pr = curProf();
       try { window.NeGiysemAndroid.saveState(JSON.stringify({lang:S.lang, feel:S.feel, act:S.act, hours:S.hours, place:pl, who:pr.who, missing:pr.missing,
+        cal:pr.cal || 0, school:pr.who === "child" && pr.school ? pr.school : null,
         routine:{dayMode:S.dayMode, places:places, routes:S.routes, trips:S.trips, choice:S.choice}})); } catch (e) {}
     }
   }
@@ -1351,7 +1423,54 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Bölge": "Region", "Durak": "Stop", "İstasyon": "Station", "Metro girişi": "Metro entrance", "Üniversite": "University", "Okul": "School",
     "Hastane": "Hospital", "İskele": "Pier", "Otogar": "Bus terminal", "Kütüphane": "Library", "Kafe": "Cafe", "Restoran": "Restaurant",
     "Yurt": "Dormitory", "Park": "Park", "Doğa alanı": "Nature area", "Spor merkezi": "Sports center", "Stadyum": "Stadium", "Orman": "Forest",
-    "Plaj": "Beach", "Tepe": "Hill", "AVM": "Mall", "Adres": "Address"
+    "Plaj": "Beach", "Tepe": "Hill", "AVM": "Mall", "Adres": "Address",
+    // today against yesterday
+    "Dün bu saatte de {0}: dünkü kıyafetin iş görür.": "It was {0} at this hour yesterday too: yesterday's outfit will do.",
+    "Bugün bu saatte de {0}: bugünkü kıyafetin iş görür.": "It's {0} at this hour today too: today's outfit will do.",
+    "Dünden {0}° daha soğuk": "{0}° colder than yesterday", "Bugünden {0}° daha soğuk": "{0}° colder than today",
+    "Dünden {0}° daha sıcak": "{0}° warmer than yesterday", "Bugünden {0}° daha sıcak": "{0}° warmer than today",
+    "; dünkü kıyafetin yetmez.": "; yesterday's outfit won't be enough.", "; bugünkü kıyafetin yetmez.": "; today's outfit won't be enough.",
+    "; dünkünden ince giy.": "; dress lighter than yesterday.", "; bugünkünden ince giy.": "; dress lighter than today.",
+    // "Bugün nasıldı?"
+    "Bugün nasıldı?": "How was today?", "{0} için bugün nasıldı?": "How was today for {0}?",
+    "Önerilen kıyafetle dışarıda nasıldın? Cevabına göre öneriler sana göre ayarlanır.": "How did the suggested outfit feel outside? Your answer fine-tunes the suggestions for you.",
+    "Üşüdüm": "I was cold", "Tam iyiydi": "Just right", "Terledim": "I was too warm", "Bugün sorma": "Don't ask today",
+    "Not aldım: bundan sonra biraz daha sıcak giydireceğim.": "Noted: from now on I'll dress you a little warmer.",
+    "Not aldım: bundan sonra biraz daha ince giydireceğim.": "Noted: from now on I'll dress you a little lighter.",
+    "Güzel! Öneriler böyle kalıyor.": "Great! The suggestions stay as they are.",
+    "“Bugün nasıldı?” cevaplarına göre {0}° daha sıcak giydiriliyor.": "Dressed {0}° warmer, from your “How was today?” answers.",
+    "“Bugün nasıldı?” cevaplarına göre {0}° daha ince giydiriliyor.": "Dressed {0}° lighter, from your “How was today?” answers.",
+    "Sıfırla": "Reset", "Kişisel ayar sıfırlandı.": "Personal fine-tuning reset.",
+    // the missing piece
+    "Dolabında eksik": "Missing from your wardrobe",
+    "Bu hafta {0} gün {1} gerekecek": function(n, g){ return cap(g) + " needed on " + plural(n, "day", "days") + " this week"; },
+    "{0}: bu hafta {1} gün {2} gerekecek": function(who, n, g){ return who + ": " + g + " needed on " + plural(n, "day", "days") + " this week"; },
+    "Dolabında yok diye işaretli; o günlerde yerine elindeki en yakın parça öneriliyor. Günler: {0}.": "It's marked as not in your wardrobe, so the closest piece you have is suggested on those days. Days: {0}.",
+    "Aslında var": "I have one", "Bu hafta gösterme": "Not this week", "{0} dolabına eklendi.": "{0} added to your wardrobe.",
+    // school hours
+    "Okul saatine göre": "For school hours", "Yarın okul saatine göre": "For school hours tomorrow",
+    " · okul {0} {1}, çıkış {2} {3}": " · school {0} {1}, home time {2} {3}",
+    "Çıkışta ({0}) {1}, hava ısınıyor: {2} öğlen çıkarılabilir, çantada yer açın.": function(at, t, g){ return "At home time (" + at + ") it's " + t + ": it warms up, so " + (g === "one layer" ? "a layer" : "the " + g) + " can come off; leave room in the school bag."; },
+    "Çıkışta ({0}) {1}, hava soğuyor: çantasına {2} koyun.": function(at, t, g){ return "At home time (" + at + ") it's " + t + ": it gets colder, so pack " + (g === "a warm layer" ? g : "the " + g) + " in the school bag."; },
+    "bir kat": "one layer", "sıcak bir kat": "a warm layer",
+    "Okul saatlerinde hissedilen {0} – {1}.": "Feels like {0} – {1} during school hours.",
+    "Okul saatleri (hafta içi)": "School hours (weekdays)", "Giriş": "Starts", "Çıkış": "Ends",
+    "İstersen yaz: okul günlerinde kıyafet, okula gidiş ve dönüş saatlerinin havasına göre seçilir; öğlen ısınacaksa çantasına ne koyacağı da söylenir.": "Optional: on school days the outfit is chosen for the weather on the way to and from school, and if it warms up during the day you'll see what to put in the school bag.",
+    "Giriş ve çıkış saatini birlikte yaz; çıkış girişten sonra olsun.": "Enter both times; school must end after it starts.",
+    // the evening note
+    "Akşam hatırlatması": "Evening reminder", "Akşam bildirimi açık": "Evening reminder on", "Her akşam yarını bildir": "Tell me about tomorrow every evening",
+    "Her akşam 21:00’de yarının kıyafeti ve hazırlaman gerekenler bildirim olarak gelir. Kapatmak için dokun.": "Every evening at 21:00 you get tomorrow's outfit and what to get ready as a notification. Tap to turn it off.",
+    "Her akşam 21:00’de yarının kıyafetini söyler: “Yarın sabah 4°, montunu ve şemsiyeni kapının önüne koy.”": "Every evening at 21:00 it tells you tomorrow's outfit: “4° tomorrow morning: put your coat and umbrella by the door.”",
+    // warm rides, cold walks
+    "{0} içi yaklaşık {1}, dışarısı {2}: kazak yerine önü açılan bir hırka ya da ince katlar giy; içeride {3} aç.": function(m, a, b, w){ return "Inside the " + lcf(m) + " it's about " + a + " and " + b + " outside: a front-opening cardigan or thin layers instead of a thick sweater; open " + w + " on board."; },
+    "{0} içi yaklaşık {1}, dışarısı {2}: ince katlar giy; içeride {3} aç ya da çıkar.": function(m, a, b, w){ return "Inside the " + lcf(m) + " it's about " + a + " and " + b + " outside: wear thin layers, and open or take off " + w + " on board."; },
+    "{0} içi yaklaşık {1}, dışarısı {2}: ince katlar giy, içeride terlemezsin.": function(m, a, b){ return "Inside the " + lcf(m) + " it's about " + a + " and " + b + " outside: wear thin layers so you don't overheat on board."; },
+    // packing: the calendar
+    "Tarih seç": "Pick dates", "Gidiş": "Leaving", "Dönüş": "Back",
+    "Seyahatin aylar sonra da olsa tarihlerini şimdi seç; liste o günlerin hava tahminine göre hazırlanır (en çok {0} gün).": "Pick your dates now even if the trip is months away; the list follows the forecast for those days (up to {0} days).",
+    "Bu tarihlerin hava tahmini henüz yok: tahmin yaklaşık {0} gün önceden çıkar.": "There's no forecast for these dates yet: it comes out about {0} days ahead.",
+    "{0} civarı bu listeyi aç; kıyafetler o günlerin havasına göre eklenir. Tarihlerin kayıtlı kalır.": "Open this list around {0}; the clothes are added for the weather on those days. Your dates stay saved.",
+    "Tahmin birkaç gün içinde gelir; listeyi o zaman yeniden aç.": "The forecast arrives within a few days; open the list again then."
   };
 
   /* ================= weather vocabulary ================= */
@@ -1729,7 +1848,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var en = LANG === "en";
     // Children and older people get cold sooner: dressed a little warmer in the cool and cold, but never told that the
     // heat is milder for them ("sana göre 34°" at 36° would reassure the people heat hits hardest).
-    var off0 = (FEEL_OFF[P.feel] || 0) + (ACT_OFF[P.act] || 0);
+    var off0 = (FEEL_OFF[P.feel] || 0) + (ACT_OFF[P.act] || 0) + (fin(P.cal) ? P.cal : 0);
     var off = off0 + (inp.now.app + off0 < 20 ? (WHO[P.who] || WHO.me).off : 0);
     var lack = Array.isArray(P.missing) ? P.missing : [];
     function owned(g){ return lack.indexOf(g) < 0; }
@@ -2167,10 +2286,34 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       ferry = ferry || it.chosen.ex.steps.some(function(s){ return s.st.m === "ferry" && s.end > now && s.w && (s.w.gust >= 70 || s.w.wind >= 50); }); });
     if (ferry) notes.push(tx("Fırtınada vapur seferleri iptal olabilir; yola çıkmadan kontrol et."));
     if (rainRide && !p.wet) notes.push(tx("Yağmur sen toplu taşımadayken yağıyor; dışarıdaki anlarında kuru."));
-    if (ride >= 25 && p.L <= 4) notes.push(tx("Toplu taşımada içerisi sıcak olur; önü açılan bir dış katman seç."));
+    // Warm inside, cold outside: thin layers that come off on the metro rather than one thick sweater under the coat.
+    var lay = layerNote(day, p, ride);
+    if (lay) notes.unshift(lay);
+    else if (ride >= 25 && p.L <= 4) notes.push(tx("Toplu taşımada içerisi sıcak olur; önü açılan bir dış katman seç."));
     if (steep) notes.push(tx("Yokuşta ısınırsın; dış katmanı açabileceğin şekilde giy."));
     if (walk >= 30) notes.push(tx("{0} toplam {1} dk yürüyorsun; rahat ayakkabı seç.", day.offset ? day.dayName : tx("Bugün"), walk));
     return notes;
+  }
+  // Heated rides (metro, metrobüs, bus, Marmaray, tram, the ferry's saloon) are about 22°. With 15 minutes or more of
+  // them and a cool or cold walk outside, the note names the ride and what to open or take off on it.
+  var RIDE_IN = 22;
+  function layerNote(day, p, ride){
+    if (ride < 15 || p.L > 4) return "";
+    var mins = {}, cold = day.coldest ? day.coldest.app : null;
+    if (cold == null || cold > 14) return "";
+    day.items.forEach(function(it){ if (it.chosen) it.chosen.ex.steps.forEach(function(s){ if (!s.out && s.st.m !== "car") mins[s.st.m] = (mins[s.st.m] || 0) + s.min; }); });
+    var m = Object.keys(mins).sort(function(a, b){ return mins[b] - mins[a]; })[0];
+    if (!m || mins[m] < 10) return "";
+    var outer = p.wear.filter(function(w){ return OUTER.indexOf(w.g) >= 0; })[0], mid = p.wear.filter(function(w){ return MID.indexOf(w.g) >= 0; })[0];
+    var off = outer || mid;
+    var what = off ? (LANG === "en" ? "your " + low(off.label) : low(ACC[off.g] || off.label)) : "";
+    var mode = tx(MODES[m].label);
+    // A thick sweater under the coat is too warm on the ride: a front-opening layer instead.
+    var swap = outer && mid && mid.g === "kazak";
+    return swap
+      ? tx("{0} içi yaklaşık {1}, dışarısı {2}: kazak yerine önü açılan bir hırka ya da ince katlar giy; içeride {3} aç.", mode, deg(RIDE_IN), deg(cold), what)
+      : off ? tx("{0} içi yaklaşık {1}, dışarısı {2}: ince katlar giy; içeride {3} aç ya da çıkar.", mode, deg(RIDE_IN), deg(cold), what)
+      : tx("{0} içi yaklaşık {1}, dışarısı {2}: ince katlar giy, içeride terlemezsin.", mode, deg(RIDE_IN), deg(cold));
   }
   function feltAvg(ex){ var m = 0, t = 0; ex.out.forEach(function(e){ m += e.min; t += e.min * e.app; }); return m ? t / m : null; }
   function whyText(it){
@@ -2386,14 +2529,17 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   function render(opts){
     var inp = currentInput(), live = inp.kind === "live";
-    var day = live ? dayPlan() : null, useDay = !!(day && day.inp && day.lead);
-    var P = prefs(), pc = plan(inp, P), p = useDay ? plan(day.inp, P) : pc;
+    var day = live ? dayPlan() : null;
+    // A child with school hours set is dressed for the school day (their own day, not the routine's trips).
+    var sd = null; if (live) { try { sd = schoolDay(curProf()); } catch (e) { console.error(e); } }
+    var useDay = !sd && !!(day && day.inp && day.lead);
+    var P = prefs(), pc = plan(inp, P), p = sd ? plan(sd.inp, P) : useDay ? plan(day.inp, P) : pc;
     var preview = day && day.inp && !day.lead ? plan(day.inp, P) : null;
     var root = document.documentElement;
     var sky = SKY_DAY[p.L];
     root.style.setProperty("--lv", LV[p.L].color);
     root.style.setProperty("--d1", sky[0]); root.style.setProperty("--d2", sky[1]); root.style.setProperty("--d3", sky[2]);
-    var night = live && (useDay ? day.inp.now.isDay === 0 : inp.now.isDay === 0);
+    var night = live && !sd && (useDay ? day.inp.now.isDay === 0 : inp.now.isDay === 0);
     if (night) root.setAttribute("data-night", "1"); else root.removeAttribute("data-night");
     var tc = document.querySelector('meta[name="theme-color"]');
     var dark = night || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
@@ -2404,6 +2550,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     $("placeLabel").textContent = pname; $("placeBtn").title = pname;
     $("placeBtn").setAttribute("aria-label", tx("Yer: {0}. Değiştir", pname));
     var soft = [lvName(p.L)]; if (useDay) soft.unshift(tx(day.offset ? "Yarınki günüme göre" : "Günüme göre"));
+    if (sd) soft.unshift(tx(sd.offset ? "Yarın okul saatine göre" : "Okul saatine göre"));
     if (S.profiles.length > 1) soft.unshift(forWhom(curProf()));
     // (the band's name is on the tag; the share picture still has it as a pill)
     $("pills").innerHTML = soft.filter(function(x){ return x !== lvName(p.L); }).map(function(x){ return '<span class="pill soft">' + esc(x) + '</span>'; }).join("") + p.pills.map(function(x){ return '<span class="pill">' + esc(x) + '</span>'; }).join("");
@@ -2411,10 +2558,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     $("bigTemp").textContent = deg(inp.now.t); $("tagLevel").textContent = lvName(p.L);
     $("nowIcon").innerHTML = icon(kindOf(inp.now.code, inp.now.isDay));
     $("nowCond").textContent = tx(live ? (COND[inp.now.code] || "") : (SKY[S.manual.sky] || SKY.partly).label);
-    $("nowFeels").textContent = tx("Hissedilen {0}", deg(inp.now.app)) + (useDay
+    $("nowFeels").textContent = tx("Hissedilen {0}", deg(inp.now.app)) + (sd
+      ? tx(" · okul {0} {1}, çıkış {2} {3}", sd.inAt, deg(sd.inApp), sd.outAt, deg(sd.outApp))
+      : useDay
       ? tx(" · en serin dış anın {0}{1}, {2}", day.offset ? lowDay(day.dayName) + " " : "", hmOf(day.coldest.ms), deg(day.coldest.app))
       : (p.off ? tx(" · sana göre {0}", deg(p.E)) : ""));
     renderTrips(day, live, preview);
+    try { renderVs(live, sd ? {offset:sd.offset, first:{ms:atTime(sd.inAt, sd.offset)}} : day, !!sd || useDay, p); } catch (e) { $("vsYday").hidden = true; console.error(e); }
 
     var sig = p.wear.map(function(w){ return w.g; }).join(",");
     var wearEl = $("wear");
@@ -2432,7 +2582,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var inf = it.info || {}, alt = inf.alt && inf.alt !== it.label ? esc(inf.alt) + " · " : "";
       return '<div class="row-i"><dt>' + esc(inf.slot || "") + '</dt><dd>' + esc(it.label) + '<small>' + alt + esc(joinWhy(it.why, "; ")) + (inf.tip ? ". " + esc(inf.tip) : "") + '</small>' + shopHTML(it) + '</dd></div>';
     }).join("");
-    var tips = (useDay ? dayNotes(day, p) : []).concat(p.notes).slice(0, 3);
+    var tips = (sd ? [schoolNote(sd, p)] : useDay ? dayNotes(day, p) : []).concat(p.notes).slice(0, 3);
     $("tips").innerHTML = tips.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join("");
     // What the share picture draws. A plan for tomorrow shows tomorrow's first outdoor moment, under tomorrow's date.
     var shInp = inp, shCond = $("nowCond").textContent, shAt = "";
@@ -2474,6 +2624,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     try { renderSevere(live); } catch (e) { $("severe").hidden = true; console.error(e); }
     try { renderRain(live, inp, day); } catch (e) { $("rainAlert").hidden = true; console.error(e); }
     try { renderWeek(live); } catch (e) { $("weekCard").hidden = true; console.error(e); }
+    try { renderNeed(live); } catch (e) { $("needCard").hidden = true; console.error(e); }
+    try { renderFb(live); } catch (e) { $("fbCard").hidden = true; console.error(e); }
+    try { renderCal(); } catch (e) { console.error(e); }
+    try { if (live && recordHist()) saveQuiet(); } catch (e) { console.error(e); }
     $("heroActs").hidden = !live;
     if (!$("packSheet").hidden) { try { renderPack(); } catch (e) { console.error(e); } }
     document.querySelectorAll(".seg").forEach(function(g){
@@ -2659,6 +2813,164 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   // Rain expected in an hour, as the outfit counts it: a rain code with 40% or more, or 60% without one.
   function wetHour(code, p){ return (isRain(code) && (p || 0) >= 40) || ((p || 0) >= 60 && !isSnow(code)); }
+
+  /* ---- today against yesterday ("Dünden 5° daha soğuk") ----
+     The forecast starts at the current hour, so yesterday's hours are kept as they were forecast (S.hist): the felt
+     temperature hour by hour for a few days, for one place (about 10 km across; another place starts afresh). */
+  function histAt(p){ return p && fin(p.lat) && fin(p.lon) ? p.lat.toFixed(1) + "," + p.lon.toFixed(1) : ""; }
+  // Keeps the hours of yesterday, today and tomorrow from the forecast on screen; true when something changed.
+  function recordHist(){
+    var lv = S.live, wx = lv && lv.wx, H = wx && wx.hourly, at = histAt(lv && lv.place);
+    if (!H || !Array.isArray(H.time) || !at) return false;
+    var h = S.hist && S.hist.at === at ? S.hist : {at:at, d:{}}, ch = h !== S.hist;
+    var today = wxToday(wx), from = addDays(today, -1), to = addDays(today, 1);
+    for (var j = 0; j < H.time.length; j++) {
+      var t = String(H.time[j]), ds = t.slice(0,10); if (ds < from || ds > to) continue;
+      var a = ix(H.apparent_temperature, j), tt = ix(H.temperature_2m, j), v = fin(a) ? a : fin(tt) ? tt : null;
+      if (v == null) continue;
+      v = Math.round(v * 10) / 10;
+      var arr = h.d[ds]; if (!arr) { arr = h.d[ds] = []; for (var q = 0; q < 24; q++) arr.push(null); ch = true; }
+      var hr = +t.slice(11,13); if (arr[hr] !== v) { arr[hr] = v; ch = true; }
+    }
+    var ks = Object.keys(h.d).sort(); while (ks.length > 4) { delete h.d[ks.shift()]; ch = true; }
+    S.hist = h;
+    return ch;
+  }
+  // The felt temperature at a local date and hour of the place on screen: the forecast when it has that hour, else as kept.
+  function feltOn(ds, hr){
+    var wx = S.live && S.live.wx, H = wx && wx.hourly, key = ds + "T" + ("0" + hr).slice(-2);
+    if (H && Array.isArray(H.time)) for (var j = 0; j < H.time.length; j++) if (String(H.time[j]).slice(0,13) === key) {
+      var a = ix(H.apparent_temperature, j), tt = ix(H.temperature_2m, j); if (fin(a)) return a; if (fin(tt)) return tt; break;
+    }
+    var h = S.hist, arr = h && h.at === histAt(S.live && S.live.place) ? h.d[ds] : null;
+    return arr && fin(arr[hr]) ? arr[hr] : null;
+  }
+  // The moment [ms] against the same hour a day earlier, with what it means for the outfit [p]; null when either is unknown.
+  function vsDay(ms, p, tomorrow){
+    var wx = S.live && S.live.wx; if (!wx) return null;
+    var key = wxKey(wx, ms), ds = key.slice(0,10), hr = +key.slice(11,13);
+    var a = feltOn(ds, hr), b = feltOn(addDays(ds, -1), hr);
+    if (a == null || b == null) return null;
+    var d = Math.round(a - b), Lb = levelOf(Math.round(b + (p.off || 0))), ref = tomorrow ? "Bugün" : "Dün";
+    if (Math.abs(d) < 2) return {d:d, text:tx(ref === "Dün" ? "Dün bu saatte de {0}: dünkü kıyafetin iş görür." : "Bugün bu saatte de {0}: bugünkü kıyafetin iş görür.", deg(b))};
+    var colder = d < 0, n = Math.abs(d);
+    var s = tx(colder ? (ref === "Dün" ? "Dünden {0}° daha soğuk" : "Bugünden {0}° daha soğuk") : (ref === "Dün" ? "Dünden {0}° daha sıcak" : "Bugünden {0}° daha sıcak"), n);
+    if (colder && p.L < Lb) s += tx(ref === "Dün" ? "; dünkü kıyafetin yetmez." : "; bugünkü kıyafetin yetmez.");
+    else if (!colder && p.L > Lb) s += tx(ref === "Dün" ? "; dünkünden ince giy." : "; bugünkünden ince giy.");
+    else s += ".";
+    return {d:d, text:s};
+  }
+  function renderVs(live, day, useDay, p){
+    var el = $("vsYday"), r = null;
+    if (live) {
+      var tomorrow = !!(useDay && day.offset === 1);
+      var ms = useDay && day.first ? day.first.ms : Date.now();
+      // tomorrow's plan compares tomorrow with today; a day further on, nothing (two forecasts, no memory to lean on)
+      if (!(useDay && day.offset > 1)) r = vsDay(ms, p, tomorrow);
+    }
+    el.hidden = !r; if (!r) return;
+    el.className = "vs" + (r.d <= -2 ? " cold" : r.d >= 2 ? " warm" : "");
+    el.innerHTML = '<span class="vs-ic" aria-hidden="true">' + (r.d <= -2 ? "↓" : r.d >= 2 ? "↑" : "=") + '</span>' + esc(r.text);
+  }
+
+  /* ---- "Bugün nasıldı?": the person's own answers fine-tune how warmly they are dressed (each person's cal) ---- */
+  function fbWanted(live){
+    if (!live || S.fbDay === isoDate(new Date())) return false;
+    var h = new Date().getHours();
+    return h >= 17 && h <= 23;
+  }
+  function renderFb(live){
+    var el = $("fbCard"), on = fbWanted(live);
+    el.hidden = !on; if (!on) return;
+    var pr = curProf(), who = S.profiles.length > 1 ? personName(pr) : "";
+    var q = who ? tx("{0} için bugün nasıldı?", who) : tx("Bugün nasıldı?");
+    var html = '<p><b>' + esc(q) + '</b><span>' + esc(tx("Önerilen kıyafetle dışarıda nasıldın? Cevabına göre öneriler sana göre ayarlanır.")) + '</span></p>' +
+      '<div class="chips"><button type="button" class="chip" data-fb="-1">' + esc(tx("Üşüdüm")) + '</button><button type="button" class="chip" data-fb="0">' + esc(tx("Tam iyiydi")) + '</button>' +
+      '<button type="button" class="chip" data-fb="1">' + esc(tx("Terledim")) + '</button></div>' +
+      '<button type="button" class="x" data-fb-close aria-label="' + esc(tx("Bugün sorma")) + '">×</button>';
+    if (el.innerHTML !== html) el.innerHTML = html;
+  }
+  function answerFb(v){
+    var pr = curProf();
+    pr.cal = calOf((pr.cal || 0) + v);
+    S.fbDay = isoDate(new Date());
+    save(); render();
+    setStatus(tx(v < 0 ? "Not aldım: bundan sonra biraz daha sıcak giydireceğim." : v > 0 ? "Not aldım: bundan sonra biraz daha ince giydireceğim." : "Güzel! Öneriler böyle kalıyor."));
+  }
+  // "Cevaplarına göre 2° daha sıcak giydiriliyor" under "Soğuğa karşı", with a way back.
+  function renderCal(){
+    var c = curProf().cal || 0, el = $("calHint");
+    el.hidden = !c; if (!c) return;
+    el.innerHTML = esc(tx(c < 0 ? "“Bugün nasıldı?” cevaplarına göre {0}° daha sıcak giydiriliyor." : "“Bugün nasıldı?” cevaplarına göre {0}° daha ince giydiriliyor.", Math.abs(c))) +
+      ' <button type="button" class="linkish" data-cal-reset>' + esc(tx("Sıfırla")) + '</button>';
+  }
+
+  /* ---- a piece the coming days need that the wardrobe doesn't have ---- */
+  // Days of the coming week whose outfit (with a full wardrobe) wears or carries a piece marked missing; the piece the
+  // most days need, with those days. Accessories count only when they keep the person dry or warm.
+  var NEED_ORDER = ["yagmurluk","semsiye","parka","sisme","kaban","mont","bot","eldiven","bere","atki","thermal","kazak","ruzgarlik","gozluk","krem"];
+  function needPiece(live){
+    var pr = curProf(), miss = (pr.missing || []).filter(function(g){ return NEED_ORDER.indexOf(g) >= 0; });
+    if (!live || !miss.length || !S.live || !S.live.wx) return null;
+    var P = prefs(); P.missing = [];
+    var days = weekDays(S.live.wx, P), best = null;
+    miss.forEach(function(g){
+      var ds = days.filter(function(d){ return d.p.wear.concat(d.p.take).some(function(it){ return it.g === g; }); });
+      if (!ds.length) return;
+      if (!best || ds.length > best.days.length || (ds.length === best.days.length && NEED_ORDER.indexOf(g) < NEED_ORDER.indexOf(best.g))) best = {g:g, days:ds};
+    });
+    if (!best) return null;
+    var off = S.needOff || {};
+    return off[best.g] && off[best.g] >= isoDate(new Date()) ? null : best;
+  }
+  function renderNeed(live){
+    var el = $("needCard"), n = null;
+    try { n = needPiece(live); } catch (e) { console.error(e); }
+    el.hidden = !n; if (!n) return;
+    var names = n.days.map(function(d){ return d.off <= 1 ? lowDay(d.long) : d.short; }).join(", ");
+    var who = S.profiles.length > 1 ? personName(curProf()) : "";
+    var head = who ? tx("{0}: bu hafta {1} gün {2} gerekecek", who, n.days.length, low(gl(n.g))) : tx("Bu hafta {0} gün {1} gerekecek", n.days.length, low(gl(n.g)));
+    el.innerHTML = '<div class="nd-art" aria-hidden="true">' + art(n.g) + '</div><div class="nd-txt"><p><b>' + esc(head) + '</b></p>' +
+      '<p class="src">' + esc(tx("Dolabında yok diye işaretli; o günlerde yerine elindeki en yakın parça öneriliyor. Günler: {0}.", names)) + '</p>' +
+      shopHTML({g:n.g, need:true}) +
+      '<div class="chips"><button type="button" class="chip" data-need-have="' + n.g + '">' + esc(tx("Aslında var")) + '</button><button type="button" class="chip" data-need-off="' + n.g + '">' + esc(tx("Bu hafta gösterme")) + '</button></div></div>';
+  }
+
+  /* ---- a child's school day ---- */
+  // On a school day (Monday–Friday) before the bell, a child's outfit is for the walk to school and the way home: the
+  // hour school starts is "now" and the window runs to the hour it ends. In the evening, for tomorrow's school day.
+  function schoolDay(pr){
+    var sc = pr && pr.who === "child" && pr.school, wx = S.live && S.live.wx, H = wx && wx.hourly;
+    if (!sc || !H || !Array.isArray(H.time)) return null;
+    var now = new Date(), nowHm = hmOf(now.getTime());
+    var weekday = function(k){ var d = new Date(now); d.setDate(d.getDate() + k); return d.getDay() >= 1 && d.getDay() <= 5; };
+    // Today while school isn't over; from 15:00 on (and school over), tomorrow's when tomorrow is a school day.
+    var off = weekday(0) && nowHm < sc.out ? 0 : now.getHours() >= 15 && weekday(1) ? 1 : -1;
+    if (off < 0) return null;
+    var a = atTime(sc["in"], off), b = atTime(sc.out, off), start = Math.max(a, off === 0 ? now.getTime() : a);
+    var i0 = wxIdx(wx, start), i1 = wxIdx(wx, b - 1); if (i0 < 0) return null;
+    if (i1 < i0) i1 = i0;
+    var RL = rainLevels(H), win = [];
+    for (var j = i0; j <= i1 && j < H.time.length; j++) {
+      var ap = ix(H.apparent_temperature, j), tt = ix(H.temperature_2m, j), app = fin(ap) ? ap : fin(tt) ? tt : null; if (app == null) continue;
+      var mm = ix(H.precipitation, j);
+      win.push({time:String(H.time[j]), app:app, t:fin(tt) ? tt : app, p:ix(H.precipitation_probability, j) || 0, code:ix(H.weather_code, j), wind:ix(H.wind_speed_10m, j) || 0,
+        day:ix(H.is_day, j), mm:fin(mm) ? mm : null, gust:ix(H.wind_gusts_10m, j) || 0, rl:RL[j]});
+    }
+    if (!win.length) return null;
+    var f = win[0], D = wx.daily || {}, di = Array.isArray(D.time) ? D.time.indexOf(f.time.slice(0,10)) : -1, uv = di >= 0 ? ix(D.uv_index_max, di) : null;
+    var inp = {kind:"day", now:{t:f.t, app:f.app, code:f.code, isDay:1, wind:f.wind, gust:0, dir:null, rh:null, precip:0}, window:win,
+      uvMax:fin(uv) ? uv : null, uvDay:win.some(function(h){ var hr = +h.time.slice(11,13); return hr >= 10 && hr <= 16; }), sunset:null};
+    var last = win[win.length - 1];
+    return {inp:inp, offset:off, inAt:sc["in"], outAt:sc.out, inApp:f.app, outApp:last.app, started:off === 0 && nowHm >= sc["in"]};
+  }
+  // The note for the school bag: warmer at home time (a layer to take off and carry) or colder (a layer to put on).
+  function schoolNote(sd, p){
+    var d = sd.outApp - sd.inApp, mid = p.wear.filter(function(w){ return MID.indexOf(w.g) >= 0; })[0] || p.take.filter(function(t){ return MID.indexOf(t.g) >= 0 || OUTER.indexOf(t.g) >= 0; })[0];
+    if (d >= 4) return tx("Çıkışta ({0}) {1}, hava ısınıyor: {2} öğlen çıkarılabilir, çantada yer açın.", sd.outAt, deg(sd.outApp), mid ? low(gl(mid.g)) : tx("bir kat"));
+    if (d <= -4) return tx("Çıkışta ({0}) {1}, hava soğuyor: çantasına {2} koyun.", sd.outAt, deg(sd.outApp), mid ? low(gl(mid.g)) : tx("sıcak bir kat"));
+    return tx("Okul saatlerinde hissedilen {0} – {1}.", deg(Math.min(sd.inApp, sd.outApp)), deg(Math.max(sd.inApp, sd.outApp)));
+  }
 
   // The engine's input for one local date: its daytime hours (08–20). Today only the hours still ahead, or the evening once those are over.
   function dayInput(wx, ds, today){
@@ -2868,10 +3180,30 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     renderAlertsRow(); SEVERE_HTML = ""; if (S.live) { try { renderSevere(S.mode === "live"); } catch (e) {} }
   }
   // The app calls this once Android's permission question is answered (or the phone's settings changed).
-  window.ngAlertsChanged = function(){ renderAlertsRow(); SEVERE_HTML = ""; try { renderSevere(S.mode === "live"); } catch (e) {} };
+  window.ngAlertsChanged = function(){ renderAlertsRow(); renderEveRow(); SEVERE_HTML = ""; try { renderSevere(S.mode === "live"); } catch (e) {} };
+
+  /* ---- the evening note for tomorrow (Android app only): "Yarın sabah 4°, yağmurlu: montunu ve şemsiyeni hazırla." ---- */
+  function eveState(){
+    var A = window.NeGiysemAndroid;
+    try { return A && typeof A.eveningState === "function" ? String(A.eveningState()) : ""; } catch (e) { return ""; }
+  }
+  function renderEveRow(){
+    var st = eveState(), row = $("eveRow"), b = $("eveBtn"), hint = $("eveHint");
+    row.hidden = !st; if (!st) return;
+    b.setAttribute("aria-pressed", st === "on" ? "true" : "false");
+    b.textContent = tx(st === "on" ? "Akşam bildirimi açık" : "Her akşam yarını bildir");
+    hint.textContent = tx(st === "on" ? "Her akşam 21:00’de yarının kıyafeti ve hazırlaman gerekenler bildirim olarak gelir. Kapatmak için dokun."
+      : st === "blocked" ? "Android’de bu uygulamanın bildirimleri kapalı. Dokununca bildirim ayarları açılır."
+      : "Her akşam 21:00’de yarının kıyafetini söyler: “Yarın sabah 4°, montunu ve şemsiyeni kapının önüne koy.”");
+  }
+  function setEve(on){
+    var A = window.NeGiysemAndroid;
+    try { if (A && typeof A.setEvening === "function") A.setEvening(!!on); } catch (e) {}
+    renderEveRow();
+  }
 
   /* ---- packing list ---- */
-  var PACK = {msg:"", out:"", tried:"", cur:null, loading:"", err:""}, PACK_WX = {};
+  var PACK = {msg:"", out:"", tried:"", cur:null, loading:"", err:"", cal:false}, PACK_WX = {};
   // The packing list's own forecast for a saved place other than the one on screen (which stays as it is).
   async function packFetch(id){
     var pl = placeById(id); if (!pl || IS_ART) { selectPlace(id); return; }
@@ -2972,14 +3304,56 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   function packPlan(wx, start, n){
     var from = addDays(wxToday(wx), start), days = weekDays(wx, prefs()).filter(function(d){ return d.off >= start && d.off < start + n; });
-    return {from:from, to:addDays(from, n - 1), days:days, missing:Math.max(0, n - days.length), items:days.length ? packItems(days, n) : []};
+    return {from:from, to:addDays(from, n - 1), n:n, days:days, missing:Math.max(0, n - days.length), items:days.length ? packItems(days, n) : []};
   }
+  /* A trip picked on the calendar: every day of it the forecast reaches (it reaches about nine days ahead); the days past
+     it count for the numbers only. A trip further away than the forecast keeps its dates and gets its list once the
+     forecast reaches its first day; until then the basics. */
+  var PACK_MAX = 21;
+  function rangeDays(wx, from, to, P){
+    var H = wx && wx.hourly; if (!H || !Array.isArray(H.time)) return [];
+    var today = wxToday(wx), seen = {}, out = [];
+    H.time.forEach(function(t){
+      var ds = String(t).slice(0,10); if (seen[ds] || ds < from || ds > to) return; seen[ds] = 1;
+      var off = dayDiff(today, ds); if (off < 0) return;
+      var inp = dayInput(wx, ds, off === 0); if (!inp) return;
+      var apps = inp.window.map(function(h){ return h.app; });
+      out.push({date:ds, off:off, long:dayLong(off, ds), short:dayShort(off, ds), inp:inp, p:plan(inp, P),
+                lo:Math.min.apply(null, apps), hi:Math.max.apply(null, apps), code:dayCode(inp.window), uv:inp.uvMax});
+    });
+    return out;
+  }
+  function packRange(wx, from, to){
+    var n = dayDiff(from, to) + 1, days = rangeDays(wx, from, to, prefs());
+    var H = wx.hourly, last = String(H.time[H.time.length - 1]).slice(0,10), reach = dayDiff(wxToday(wx), last);
+    var res = {from:from, to:to, n:n, days:days, missing:Math.max(0, n - days.length), dated:true, reach:reach};
+    if (days.length) res.items = packItems(days, n);
+    else {
+      res.ahead = true; res.readyOn = addDays(from, -reach);
+      res.items = [{group:"base", key:"base:corap", g:"corap", label:tx("Çorap"), count:n, why:tx("Her güne bir")},
+                   {group:"base", key:"base:ic", g:"ic", label:tx("İç çamaşırı"), count:n, why:tx("Her güne bir")}];
+    }
+    return res;
+  }
+  // The calendar's two dates: the return follows the departure (same length of stay), never before it nor over three weeks.
+  function packDates(which){
+    var f = $("pkFrom").value, t = $("pkTo").value, today = isoDate(new Date());
+    if (!f) return;
+    if (f < today) f = today;
+    if (which === "pkFrom") t = t && t >= f ? t : addDays(f, Math.max(0, (S.pack.days || 3) - 1));
+    if (!t || t < f) t = f;
+    if (t > addDays(f, PACK_MAX - 1)) t = addDays(f, PACK_MAX - 1);
+    S.pack.from = f; S.pack.to = t; S.pack.days = Math.min(7, dayDiff(f, t) + 1);
+    PACK.msg = ""; PACK.out = ""; save(); renderPack();
+    var n = $(which); if (n) n.focus({preventScroll:true});
+  }
+  function calIcon(){ return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h2M14 14h2M8 17h2"/></svg>'; }
   function focusKey(n){
     if (!n || !n.dataset) return null;
     var q = function(v){ return '"' + String(v).replace(/["\\]/g, "\\$&") + '"'; };
     if (n.dataset.pk) return '[data-pk=' + q(n.dataset.pk) + '][data-v=' + q(n.dataset.v) + ']';
     if (n.dataset.pkItem) return '[data-pk-item=' + q(n.dataset.pkItem) + ']';
-    var a = ["data-pk-share","data-pk-clear","data-pk-fetch","data-close-sheet"].filter(function(x){ return n.hasAttribute(x); })[0];
+    var a = ["data-pk-share","data-pk-clear","data-pk-fetch","data-pk-cal","data-close-sheet"].filter(function(x){ return n.hasAttribute(x); })[0];
     return a ? "[" + a + "]" : null;
   }
   function renderPack(){
@@ -2998,30 +3372,49 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     // The start chosen ("Yarından" on Friday evening) stays that date: on Saturday morning it is "Bugünden".
     var stOn = pk.on ? dayDiff(isoDate(new Date()), pk.on) : -1;
     pk = Object.assign({}, pk, {start: stOn >= 0 && stOn <= 6 ? stOn : pk.start});
+    // Dates from the calendar until the trip is over.
+    var todayD = isoDate(new Date()), dated = !!(S.pack.from && S.pack.to && S.pack.to >= todayD);
+    if (S.pack.from && !dated) { delete S.pack.from; delete S.pack.to; }
     var cur = places.filter(function(x){ return x.id === pk.place; })[0];
     function seg(label, id, key, opts, cls){
       return '<div class="row"><span class="rl" id="' + id + '">' + esc(label) + '</span><div class="pk-seg' + (cls ? " " + cls : "") + '" role="group" aria-labelledby="' + id + '">' +
         opts.map(function(o){ return '<button type="button" data-pk="' + key + '" data-v="' + esc(o[0]) + '" aria-pressed="' + (String(pk[key]) === String(o[0])) + '"' + (o[2] ? ' aria-label="' + esc(o[2]) + '"' : '') + '>' + esc(o[1]) + '</button>'; }).join("") + '</div></div>';
     }
     h += seg(tx("Nereye?"), "pkL1", "place", places.map(function(x){ return [x.id, x.auto ? tx("Konumum · {0}", x.name) : x.name]; }));
-    h += seg(tx("Ne zaman?"), "pkL2", "start", [[0, tx("Bugünden")], [1, tx("Yarından")]]);
-    h += seg(tx("Kaç gün?"), "pkL3", "days", [1,2,3,4,5,6,7].map(function(k){ return [k, String(k), tx("{0} gün", k)]; }), "num");
-    var wx = packWx(pk.place), res = wx ? packPlan(wx, pk.start, pk.days) : null;
-    if (!res || !res.days.length) {
+    var when = seg(tx("Ne zaman?"), "pkL2", "start", [[0, tx("Bugünden")], [1, tx("Yarından")]]);
+    if (dated) when = when.replace(/aria-pressed="true"/g, 'aria-pressed="false"');
+    // The calendar: any dates up to a year ahead.
+    var calLab = dated ? rangeTxt(S.pack.from, S.pack.to) : tx("Tarih seç");
+    when = when.replace(/<\/div><\/div>$/, '<button type="button" class="pk-calb" data-pk-cal aria-pressed="' + dated + '" aria-expanded="' + !!(PACK.cal || dated) + '" aria-controls="pkCal">' + calIcon() + '<span>' + esc(calLab) + '</span></button></div></div>');
+    h += when;
+    if (PACK.cal || dated) {
+      var maxF = addDays(todayD, 365), f0 = dated ? S.pack.from : "", t0 = dated ? S.pack.to : "";
+      h += '<div class="pk-cal" id="pkCal"><label><span>' + esc(tx("Gidiş")) + '</span><input type="date" id="pkFrom" min="' + todayD + '" max="' + maxF + '" value="' + f0 + '"></label>' +
+        '<label><span>' + esc(tx("Dönüş")) + '</span><input type="date" id="pkTo" min="' + (f0 || todayD) + '" max="' + (f0 ? addDays(f0, PACK_MAX - 1) : maxF) + '" value="' + t0 + '"></label>' +
+        '<p class="src">' + esc(tx("Seyahatin aylar sonra da olsa tarihlerini şimdi seç; liste o günlerin hava tahminine göre hazırlanır (en çok {0} gün).", PACK_MAX)) + '</p></div>';
+    }
+    if (!dated) h += seg(tx("Kaç gün?"), "pkL3", "days", [1,2,3,4,5,6,7].map(function(k){ return [k, String(k), tx("{0} gün", k)]; }), "num");
+    var wx = packWx(pk.place), res = wx ? (dated ? packRange(wx, S.pack.from, S.pack.to) : packPlan(wx, pk.start, pk.days)) : null;
+    if (!dated && PACK.cal) return done(h);
+    if (!res || (!res.days.length && !res.ahead)) {
       var loading = busy || PACK.loading === pk.place;
       var why = loading ? esc(tx("Hava alınıyor…")) : tx(wx ? "{0} için kayıtlı tahmin eski; listeyi hazırlamak için güncel tahmin gerekiyor." : "{0} için hava tahmini henüz alınmadı; listeyi hazırlamak için önce havasını al.", esc(cur.name));
       var st = !loading && PACK.tried === pk.place ? PACK.err || (placeById(pk.place) ? "" : $("status").textContent.trim()) : "";
       return done(h + '<div class="pk-note" role="status"><p>' + why + '</p>' + (st ? '<p>' + esc(st) + '</p>' : '') +
         (loading ? '' : '<button type="button" class="btn" data-pk-fetch="' + esc(pk.place) + '">' + tx("{0} için havayı al", esc(cur.name)) + '</button>') + '</div>');
     }
-    var key = pk.place + "|" + res.from + "|" + pk.days, ticks = S.pack.ticks[key] || [];
+    var key = pk.place + "|" + res.from + "|" + res.n, ticks = S.pack.ticks[key] || [];
     var n = res.items.filter(function(it){ return ticks.indexOf(it.key) >= 0; }).length;
     PACK.cur = {key:key, res:res, name:cur.name};
-    h += '<div class="pk-sum"><b>' + tx("{0} · {1} gün", esc(cur.name), pk.days) + '</b><span>' + esc(rangeTxt(res.from, res.to)) + ' · ' + tx("{0} hazır", '<span id="pkDone">' + n + '/' + res.items.length + '</span>') + '</span></div>';
+    h += '<div class="pk-sum"><b>' + tx("{0} · {1} gün", esc(cur.name), res.n) + '</b><span>' + esc(rangeTxt(res.from, res.to)) + ' · ' + tx("{0} hazır", '<span id="pkDone">' + n + '/' + res.items.length + '</span>') + '</span></div>';
     h += '<div class="pk-days">' + res.days.map(function(d){
       return '<div class="pk-day" style="--wl:' + LV[d.p.L].color + '"><b>' + esc(d.short) + '</b>' + icon(kindOf(d.code, 1)) + '<span><span class="sr">' + tx("hissedilen") + ' </span>' + deg(d.lo) + ' – ' + deg(d.hi) + '</span><small>' + (d.p.wet || d.p.pMax >= 30 ? '<span class="sr">' + tx("yağış ihtimali") + ' </span>' + pct(d.p.pMax) : '') + '</small></div>';
     }).join("") + '</div>';
-    if (res.missing) h += '<p class="src">' + esc(tx("Son {0} gün için henüz tahmin yok: adetler {1} güne, hava ilk {2} güne göre.", res.missing, pk.days, res.days.length)) + '</p>';
+    if (res.ahead) {
+      var wait = dayDiff(todayD, res.readyOn);
+      h += '<div class="pk-note" role="status"><p>' + esc(tx("Bu tarihlerin hava tahmini henüz yok: tahmin yaklaşık {0} gün önceden çıkar.", res.reach)) + '</p><p>' +
+        esc(wait > 0 ? tx("{0} civarı bu listeyi aç; kıyafetler o günlerin havasına göre eklenir. Tarihlerin kayıtlı kalır.", rangeTxt(res.readyOn, res.readyOn)) : tx("Tahmin birkaç gün içinde gelir; listeyi o zaman yeniden aç.")) + '</p></div>';
+    } else if (res.missing) h += '<p class="src">' + esc(tx("Son {0} gün için henüz tahmin yok: adetler {1} güne, hava ilk {2} güne göre.", res.missing, res.n, res.days.length)) + '</p>';
     PACK_GROUPS.forEach(function(gr){
       var its = res.items.filter(function(it){ return it.group === gr[0]; }); if (!its.length) return;
       h += '<h3>' + esc(tx(gr[1])) + '</h3><ul class="pk-list">' + its.map(function(it){
@@ -3040,7 +3433,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   function packText(){
     var c = PACK.cur; if (!c) return "";
-    var ticks = S.pack.ticks[c.key] || [], lines = [tx("Bavul listesi: {0}, {1} gün ({2})", c.name, S.pack.days, rangeTxt(c.res.from, c.res.to))];
+    var ticks = S.pack.ticks[c.key] || [], lines = [tx("Bavul listesi: {0}, {1} gün ({2})", c.name, c.res.n, rangeTxt(c.res.from, c.res.to))];
     PACK_GROUPS.forEach(function(gr){
       var its = c.res.items.filter(function(it){ return it.group === gr[0]; }); if (!its.length) return;
       lines.push("", tx(gr[1]) + ":");
@@ -3099,10 +3492,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var cp = curProf(), meDef = cp.id === "me" && cp.name === "Ben";
     setStatus(meDef ? tx("Öneri artık senin için{0}.", whoNote(cp)) : tx("Öneri artık {0} için{1}.", personName(cp), whoNote(cp)));
   }
-  var PERSON = {edit:null, who:"me"};
+  var PERSON = {edit:null, who:"me", school:null};
   function openPerson(editId, opener){
     var pr = editId ? S.profiles.filter(function(p){ return p.id === editId; })[0] : null;
-    PERSON.edit = pr ? pr.id : null; PERSON.who = pr ? pr.who : "child";
+    PERSON.edit = pr ? pr.id : null; PERSON.who = pr ? pr.who : "child"; PERSON.school = pr && pr.school ? pr.school : null;
     $("personTitle").textContent = tx(pr ? "Kişiyi düzenle" : "Kişi ekle");
     renderPerson(pr ? personName(pr) : "");
     openSheet("personSheet", opener);
@@ -3114,13 +3507,18 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       '<span class="rl" id="lPfWho">' + esc(tx("Yaş grubu")) + '</span><div class="seg" role="group" aria-labelledby="lPfWho">' +
       Object.keys(WHO).map(function(k){ return '<button type="button" data-pf-who="' + k + '" aria-pressed="' + (PERSON.who === k) + '">' + esc(tx(WHO[k].label)) + '</button>'; }).join("") + '</div>' +
       '<p class="src">' + esc(tx("Çocuklar ve 65 yaş üstü kişiler daha çabuk üşür; onlar için bir kat daha sıcak giyim önerilir. Soğuğa karşı ayarını ve dolabını bu kişiyi seçince ayrıca belirleyebilirsin.")) + '</p>' +
+      '<div class="pf-school" id="pfSchool"' + (PERSON.who === "child" ? '' : ' hidden') + '><span class="rl">' + esc(tx("Okul saatleri (hafta içi)")) + '</span>' +
+      '<div class="pf-times"><label>' + esc(tx("Giriş")) + ' <input type="time" id="pfIn" value="' + esc(PERSON.school ? PERSON.school["in"] : "") + '"></label>' +
+      '<label>' + esc(tx("Çıkış")) + ' <input type="time" id="pfOut" value="' + esc(PERSON.school ? PERSON.school.out : "") + '"></label></div>' +
+      '<p class="src">' + esc(tx("İstersen yaz: okul günlerinde kıyafet, okula gidiş ve dönüş saatlerinin havasına göre seçilir; öğlen ısınacaksa çantasına ne koyacağı da söylenir.")) + '</p>' +
+      '<p class="warn" id="pfSchErr" role="alert" hidden>' + esc(tx("Giriş ve çıkış saatini birlikte yaz; çıkış girişten sonra olsun.")) + '</p></div>' +
       '</div><div class="ed-foot"><button type="button" class="btn" data-pf-save>' + esc(tx("Kaydet")) + '</button>' +
       (canDel ? '<button type="button" class="btn soft" data-pf-del>' + esc(tx("Kişiyi sil")) + '</button>' : '') +
       '<button type="button" class="btn soft" data-close-sheet>' + esc(tx("Vazgeç")) + '</button></div>';
   }
   function personClick(e){
     var t = e.target.closest && e.target.closest("[data-pf-who],[data-pf-save],[data-pf-del]"); if (!t) return;
-    if (t.dataset.pfWho) { PERSON.who = t.dataset.pfWho; $("personBody").querySelectorAll("[data-pf-who]").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.pfWho === PERSON.who ? "true" : "false"); }); return; }
+    if (t.dataset.pfWho) { PERSON.who = t.dataset.pfWho; $("personBody").querySelectorAll("[data-pf-who]").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.pfWho === PERSON.who ? "true" : "false"); }); $("pfSchool").hidden = PERSON.who !== "child"; return; }
     if (t.hasAttribute("data-pf-del")) {
       var id = PERSON.edit, gone = S.profiles.filter(function(p){ return p.id === id; })[0];
       if (!gone || S.profiles.length < 2) return;
@@ -3130,13 +3528,19 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     }
     var name = $("pfName").value.trim().slice(0, 24);
     if (!name) { $("pfName").focus(); $("pfName").setAttribute("aria-invalid", "true"); $("pfErr").hidden = false; return; }
+    // School hours: both or neither; out after in.
+    var tin = $("pfIn") ? $("pfIn").value : "", tout = $("pfOut") ? $("pfOut").value : "", school = null;
+    if (PERSON.who === "child" && (tin || tout)) {
+      school = schoolOf({"in":tin, out:tout});
+      if (!school) { $("pfSchErr").hidden = false; (tin ? $("pfOut") : $("pfIn")).focus(); return; }
+    }
     if (PERSON.edit) {
       var pr = S.profiles.filter(function(p){ return p.id === PERSON.edit; })[0]; if (!pr) return;
       if (name !== personName(pr)) pr.name = name; // an untouched default name stays the app's own ("Ben" / "Me")
-      pr.who = PERSON.who;
+      pr.who = PERSON.who; pr.school = school;
     } else {
       curProf().feel = S.feel;
-      var np = {id:"u" + uid(), name:name, who:PERSON.who, feel:"normal", missing:[]};
+      var np = {id:"u" + uid(), name:name, who:PERSON.who, feel:"normal", missing:[], cal:0, school:school};
       S.profiles.push(np); S.prof = np.id; S.feel = np.feel;
     }
     save(); closeSheet(); render();
@@ -4312,7 +4716,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       Object.keys(o.attrs).forEach(function(a){ var v = o.attrs[a]; if (v != null) { v = LANG === "tr" ? v : tx(v); if (el.getAttribute(a) !== v) el.setAttribute(a, v); } });
     });
     var rb = $("resetBtn"); if (rb.dataset.armed !== "1") rb.textContent = tx("Tüm verilerimi sil");
-    renderAlertsRow();
+    renderAlertsRow(); renderEveRow();
     if (IS_ART && mcpState === "no") $("liveHint").textContent = noLive();
     renderCredits();
   }
@@ -4352,6 +4756,17 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   $("saveHere").addEventListener("click", saveHere);
 
   $("alertsBtn").addEventListener("click", function(){ setAlerts(alertsState() !== "on"); });
+  $("eveBtn").addEventListener("click", function(){ setEve(eveState() !== "on"); });
+  // "Bugün nasıldı?", the personal fine-tuning's reset, and the missing-piece card
+  document.addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-fb],[data-fb-close],[data-cal-reset],[data-need-have],[data-need-off]"); if (!b) return;
+    if (b.hasAttribute("data-fb")) { answerFb(+b.dataset.fb); return; }
+    if (b.hasAttribute("data-fb-close")) { S.fbDay = isoDate(new Date()); save(); render(); return; }
+    if (b.hasAttribute("data-cal-reset")) { curProf().cal = 0; save(); render(); setStatus(tx("Kişisel ayar sıfırlandı.")); return; }
+    var g = b.dataset.needHave || b.dataset.needOff, pr = curProf();
+    if (b.hasAttribute("data-need-have")) { pr.missing = pr.missing.filter(function(x){ return x !== g; }); save(); render(); setStatus(tx("{0} dolabına eklendi.", gl(g))); return; }
+    S.needOff[g] = addDays(isoDate(new Date()), 6); save(); render();
+  });
   document.addEventListener("click", function(e){
     var b = e.target.closest && e.target.closest("[data-gr]"); if (!b) return;
     S.gRoutes = b.dataset.gr === "on"; if (!S.gRoutes) GR.byKey = {};
@@ -4421,6 +4836,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     S.manual = {temp:17, sky:"partly", wind:"breezy"}; S.mode = "manual"; S.live = null;
     S.routes = []; S.trips = []; S.dayMode = true; S.dayWx = null; S.choice = {date:"", picks:{}}; S.fix = null;
     S.rainOff = ""; S.pack = {place:"", days:3, start:0, ticks:{}}; S.gRoutes = false; GR.byKey = {};
+    S.hist = null; S.fbDay = ""; S.needOff = {};
     S.lang = deviceLang(); S.langSet = false; // back to the default language
     if (S.lang !== LANG) { LANG = S.lang; applyLang(); }
     SEARCH.cache = {}; lastWearSig = "";
@@ -4470,14 +4886,14 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   });
   document.addEventListener("click", function(e){
     var b = e.target.closest && e.target.closest("[data-open-pack]"); if (!b) return;
-    PACK.msg = ""; PACK.out = ""; PACK.tried = "";
+    PACK.msg = ""; PACK.out = ""; PACK.tried = ""; PACK.cal = false;
     openSheet("packSheet", b); renderPack();
   });
   $("packBody").addEventListener("click", function(e){
     var b = e.target.closest && e.target.closest("button"); if (!b) return;
     if (b.dataset.pk) {
       if (b.dataset.pk === "place") S.pack.place = b.dataset.v; else S.pack[b.dataset.pk] = +b.dataset.v;
-      if (b.dataset.pk === "start") S.pack.on = addDays(isoDate(new Date()), +b.dataset.v);
+      if (b.dataset.pk === "start") { S.pack.on = addDays(isoDate(new Date()), +b.dataset.v); delete S.pack.from; delete S.pack.to; PACK.cal = false; }
       PACK.msg = ""; PACK.out = ""; save(); renderPack(); return;
     }
     if (b.hasAttribute("data-pk-fetch")) {
@@ -4485,10 +4901,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       return;
     }
     if (b.hasAttribute("data-pk-clear")) { if (PACK.cur) delete S.pack.ticks[PACK.cur.key]; save(); renderPack(); return; }
+    if (b.hasAttribute("data-pk-cal")) { PACK.cal = true; renderPack(); var f = $("pkFrom"); if (f) f.focus(); return; }
     if (b.hasAttribute("data-pk-share")) sharePack();
   });
   $("packBody").addEventListener("change", function(e){
-    var x = e.target, c = PACK.cur; if (!x.dataset || !x.dataset.pkItem || !c) return;
+    var x = e.target, c = PACK.cur;
+    if (x.id === "pkFrom" || x.id === "pkTo") { packDates(x.id); return; }
+    if (!x.dataset || !x.dataset.pkItem || !c) return;
     var t = S.pack.ticks[c.key];
     if (!t) { var keys = Object.keys(S.pack.ticks); while (keys.length >= 6) delete S.pack.ticks[keys.shift()]; t = S.pack.ticks[c.key] = []; }
     var i = t.indexOf(x.dataset.pkItem);

@@ -42,6 +42,7 @@ import androidx.webkit.WebViewAssetLoader
 import com.negiysem.app.data.Store
 import com.negiysem.app.widget.NeGiysemWidget
 import com.negiysem.app.work.AlertNotifier
+import com.negiysem.app.work.Evening
 import com.negiysem.app.work.Scheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -183,6 +184,8 @@ class MainActivity : Activity() {
                 // Opening the app also brings an old widget up to date.
                 if (com.negiysem.app.data.Store(applicationContext).isStale()) Scheduler.now(applicationContext)
             }
+            // The evening note keeps its 21:00 (a new app version, or the phone's clock changed).
+            if (com.negiysem.app.data.Store(applicationContext).eveningOn) Evening.schedule(applicationContext)
         }
     }
 
@@ -249,6 +252,34 @@ class MainActivity : Activity() {
         }
         store.setAlerts(true)
         Scheduler.schedule(ctx)
+        val needsPermission = Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        when {
+            needsPermission && (!store.alertsAsked || shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) -> {
+                store.markAlertsAsked()
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_NOTIFY)
+            }
+            !AlertNotifier.allowed(ctx) -> runCatching {
+                startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+            }
+            else -> alertsChanged()
+        }
+    }
+
+    /** "on", "off" or "blocked" (turned on, but Android doesn't let the app post), as alertsState(). */
+    private fun eveningState(): String = when {
+        !Store(applicationContext).eveningOn -> "off"
+        !AlertNotifier.allowed(applicationContext) -> "blocked"
+        else -> "on"
+    }
+
+    /** Turns the evening note on or off; on asks Android's notification permission like the warnings do. */
+    private fun setEvening(on: Boolean) {
+        val ctx = applicationContext
+        val store = Store(ctx)
+        store.setEvening(on)
+        if (!on) { Evening.cancel(ctx); alertsChanged(); return }
+        Evening.schedule(ctx)
         val needsPermission = Build.VERSION.SDK_INT >= 33 &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         when {
@@ -381,6 +412,7 @@ class MainActivity : Activity() {
             CrashLog.clear(ctx)
             Scheduler.cancel(ctx)
             AlertNotifier.clear(ctx)
+            Evening.cancel(ctx)
             com.negiysem.app.data.WatchSync.clear(ctx)
             CoroutineScope(Dispatchers.IO).launch {
                 runCatching { NeGiysemWidget.pushAll(ctx, "") }
@@ -444,6 +476,15 @@ class MainActivity : Activity() {
         fun alertsState(): String = this@MainActivity.alertsState()
 
         @JavascriptInterface
+        fun eveningState(): String = this@MainActivity.eveningState()
+
+        @JavascriptInterface
+        fun setEvening(on: Boolean) {
+            Store(applicationContext).setEvening(on) // the page reads the new state right after this call
+            runOnUiThread { this@MainActivity.setEvening(on) }
+        }
+
+        @JavascriptInterface
         fun setAlerts(on: Boolean) {
             Store(applicationContext).setAlerts(on) // the page reads the new state right after this call
             runOnUiThread { this@MainActivity.setAlerts(on) }
@@ -465,7 +506,7 @@ class MainActivity : Activity() {
             val ver = if (pi == null) "?" else "${pi.versionName ?: "?"} (${androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(pi)})"
             return JSONObject()
                 .put("app", ver).put("model", Build.MODEL ?: "?").put("android", Build.VERSION.RELEASE ?: "?")
-                .put("alerts", store.alertsOn)
+                .put("alerts", store.alertsOn).put("evening", store.eveningOn)
                 .put("lastFail", CrashLog.scrub(store.lastFail ?: "")).put("lastFailAt", store.lastFailAt)
                 .put("crashes", org.json.JSONArray(CrashLog.read(ctx)))
                 .toString()

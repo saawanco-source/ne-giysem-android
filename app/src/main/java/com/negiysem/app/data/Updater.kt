@@ -188,8 +188,10 @@ object Updater {
         val routine = Day.parse(store.routineJson)?.takeIf { it.dayMode && it.trips.isNotEmpty() }
         // Within 45 minutes of the fetch the measured "now" is used, after that the forecast for the current hour.
         val input = Outfit.parse(main, store.hours, at) ?: return null
-        val day = routine?.let { Day.compute(it, byPlace, lang = lang) }
-        val plan = Outfit.plan(day?.input ?: input, store.feel, store.act, store.who, store.missing, lang)
+        // A child with school hours is dressed for the school day, as on the app screen.
+        val school = store.school?.takeIf { store.who == "child" }?.let { (a, b) -> Day.school(main, a, b) }
+        val day = if (school != null) null else routine?.let { Day.compute(it, byPlace, lang = lang) }
+        val plan = Outfit.plan(school?.input ?: day?.input ?: input, store.feel, store.act, store.who, store.missing, lang, store.cal)
         val name = store.placeName ?: cached.optString("name", "Konumun")
         return Store.widgetSnapshot(plan, input, Outfit.ownName(name, lang), day?.next, lang, at, alertFor(main, lang))
     }

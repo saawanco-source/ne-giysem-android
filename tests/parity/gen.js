@@ -103,7 +103,7 @@ for (let i = 0; i < N; i++) {
   const ALL = ["tshirt","longsleeve","thermal","sweatshirt","hirka","kazak","ceket","ruzgarlik","yagmurluk","mont","kaban","sisme","parka","jean","pantolon","sort","tayt","sneaker","spor","bot","yuruyus","sandalet","bere","atki","eldiven","sapka","gozluk","semsiye","krem"];
   const missing = C(0.33) ? ALL.filter(() => C(0.25)) : [];
   // lang: the app's language, half the cases in each (headline, labels, pills and the "next" line must match in both)
-  const c = { id: "c" + i, at: NOW, lang: P(["tr", "en"]), who: P(["me", "me", "child", "elder"]), missing, hours: P([3, 6, 12]), feel: P(["cold", "normal", "warm"]), act: P(["city", "field", "sport"]), agoMin: C(0.8) ? 0 : P([30, 50, 120]),
+  const c = { id: "c" + i, at: NOW, lang: P(["tr", "en"]), who: P(["me", "me", "child", "elder"]), missing, cal: C(0.3) ? I(-4, 4) : 0, hours: P([3, 6, 12]), feel: P(["cold", "normal", "warm"]), act: P(["city", "field", "sport"]), agoMin: C(0.8) ? 0 : P([30, 50, 120]),
     wx: genWx({ offset, edge, days: 8 }) };
   if (edge) c.edge = edge[0];
   if (C(0.45)) {

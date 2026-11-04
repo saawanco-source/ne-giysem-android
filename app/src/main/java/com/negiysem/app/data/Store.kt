@@ -18,6 +18,14 @@ class Store(context: Context) {
     /** The person the app screen is dressing: age group and the pieces missing from their wardrobe. */
     val who: String get() = prefs.getString("who", "me") ?: "me"
     val missing: Set<String> get() = prefs.getString("missing", "")?.split(",")?.filter { it.isNotBlank() }?.toSet() ?: emptySet()
+    /** The person's own fine-tuning from "Bugün nasıldı?" (−4..4 degrees). */
+    val cal: Int get() = prefs.getInt("cal", 0).coerceIn(-4, 4)
+    /** A child's school hours on weekdays ("08:00", "15:30"), or null. */
+    val school: Pair<String, String>? get() {
+        val a = prefs.getString("schoolIn", null) ?: return null
+        val b = prefs.getString("schoolOut", null) ?: return null
+        return a to b
+    }
     /**
      * "tr" or "en", as chosen on the app screen; until the app sends one, the phone's language decides
      * (Turkish on a Turkish phone, English otherwise), like the page.
@@ -45,6 +53,10 @@ class Store(context: Context) {
     val alerted: String? get() = prefs.getString("alerted", null)
 
     fun setAlerts(on: Boolean) { prefs.edit().putBoolean("alerts", on).apply() }
+
+    /** The evening note about tomorrow (21:00), turned on in the app. */
+    val eveningOn: Boolean get() = prefs.getBoolean("evening", false)
+    fun setEvening(on: Boolean) { prefs.edit().putBoolean("evening", on).apply() }
     fun markAlertsAsked() { prefs.edit().putBoolean("alertsAsked", true).apply() }
     fun saveAlerted(json: String) { prefs.edit().putString("alerted", json).apply() }
 
@@ -69,8 +81,16 @@ class Store(context: Context) {
         val who = o.optString("who", "me").takeIf { it in setOf("me", "child", "elder") } ?: "me"
         val miss = o.optJSONArray("missing")?.let { a -> (0 until a.length()).map { a.optString(it) }.filter { it.matches(Regex("[a-z]{2,12}")) } }
             ?.sorted()?.joinToString(",") ?: ""
-        if (feel != this.feel || act != this.act || hours != this.hours || who != this.who || miss != prefs.getString("missing", "")) changed = true
-        e.putString("feel", feel).putString("act", act).putInt("hours", hours).putString("who", who).putString("missing", miss)
+        val cal = o.optInt("cal", 0).coerceIn(-4, 4)
+        val hm = Regex("([01]?\\d|2[0-3]):[0-5]\\d")
+        val sc = o.optJSONObject("school")?.takeIf { who == "child" }
+        val sIn = sc?.optString("in", "")?.takeIf { hm.matches(it) }
+        val sOut = sc?.optString("out", "")?.takeIf { hm.matches(it) && sIn != null && it > sIn }
+        val newSchool = if (sIn != null && sOut != null) sIn to sOut else null
+        if (feel != this.feel || act != this.act || hours != this.hours || who != this.who || miss != prefs.getString("missing", "") ||
+            cal != this.cal || newSchool != school) changed = true
+        e.putString("feel", feel).putString("act", act).putInt("hours", hours).putString("who", who).putString("missing", miss).putInt("cal", cal)
+        if (newSchool != null) e.putString("schoolIn", newSchool.first).putString("schoolOut", newSchool.second) else e.remove("schoolIn").remove("schoolOut")
         // The widget speaks the app's language: a new one redraws it.
         val newLang = o.optString("lang", "").takeIf { it == "tr" || it == "en" }
         if (newLang != null) {

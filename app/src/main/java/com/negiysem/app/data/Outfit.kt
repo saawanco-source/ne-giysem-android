@@ -261,11 +261,13 @@ object Outfit {
      * [who]: "me", "child" or "elder" (children and older people are dressed as if it were 2° colder).
      * [missing]: pieces the person doesn't have; the closest piece they do have is suggested instead.
      * [lang]: "tr" or "en", the language of the headline, labels and pills.
+     * [cal]: the person's own fine-tuning from their "Bugün nasıldı?" answers, −4..4 degrees (−1 for every "üşüdüm").
      */
-    fun plan(inp: Input, feel: String, act: String, who: String = "me", missing: Set<String> = emptySet(), lang: String = "tr"): Plan {
+    fun plan(inp: Input, feel: String, act: String, who: String = "me", missing: Set<String> = emptySet(), lang: String = "tr", cal: Int = 0): Plan {
         val en = lang == "en"
         // Children and older people: a little warmer in the cool and cold, never a milder "sana göre" in the heat (as the app screen).
-        val off0 = (when (feel) { "cold" -> -3.0; "warm" -> 3.0; else -> 0.0 }) + (when (act) { "field" -> -1.0; "sport" -> 6.0; else -> 0.0 })
+        val off0 = (when (feel) { "cold" -> -3.0; "warm" -> 3.0; else -> 0.0 }) + (when (act) { "field" -> -1.0; "sport" -> 6.0; else -> 0.0 }) +
+            cal.coerceIn(-4, 4).toDouble()
         val off = off0 + (if (inp.now.app + off0 < 20) (WHO_OFF[who] ?: 0.0) else 0.0)
         fun owned(g: String) = g !in missing
         fun lab(g: String) = label(g, lang)

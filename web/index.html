@@ -7,7 +7,7 @@
      `node tools/csp.js`; the web tests check) and talk only to its own server and, when that can't be reached, to MET
      Norway, Photon and BigDataCloud directly. No other site gets anything from this page. AdSense, a custom domain or a
      new service must be added here first. The site adds the rest (framing, HTTPS) in web/_headers. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-42Tn1393PGcNQ/5V3tfV1TBCS9nttoszK+Nkd7aPpoI='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-hNMDDgwt0WMAYyAOnf6OZ1bQh1HTMsjmjwYdQy1Oi/E='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
 <meta name="referrer" content="same-origin">
 <!-- The app's own server; the Android build puts the preview site's address here for a test build. -->
 <meta name="ng-api" content="https://ne-giysem.pages.dev">
@@ -503,30 +503,25 @@ html.sheet-open,html.sheet-open body{overflow:hidden}
 .xl-bar[hidden]{display:none}
 .xl-bar p{margin:0 0 8px;font-size:14px;font-weight:600}
 .xl-bar .chips{display:flex;flex-wrap:wrap;gap:6px}
-/* first-run pages */
-.intro{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(10,15,33,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.intro[hidden]{display:none}
-.in-box{width:min(30rem,100%);max-height:calc(100vh - 32px);overflow:auto;background:linear-gradient(180deg,var(--sky1),var(--sky2) 38%,var(--sky3));color:var(--ink);border-radius:28px;padding:18px 20px 20px;box-shadow:0 30px 60px -30px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px}
-.in-top{display:flex;align-items:center;justify-content:space-between;min-height:40px}
-.in-n{font-size:13px;font-weight:700;color:var(--ink2);font-variant-numeric:tabular-nums}
-.in-skip{border:0;background:none;font:inherit;font-weight:700;color:var(--ink2);padding:10px 8px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.in-art{display:flex;justify-content:center;gap:6px;min-height:120px;align-items:center}
-.in-art .art{width:96px;height:96px;display:block;animation:inPop .6s cubic-bezier(.2,1.4,.4,1) both, inFloat 3.2s ease-in-out .7s infinite}
-.in-art .art:nth-child(2){animation-delay:.12s,.85s}
-.in-art .art:nth-child(3){animation-delay:.24s,1s}
-.in-ic svg{animation:inPop .6s cubic-bezier(.2,1.4,.4,1) both, inFloat 3.2s ease-in-out .7s infinite}
-@keyframes inPop{from{transform:translateY(18px) scale(.6) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
-@keyframes inFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(2deg)}}
-.in-art .art svg{width:100%;height:100%}
-.in-ic svg{width:84px;height:84px;color:var(--ink)}
-.in-box h2{margin:0;font:400 34px/1.1 var(--font-display);outline:none}
-.in-box p{margin:0;font-size:15.5px;line-height:1.5;color:var(--ink2)}
-.in-seg{display:flex;flex-wrap:wrap}
-.in-dots{display:flex;justify-content:center;gap:6px;margin-top:4px}
-.in-dot{width:7px;height:7px;border-radius:50%;background:var(--line)}
-.in-dot.on{background:var(--ink);width:20px;border-radius:4px}
-.in-nav{display:flex;justify-content:space-between;gap:10px}
-.in-wd{display:flex}
+/* the guided tour: the page dims around the lit part; the bubble says what to do */
+.tour{position:fixed;inset:0;z-index:90;pointer-events:none}
+.tour[hidden]{display:none}
+.tour.dim{background:rgba(10,15,33,.55)}
+.to-hole{position:fixed;border-radius:20px;box-shadow:0 0 0 9999px rgba(10,15,33,.7),0 0 0 3px #FFD65E,0 0 24px 6px rgba(255,214,94,.55);transition:left .25s ease,top .25s ease,width .25s ease,height .25s ease;animation:toGlow 1.6s ease-in-out infinite}
+.to-hole[hidden]{display:none}
+.to-hole.nudge{animation:toNudge .35s ease}
+@keyframes toGlow{0%,100%{box-shadow:0 0 0 9999px rgba(10,15,33,.7),0 0 0 3px #FFD65E,0 0 16px 4px rgba(255,214,94,.45)}50%{box-shadow:0 0 0 9999px rgba(10,15,33,.7),0 0 0 3px #FFD65E,0 0 30px 10px rgba(255,214,94,.7)}}
+@keyframes toNudge{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.to-box{position:fixed;pointer-events:auto;width:min(22rem,calc(100vw - 16px));background:var(--tip-bg);color:var(--tip-ink);border-radius:22px;padding:14px 16px 16px;box-shadow:0 24px 50px -20px rgba(0,0,0,.6);animation:tipIn .25s ease both}
+.to-top{display:flex;justify-content:space-between;align-items:center;min-height:32px}
+.to-n{font-size:12.5px;font-weight:700;opacity:.75;font-variant-numeric:tabular-nums}
+.to-skip{border:0;background:none;color:inherit;font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:8px;cursor:pointer}
+.to-box h2{margin:0 0 4px;font:400 1.6rem/1.1 var(--font-display);outline:none}
+.to-box p{margin:0 0 12px;font-size:15px;line-height:1.45}
+.to-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.to-hint{font-weight:800;font-size:14px}
+.to-hint::before{content:"👆 "}
+html.touring .sheet{z-index:70}
 /* today against yesterday, "Bugün nasıldı?", the missing piece, the calendar and school hours */
 .vs{display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:14.5px;font-weight:600;line-height:1.35}
 .vs[hidden]{display:none}
@@ -824,7 +819,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   </main>
 
   <div class="tip-card" id="tipCard" role="tooltip" hidden></div>
-  <div class="intro" id="intro" hidden><section class="in-box" role="dialog" aria-modal="true" aria-labelledby="inTitle" id="inBox"></section></div>
+  <div class="tour" id="tour" hidden><div class="to-hole" id="tourHole"></div><section class="to-box" id="tourBox" role="dialog" aria-live="polite"></section></div>
 
   <div class="sheet" id="packSheet" hidden>
     <div class="sheet-bg" data-close-sheet></div>
@@ -1207,7 +1202,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   };
   function xlRedraw(){
     try { applyLang(); render({keepEditor:true}); } catch (e) { console.error(e); }
-    try { if (!$("packSheet").hidden) renderPack(); if (!$("wardSheet").hidden) renderWardrobe(); if (!$("intro").hidden) renderIntro(); } catch (e) {}
+    try { if (!$("packSheet").hidden) renderPack(); if (!$("wardSheet").hidden) renderWardrobe(); if (TOUR.on) renderTour(); } catch (e) {}
   }
   // The model is there now (or couldn't be downloaded).
   W_.ngXlReady = function(l, ok){
@@ -1727,7 +1722,32 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Önümüzdeki saatlerde yanına alman gereken yeni bir şey olursa (“15:00’ten itibaren şemsiye”).": "When the coming hours need something new to take (“umbrella from 15:00”).",
     "Yağmur başlamak üzereyken ve yolculuğun sırasında kilit ekranında canlı kart (Android 16’da Now Bar ve durum çubuğu).": "A live card on the lock screen when rain is about to start and during your trip (on Android 16 in the Now Bar and the status bar).",
     "Kendi yazdığın uyarılar bildirim olarak da gelir.": "Your own warnings come as notifications too.",
-    "Android’de bu uygulamanın bildirimleri kapalı. Bir düğmeye dokununca bildirim ayarları açılır.": "This app's notifications are off in Android. Tap a button to open the notification settings."
+    "Android’de bu uygulamanın bildirimleri kapalı. Bir düğmeye dokununca bildirim ayarları açılır.": "This app's notifications are off in Android. Tap a button to open the notification settings.",
+    // the guided tour
+    "Uygulamayı birlikte gezelim. Her adımda parlayan yere dokun; istediğin zaman “Atla”.": "Let's take a tour together. At each step, tap the part that's lit up; “Skip” whenever you like.",
+    "Başlayalım": "Let's start", "Bitir": "Finish", "Birine dokun": "Tap one", "Parlayan yere dokun": "Tap the lit part", "Şimdi değil": "Not now",
+    "Hava, burada seçtiğin yere göre gelir. Dokun.": "The weather comes for the place you choose here. Tap it.",
+    "Konum ya da yer": "Location or place", "Buradan konumunu açar ya da semt, okul, durak ararsın; kaydettiğin yerler arasında tek dokunuşla geçersin.": "Here you turn on your location or search for a neighbourhood, school or stop, and switch between saved places with one tap.",
+    "Kapatmak için yer düğmesine tekrar dokun.": "Tap the place button again to close it.",
+    "Bugünün kıyafeti": "Today's outfit", "Bir çıkartmaya dokun: neden önerildiğini görürsün.": "Tap a sticker to see why it was suggested.",
+    "Nedeni": "Why", "Hangi hava yüzünden önerildiği burada yazar.": "This says which weather it was suggested for.",
+    "Saat saat": "Hour by hour", "Bir saate dokun: o saatte ne giyeceğin ve yanına alman gerekenler açılır.": "Tap an hour to see what to wear then and what to take.",
+    "O saatin kıyafeti": "That hour's outfit", "Şemsiye, güneş gözlüğü ya da ek bir kat gerekiyorsa şeritte simgesi de görünür.": "When an umbrella, sunglasses or an extra layer is needed, its icon shows in the strip too.",
+    "Bir güne dokun: o günün kıyafeti açılır.": "Tap a day to see its outfit.",
+    "Çabuk üşüyor musun, sıcak mı tutarsın? Birini seç; öneriler buna göre bir kat sıcak ya da ince olur.": "Do you get cold easily, or run warm? Pick one; the suggestions get a layer warmer or lighter.",
+    "Şehirde, arazide ve sporda farklı giyilir. Birini seç.": "City, outdoors and sport call for different clothes. Pick one.", "Kaç saatin havasına bakılacağını seç.": "Choose how many hours of weather to look at.",
+    "Dolabını aç.": "Open your wardrobe.", "Olmayan parça": "Something you don't have",
+    "Dolabında olmayan bir parçaya dokun; yerine elindeki en yakın parça önerilir. Sonra tekrar dokunup geri alabilirsin.": "Tap something that isn't in your wardrobe; the closest piece you have is suggested instead. Tap it again later to undo.",
+    "Kapatmak için “Tamam”a dokun.": "Tap “OK” to close.", "Rutinim": "My routine",
+    "Yolculuklarını girersen kıyafet dışarıda olacağın anlara göre seçilir. Dokunup aç.": "Enter your trips and the outfit is chosen for the moments you're outside. Tap to open.",
+    "Burada yerlerini ve yolculuklarını (yürüme, bekleme, metro, vapur…) eklersin. Şimdilik devam et; sonra doldurursun.": "Here you add your places and trips (walking, waiting, metro, ferry…). Carry on for now; fill it in later.",
+    "Bavul": "Packing", "Seyahate mi gidiyorsun? Dokun.": "Going on a trip? Tap.", "Takvim": "Calendar",
+    "Gidiş ve dönüş tarihini takvimden seçebilirsin. Dokun.": "You can pick your dates on the calendar. Tap.", "Tarihleri sonra seçersin; şimdilik kapat.": "Pick the dates later; close it for now.",
+    "Kendi sınırını ve nedenini yazdığın uyarılar: “0°’nin altına düşerse haber ver, araba camı buzlanır.” Dokun.": "Warnings with your own limit and reason: “Tell me if it drops below 0°, the windscreen will ice up.” Tap.",
+    "İstediğin kadar": "As many as you like", "Buradan istediğin kadar uyarı eklersin. Şimdilik kapat.": "Add as many warnings as you like here. Close it for now.",
+    "Bildirimler": "Notifications", "Tehlikeli hava, akşam 21:00 hatırlatması, çıkış öncesi, canlı kart… İstediğini buradan açarsın.": "Dangerous weather, the 21:00 evening reminder, before you leave, the live card… Turn on what you want here.",
+    "Widget’la bugünün kıyafetini uygulamayı açmadan görürsün; arka planda düzenli güncellendiği için uyarılar ve hatırlatmalar da daha iyi çalışır.": "With the widget you see today's outfit without opening the app; because it's refreshed in the background, warnings and reminders work better too.",
+    "Hazırsın!": "You're all set!", "Bu turu istediğin zaman “Sana göre → Tanıtımı yeniden göster” ile tekrar açabilirsin.": "You can take this tour again any time from “Made for you → Show the introduction again”."
   };
 
   /* ================= weather vocabulary ================= */
@@ -5557,7 +5577,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (S.haptics === false) return;
     var A = window.NeGiysemAndroid;
     try { if (A && typeof A.haptic === "function") { A.haptic(kind || "tick"); return; } } catch (e) {}
-    try { if (navigator.vibrate && matchMedia("(pointer:coarse)").matches) navigator.vibrate(kind === "confirm" ? 14 : 6); } catch (e) {}
+    // (a browser only allows it after the person has touched the page)
+    try { if (navigator.vibrate && matchMedia("(pointer:coarse)").matches && !(navigator.userActivation && !navigator.userActivation.hasBeenActive)) navigator.vibrate(kind === "confirm" ? 14 : 6); } catch (e) {}
   }
   $("hours").addEventListener("click", function(e){ var n = e.target.closest && e.target.closest("[data-hr]"); if (n) pickHour(+n.dataset.hr); });
   $("hours").addEventListener("keydown", function(e){ var n = e.target.closest && e.target.closest("[data-hr]"); if (n && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pickHour(+n.dataset.hr); } });
@@ -5565,82 +5586,144 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   document.addEventListener("click", function(e){ if (e.target.closest && e.target.closest(".seg button,.chip,.btn,.stk,.mini,.wd,.rchip,.pk-seg button")) buzz("tick"); }, true);
   function pickHour(i){ HOUR_SEL = HOUR_SEL === i ? -1 : i; $("hours").querySelectorAll(".h").forEach(function(n){ var on = +n.dataset.hr === HOUR_SEL; n.classList.toggle("sel", on); n.setAttribute("aria-expanded", on ? "true" : "false"); }); renderHourMore(); buzz("tick"); }
 
-  /* ================= first-run pages: what each part of the app is for (skippable) ================= */
-  var INTRO = {i:0, back:null};
+  /* ================= the guided tour: the real screen, one part at a time ================= */
+  // Each step lights up one part of the screen and waits for the person to use it (a tap on anything else does
+  // nothing); steps whose part isn't on screen (no weather yet, the website) are skipped. "Atla" ends it at any time.
   function widgetState(){
     var A = window.NeGiysemAndroid;
     try { return A && typeof A.widgetState === "function" ? String(A.widgetState()) : ""; } catch (e) { return ""; }
   }
-  function inIcon(k){
-    var w = function(inner){ return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>'; };
-    if (k === "pin") return w('<path d="M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/>');
-    if (k === "bell") return w('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>');
-    if (k === "widget") return w('<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><rect x="6.5" y="6.5" width="11" height="6" rx="2"/><path d="M6.5 16h5M6.5 18h3"/>');
-    return mIcon(k);
-  }
-  function introPages(){
-    var app = !!window.NeGiysemAndroid, pages = [
-      {art:["tshirt","mont","semsiye"], t:"Hoş geldin!", p:"Ne Giysem? bulunduğun yerin hava tahminine bakar ve bugün ne giymen gerektiğini büyük çıkartmalarla söyler. Ekranın rengi günün sıcaklığını gösterir; bir çıkartmaya dokununca neden önerildiğini görürsün."},
-      {icon:"pin", t:"Yerin", p:"Sağ üstteki yer düğmesinden konumunu aç ya da semt, okul, durak ara. Kaydettiğin yerler arasında tek dokunuşla geçersin. Konumun yalnızca havayı bulmak için kullanılır, hiçbir yerde saklanmaz."},
-      {art:["kazak","bere"], t:"Sana göre", p:"“Soğuğa karşı”: çabuk üşüyorsan bir kat daha sıcak, sıcak tutuyorsan daha ince önerilir. “Ne yapacaksın?”: şehirde, arazide ve sporda farklı giyilir. “Dışarıda ne kadar?”: kaç saatin havasına bakılacağını seçer. Şimdi seç, sonra “Sana göre” bölümünden değiştir:", control:true},
-      {art:["hirka"], t:"Bugün nasıldı?", p:"Akşamları bir kez sorar: üşüdün mü, terledin mi? Cevaplarına göre öneriler zamanla tam sana göre olur."},
-      {art:["sweatshirt","sapka"], t:"Kişiler ve dolabım", p:"Çocuğun ya da annen için ayrı kişi ekle; çocuğun okul saatlerini yazarsan kıyafet okul yoluna göre seçilir. “Dolabım”da olmayan parçaları işaretlersen yerine elindekiler önerilir."},
-      {icon:"metro", t:"Günüm", p:"Evden okula, işten eve yolculuklarını bir kez gir: yürüme, bekleme, metro, vapur… Kıyafet gerçekten dışarıda olacağın anlara göre seçilir, yağmurdan kaçıran rota önerilir, metroda terlememen için katman tavsiyesi verilir."},
-      {art:["yagmurluk"], t:"Bu hafta ve bavul", p:"Haftanın her günü için ne giyileceğini görürsün. “Bavul hazırla”, takvimden seçtiğin tarihler için gideceğin yerin havasına göre liste çıkarır."},
-      {icon:"bell", t:"Uyarılar", p:app ? "Fırtına, sel, yoğun kar gibi tehlikeli havalarda bildirim alabilir, her akşam 21:00’de yarının kıyafetini söyleyen hatırlatmayı açabilirsin. İkisi de “Sana göre” bölümünde." : "Tehlikeli hava uyarıları ekranın en üstünde çıkar. Bildirimler, akşam hatırlatması ve ana ekran widget’ı Android uygulamasında var."}
+  function visible(el){ if (!el) return false; var r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden"; }
+  function q(sel){ return document.querySelector(sel); }
+  function shown(id){ return !$(id).hidden; }
+  // el: what is lit (a selector); tap: the step goes on once that part is used (until() true); next: an "İleri" button.
+  function tourSteps(){
+    var app = !!window.NeGiysemAndroid;
+    return [
+      {t:"Hoş geldin!", p:"Uygulamayı birlikte gezelim. Her adımda parlayan yere dokun; istediğin zaman “Atla”.", next:"Başlayalım"},
+      {el:"#placeBtn", t:"Yerin", p:"Hava, burada seçtiğin yere göre gelir. Dokun.", tap:true, until:function(){ return shown("placePanel"); }},
+      {el:"#placePanel", t:"Konum ya da yer", p:"Buradan konumunu açar ya da semt, okul, durak ararsın; kaydettiğin yerler arasında tek dokunuşla geçersin.", next:"İleri"},
+      {el:"#placeBtn", t:"Kapat", p:"Kapatmak için yer düğmesine tekrar dokun.", tap:true, when:function(){ return shown("placePanel"); }, until:function(){ return !shown("placePanel"); }},
+      {el:"#wear .stk", t:"Bugünün kıyafeti", p:"Bir çıkartmaya dokun: neden önerildiğini görürsün.", tap:true, until:function(){ return shown("tipCard"); }},
+      {el:"#tipCard", t:"Nedeni", p:"Hangi hava yüzünden önerildiği burada yazar.", next:"İleri", done:function(){ hideTip(); }},
+      {el:'#hours .h[data-hr="1"]', t:"Saat saat", p:"Bir saate dokun: o saatte ne giyeceğin ve yanına alman gerekenler açılır.", tap:true, until:function(){ return shown("hourMore"); }},
+      {el:"#hourMore", t:"O saatin kıyafeti", p:"Şemsiye, güneş gözlüğü ya da ek bir kat gerekiyorsa şeritte simgesi de görünür.", next:"İleri"},
+      {el:"#week .wk-row", t:"Bu hafta", p:"Bir güne dokun: o günün kıyafeti açılır.", tap:true, until:function(){ return !!q('#week .wk-row[aria-expanded="true"]'); }},
+      {el:'[data-key="feel"]', t:"Soğuğa karşı", p:"Çabuk üşüyor musun, sıcak mı tutarsın? Birini seç; öneriler buna göre bir kat sıcak ya da ince olur.", tap:"any"},
+      {el:'[data-key="act"]', t:"Ne yapacaksın?", p:"Şehirde, arazide ve sporda farklı giyilir. Birini seç.", tap:"any"},
+      {el:'[data-key="hours"]', t:"Dışarıda ne kadar?", p:"Kaç saatin havasına bakılacağını seç.", tap:"any"},
+      {el:"#wardBtn", t:"Dolabım", p:"Dolabını aç.", tap:true, until:function(){ return shown("wardSheet"); }},
+      {el:"#wardBody .wd-grid", t:"Olmayan parça", p:"Dolabında olmayan bir parçaya dokun; yerine elindeki en yakın parça önerilir. Sonra tekrar dokunup geri alabilirsin.", tap:"any"},
+      {el:"#wardSheet .ed-foot .btn:not(.soft)", t:"Tamam", p:"Kapatmak için “Tamam”a dokun.", tap:true, until:function(){ return !shown("wardSheet"); }},
+      {el:"#routineBtn", t:"Günüm", p:"Yolculuklarını girersen kıyafet dışarıda olacağın anlara göre seçilir. Dokunup aç.", tap:true, until:function(){ return shown("routine"); }},
+      {el:"#routine", t:"Rutinim", p:"Burada yerlerini ve yolculuklarını (yürüme, bekleme, metro, vapur…) eklersin. Şimdilik devam et; sonra doldurursun.", next:"İleri", done:function(){ $("routine").hidden = true; }},
+      {el:"#packBtn", t:"Bavul", p:"Seyahate mi gidiyorsun? Dokun.", tap:true, until:function(){ return shown("packSheet"); }},
+      {el:"#packBody [data-pk-cal]", t:"Takvim", p:"Gidiş ve dönüş tarihini takvimden seçebilirsin. Dokun.", tap:true, until:function(){ return !!$("pkCal"); }},
+      {el:"#packSheet .tc-head .x", t:"Kapat", p:"Tarihleri sonra seçersin; şimdilik kapat.", tap:true, until:function(){ return !shown("packSheet"); }},
+      {el:"#rulesBtn", t:"Uyarılarım", p:"Kendi sınırını ve nedenini yazdığın uyarılar: “0°’nin altına düşerse haber ver, araba camı buzlanır.” Dokun.", tap:true, until:function(){ return shown("rulesSheet"); }},
+      {el:"#rulesSheet .tc-head .x", t:"İstediğin kadar", p:"Buradan istediğin kadar uyarı eklersin. Şimdilik kapat.", tap:true, until:function(){ return !shown("rulesSheet"); }},
+      {el:app ? "#notifRow" : "#alertsRow", t:"Bildirimler", p:"Tehlikeli hava, akşam 21:00 hatırlatması, çıkış öncesi, canlı kart… İstediğini buradan açarsın.", next:"İleri"},
+      {t:"Ana ekran widget’ı", p:"Widget’la bugünün kıyafetini uygulamayı açmadan görürsün; arka planda düzenli güncellendiği için uyarılar ve hatırlatmalar da daha iyi çalışır.", widget:true, when:function(){ return widgetState() === "can"; }},
+      {t:"Hazırsın!", p:"Bu turu istediğin zaman “Sana göre → Tanıtımı yeniden göster” ile tekrar açabilirsin.", next:"Bitir", last:true}
     ];
-    if (widgetState() === "can") pages.push({icon:"widget", t:"Ana ekran widget’ı", p:"Widget’la bugünün kıyafetini uygulamayı açmadan görürsün. Arka planda düzenli güncellendiği için uyarılar ve akşam hatırlatması da daha iyi çalışır.", widget:true});
-    return pages;
   }
-  function renderIntro(){
-    var pages = introPages(), i = Math.max(0, Math.min(INTRO.i, pages.length - 1)), pg = pages[i], last = i === pages.length - 1;
-    INTRO.i = i;
-    var pic = pg.art ? '<div class="in-art">' + pg.art.map(function(g){ return '<span class="art">' + art(g) + '</span>'; }).join("") + '</div>' : '<div class="in-art in-ic">' + inIcon(pg.icon) + '</div>';
-    var ctl = "";
-    if (pg.control) {
-      var seg = function(key, opts){ return '<div class="seg in-seg" role="group" aria-label="' + esc(tx(opts[0])) + '">' + opts[1].map(function(o){
-        return '<button type="button" data-in-set="' + key + '" data-val="' + o[0] + '" aria-pressed="' + (String(S[key]) === String(o[0])) + '">' + esc(tx(o[1])) + '</button>'; }).join("") + '</div>'; };
-      ctl = seg("feel", ["Soğuğa karşı", [["cold","Çabuk üşürüm"],["normal","Normal"],["warm","Sıcak tutarım"]]]) +
-            seg("act", ["Ne yapacaksın?", [["city","Şehir / okul"],["field","Arazi / doğa"],["sport","Spor"]]]);
-    }
-    var dots = pages.map(function(x, k){ return '<span class="in-dot' + (k === i ? ' on' : '') + '"></span>'; }).join("");
-    $("inBox").innerHTML = '<div class="in-top"><span class="in-n">' + esc(tx("{0} / {1}", i + 1, pages.length)) + '</span>' +
-      (last ? '' : '<button type="button" class="in-skip" data-in="skip">' + esc(tx("Atla")) + '</button>') + '</div>' +
-      pic + '<h2 id="inTitle" tabindex="-1">' + esc(tx(pg.t)) + '</h2><p>' + esc(tx(pg.p)) + '</p>' + ctl +
-      (pg.widget ? '<div class="in-wd"><button type="button" class="btn" data-in="pin">' + esc(tx("Widget’ı ana ekrana ekle")) + '</button></div>' : '') +
-      '<div class="in-dots" aria-hidden="true">' + dots + '</div>' +
-      '<div class="in-nav">' + (i ? '<button type="button" class="btn soft" data-in="back">' + esc(tx("Geri")) + '</button>' : '<span></span>') +
-      '<button type="button" class="btn" data-in="' + (last ? 'done' : 'next') + '">' + esc(tx(last ? (pg.widget ? "Şimdi değil, başla" : "Başla") : "İleri")) + '</button></div>';
-    var h = $("inTitle"); if (h) h.focus({preventScroll:true});
+  var TOUR = {on:false, i:-1, steps:[], el:null, raf:0, waitT:null, back:null};
+  function startTour(back){
+    TOUR.steps = tourSteps(); TOUR.on = true; TOUR.i = -1; TOUR.back = back || null;
+    hideTip(); if (SHEET.el) closeSheet(true);
+    $("tour").hidden = false; document.documentElement.classList.add("touring");
+    tourGo(1);
   }
-  function openIntro(back){
-    INTRO.i = 0; INTRO.back = back || null;
-    $("intro").hidden = false; document.documentElement.classList.add("sheet-open"); hideTip();
-    renderIntro();
-  }
-  function closeIntro(){
-    $("intro").hidden = true; document.documentElement.classList.remove("sheet-open");
+  function endTour(){
+    if (!TOUR.on) return;
+    TOUR.on = false; cancelAnimationFrame(TOUR.raf); clearInterval(TOUR.waitT);
+    $("tour").hidden = true; document.documentElement.classList.remove("touring");
+    if (SHEET.el) closeSheet(true);
+    if (!$("routine").hidden && !S.trips.length) $("routine").hidden = true;
     if (!S.intro) { S.intro = true; save(); }
-    var b = INTRO.back || $("headline"); if (b && b.focus) b.focus({preventScroll:true});
+    var b = TOUR.back || $("headline"); if (b && b.focus) b.focus({preventScroll:true});
   }
-  $("intro").addEventListener("click", function(e){
-    var b = e.target.closest && e.target.closest("[data-in],[data-in-set]"); if (!b) return;
-    if (b.dataset.inSet) { S[b.dataset.inSet] = b.dataset.val; save(); render(); renderIntro(); return; }
-    var a = b.dataset["in"];
-    if (a === "next") { INTRO.i++; renderIntro(); }
-    else if (a === "back") { INTRO.i--; renderIntro(); }
-    else if (a === "pin") { try { window.NeGiysemAndroid.pinWidget(); } catch (x) {} closeIntro(); }
-    else closeIntro();
-  });
-  $("intro").addEventListener("keydown", function(e){
-    if (e.key === "Escape") { e.preventDefault(); closeIntro(); }
-    else if (e.key === "Tab") { // focus stays in the pages
-      var f = [].slice.call($("inBox").querySelectorAll("button")); if (!f.length) return;
-      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
-      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+  // To the next step that can be shown (dir: +1, or -1 for back).
+  function tourGo(dir){
+    clearInterval(TOUR.waitT);
+    var st = TOUR.steps[TOUR.i]; if (st && st.done && dir > 0) { try { st.done(); } catch (e) {} }
+    for (var i = TOUR.i + dir; i >= 0 && i < TOUR.steps.length; i += dir) {
+      var s2 = TOUR.steps[i];
+      if (s2.when && !s2.when()) continue;
+      if (s2.el && !visible(q(s2.el))) continue;
+      TOUR.i = i; renderTour(); return;
     }
+    if (dir > 0) endTour();
+  }
+  function renderTour(){
+    var st = TOUR.steps[TOUR.i], el = st.el ? q(st.el) : null;
+    TOUR.el = el;
+    if (el && el.scrollIntoView) el.scrollIntoView({behavior:smooth(), block:"center"});
+    var n = TOUR.steps.filter(function(x){ return !x.last; }).length, k = Math.min(TOUR.i + 1, n);
+    var btns = st.widget
+      ? '<button type="button" class="btn" data-tour="pin">' + esc(tx("Widget’ı ana ekrana ekle")) + '</button><button type="button" class="btn soft" data-tour="next">' + esc(tx("Şimdi değil")) + '</button>'
+      : st.next ? '<button type="button" class="btn" data-tour="next">' + esc(tx(st.next)) + '</button>'
+      : '<span class="to-hint">' + esc(tx(st.tap === "any" ? "Birine dokun" : "Parlayan yere dokun")) + '</span>';
+    $("tourBox").innerHTML = '<div class="to-top"><span class="to-n">' + (st.last ? '' : esc(tx("{0} / {1}", k, n))) + '</span>' +
+      (st.last ? '' : '<button type="button" class="to-skip" data-tour="skip">' + esc(tx("Atla")) + '</button>') + '</div>' +
+      '<h2 id="tourTitle" tabindex="-1">' + esc(tx(st.t)) + '</h2><p>' + esc(tx(st.p)) + '</p><div class="to-acts">' + btns + '</div>';
+    $("tourBox").setAttribute("aria-labelledby", "tourTitle");
+    $("tourHole").hidden = !el;
+    $("tour").classList.toggle("dim", !el);
+    cancelAnimationFrame(TOUR.raf); tourPlace();
+    var h = $("tourTitle"); if (h) h.focus({preventScroll:true});
+    buzz("tick");
+  }
+  // The hole over the lit part and the bubble next to it follow the page as it scrolls.
+  function tourPlace(){
+    if (!TOUR.on) return;
+    var st = TOUR.steps[TOUR.i], el = TOUR.el, box = $("tourBox"), hole = $("tourHole"), vw = innerWidth, vh = innerHeight, pad = 8;
+    if (el && st.el && !document.contains(el)) { el = TOUR.el = q(st.el); }
+    if (el) {
+      var r = el.getBoundingClientRect();
+      hole.style.left = (r.left - pad) + "px"; hole.style.top = (r.top - pad) + "px"; hole.style.width = (r.width + pad * 2) + "px"; hole.style.height = (r.height + pad * 2) + "px";
+      var bh = box.offsetHeight, bw = box.offsetWidth, below = r.bottom + pad + 12, above = r.top - pad - 12 - bh;
+      var top = below + bh < vh - 8 ? below : above > 8 ? above : Math.max(8, vh - bh - 8);
+      box.style.top = top + "px"; box.style.left = Math.max(8, Math.min(vw - bw - 8, r.left + r.width / 2 - bw / 2)) + "px"; box.style.transform = "none";
+    } else { box.style.top = "50%"; box.style.left = "50%"; box.style.transform = "translate(-50%,-50%)"; }
+    TOUR.raf = requestAnimationFrame(tourPlace);
+  }
+  // Only the lit part (and the bubble) can be used while the tour is on; using it moves the tour on.
+  function tourAllowed(t){
+    var st = TOUR.steps[TOUR.i]; if (!st) return false;
+    if ($("tourBox").contains(t)) return true;
+    if (!st.tap || !TOUR.el) return false;
+    var area = st.area ? q(st.area) : null;
+    return TOUR.el.contains(t) || (area && area.contains(t));
+  }
+  function tourUsed(){
+    var st = TOUR.steps[TOUR.i], my = TOUR.i;
+    if (!st.until) { setTimeout(function(){ if (TOUR.on && TOUR.i === my) tourGo(1); }, 350); return; }
+    var n = 0;
+    TOUR.waitT = setInterval(function(){
+      if (!TOUR.on || TOUR.i !== my) { clearInterval(TOUR.waitT); return; }
+      if (st.until() || ++n > 40) { clearInterval(TOUR.waitT); setTimeout(function(){ if (TOUR.on && TOUR.i === my) tourGo(1); }, 250); }
+    }, 100);
+  }
+  document.addEventListener("click", function(e){
+    if (!TOUR.on) return;
+    var t = e.target;
+    if (!tourAllowed(t)) { e.preventDefault(); e.stopImmediatePropagation(); var h = $("tourHole"); h.classList.remove("nudge"); void h.offsetWidth; h.classList.add("nudge"); return; }
+    if (!$("tourBox").contains(t)) tourUsed();
+  }, true);
+  document.addEventListener("keydown", function(e){
+    if (!TOUR.on) return;
+    if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); endTour(); return; }
+    if ((e.key === "Enter" || e.key === " ") && !tourAllowed(e.target)) { e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
+  $("tourBox").addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-tour]"); if (!b) return;
+    var a = b.dataset.tour;
+    if (a === "skip") endTour();
+    else if (a === "pin") { try { window.NeGiysemAndroid.pinWidget(); } catch (x) {} tourGo(1); }
+    else tourGo(1);
   });
-  $("introBtn").addEventListener("click", function(e){ openIntro(e.currentTarget); });
+  $("introBtn").addEventListener("click", function(e){ startTour(e.currentTarget); });
 
   /* ================= boot ================= */
   async function maybeRefresh(){
@@ -5697,7 +5780,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   window.ngGo = function(w){ go(String(w || "")); };
   var GO0 = (function(){ try { return new URLSearchParams(location.search).get("go") || ""; } catch (e) { return ""; } })();
   // The first time on this device: the pages that show what each part is for.
-  if (!S.intro && !IS_ART && CONFIG.intro !== false) { try { openIntro(); } catch (e) { console.error(e); } }
+  if (!S.intro && !IS_ART && CONFIG.intro !== false) { try { startTour(); } catch (e) { console.error(e); } }
   else if (GO0) setTimeout(function(){ go(GO0); }, 50);
   if (IS_ART) {
     (async function(){

@@ -48,8 +48,8 @@ sırada senin ve test kullanıcılarının gizliliğini korumak için yapılacak
 4. **Ülkeler/bölgeler:** Türkiye.
 5. Kanalda yayınlanmış bir sürüm yoksa `NeGiysem.aab`'yi yükle (`RELEASE.md` §5) ve yayınla. İnceleme bitip durum
    **Yayınlandı** olunca aynı sekmede **katılım bağlantısı** görünür (biçimi
-   `https://play.google.com/apps/testing/com.negiysem.app`).
-6. Saat yüzü ayrı bir uygulamadır (`com.negiysem.app.watchface`) ve kendi kapalı testi gerekir: aynı grubu onun
+   `https://play.google.com/apps/testing/com.negiysem.android`).
+6. Saat yüzü ayrı bir uygulamadır (`com.negiysem.android.watchface`) ve kendi kapalı testi gerekir: aynı grubu onun
    kapalı test kanalına da ekle. Saat uygulaması telefon uygulamasıyla aynı kayıttadır; ayrı test istemez.
 
 ## 3. Paylaşılacak duyuru
@@ -90,7 +90,7 @@ hesabın yerine yalnızca bu iş için açtığın bir hesap kullan (ör. saawan
 >
 > How to join (2 minutes):
 > 1. Join the Google Group: https://groups.google.com/g/ne-giysem-test
-> 2. Opt in: https://play.google.com/apps/testing/com.negiysem.app
+> 2. Opt in: https://play.google.com/apps/testing/com.negiysem.android
 > 3. Install it from Google Play and open it a few times over the next days (the widget is worth a try).
 > 4. Please stay opted in for the full 14 days.
 >

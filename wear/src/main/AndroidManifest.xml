@@ -59,7 +59,7 @@
             <!-- Ne Giysem's own watch face (another package) may show this complication as its default, without asking. -->
             <meta-data
                 android:name="android.support.wearable.complications.SAFE_WATCH_FACES"
-                android:value="com.negiysem.app.watchface" />
+                android:value="com.negiysem.android.watchface" />
         </service>
     </application>
 </manifest>

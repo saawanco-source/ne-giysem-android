@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         // A watch face is its own Play listing: Play does not accept it in the same bundle as app code.
-        applicationId = "com.negiysem.app.watchface"
+        applicationId = "com.negiysem.android.watchface"
         // Weather needs Watch Face Format version 2, which starts with Wear OS 5 (API 34).
         minSdk = 34
         targetSdk = 36

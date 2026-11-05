@@ -3,28 +3,28 @@
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
     <shortcut android:shortcutId="tomorrow" android:enabled="true" android:icon="@drawable/ic_sc_tomorrow"
         android:shortcutShortLabel="@string/sc_tomorrow_s" android:shortcutLongLabel="@string/sc_tomorrow">
-        <intent android:action="android.intent.action.VIEW" android:targetPackage="com.negiysem.app"
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="com.negiysem.android"
             android:targetClass="com.negiysem.app.MainActivity">
             <extra android:name="go" android:value="tomorrow" />
         </intent>
     </shortcut>
     <shortcut android:shortcutId="hours" android:enabled="true" android:icon="@drawable/ic_sc_hours"
         android:shortcutShortLabel="@string/sc_hours_s" android:shortcutLongLabel="@string/sc_hours">
-        <intent android:action="android.intent.action.VIEW" android:targetPackage="com.negiysem.app"
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="com.negiysem.android"
             android:targetClass="com.negiysem.app.MainActivity">
             <extra android:name="go" android:value="hours" />
         </intent>
     </shortcut>
     <shortcut android:shortcutId="pack" android:enabled="true" android:icon="@drawable/ic_sc_pack"
         android:shortcutShortLabel="@string/sc_pack_s" android:shortcutLongLabel="@string/sc_pack">
-        <intent android:action="android.intent.action.VIEW" android:targetPackage="com.negiysem.app"
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="com.negiysem.android"
             android:targetClass="com.negiysem.app.MainActivity">
             <extra android:name="go" android:value="pack" />
         </intent>
     </shortcut>
     <shortcut android:shortcutId="month" android:enabled="true" android:icon="@drawable/ic_sc_month"
         android:shortcutShortLabel="@string/sc_month_s" android:shortcutLongLabel="@string/sc_month">
-        <intent android:action="android.intent.action.VIEW" android:targetPackage="com.negiysem.app"
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="com.negiysem.android"
             android:targetClass="com.negiysem.app.MainActivity">
             <extra android:name="go" android:value="month" />
         </intent>

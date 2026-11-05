@@ -19,7 +19,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.negiysem.app"
+        applicationId = "com.negiysem.android"
         minSdk = 26
         targetSdk = 36
         // Every cloud build gets a higher number, so a new APK always installs as an update

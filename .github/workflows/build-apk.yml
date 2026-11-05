@@ -282,7 +282,7 @@ jobs:
             android.permission.ACCESS_NETWORK_STATE android.permission.WAKE_LOCK android.permission.RECEIVE_BOOT_COMPLETED
             android.permission.FOREGROUND_SERVICE android.permission.POST_NOTIFICATIONS android.permission.POST_PROMOTED_NOTIFICATIONS com.google.android.gms.permission.AD_ID android.permission.ACCESS_ADSERVICES_AD_ID
             android.permission.ACCESS_ADSERVICES_ATTRIBUTION android.permission.ACCESS_ADSERVICES_TOPICS
-            com.negiysem.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+            com.negiysem.android.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
           check_perms() { # $1: label, stdin: one permission per line
             while read -r p; do
               [ -n "$p" ] || continue
@@ -356,7 +356,7 @@ jobs:
             echo "== Saat yüzü APK: $(stat -c %s "$wapk") bayt"
             wb=$("$BT/aapt2" dump badging "$wapk")
             echo "$wb" | grep -E "^(package:|minSdkVersion|targetSdkVersion|uses-feature:)"
-            echo "$wb" | grep -q "^package: name='com.negiysem.app.watchface'" || problem "saat yüzü paket adı com.negiysem.app.watchface değil"
+            echo "$wb" | grep -q "^package: name='com.negiysem.android.watchface'" || problem "saat yüzü paket adı com.negiysem.android.watchface değil"
             echo "$wb" | grep -q "^minSdkVersion:'34'" || problem "saat yüzü minSdk 34 değil"
             echo "$wb" | grep -q "android.hardware.type.watch" || problem "saat yüzü android.hardware.type.watch istemiyor"
             wt=$("$BT/aapt2" dump xmltree --file AndroidManifest.xml "$wapk")
@@ -388,7 +388,7 @@ jobs:
             echo "== Saat uygulaması APK: $(stat -c %s "$uapk") bayt"
             ub=$("$BT/aapt2" dump badging "$uapk")
             echo "$ub" | grep -E "^(package:|minSdkVersion|targetSdkVersion|uses-feature:)"
-            echo "$ub" | grep -q "^package: name='com.negiysem.app'" || problem "saat uygulamasının paket adı com.negiysem.app değil (telefonla eşleşmez)"
+            echo "$ub" | grep -q "^package: name='com.negiysem.android'" || problem "saat uygulamasının paket adı com.negiysem.android değil (telefonla eşleşmez)"
             echo "$ub" | grep -q "android.hardware.type.watch" || problem "saat uygulaması android.hardware.type.watch istemiyor"
             "$BT/aapt2" dump xmltree --file AndroidManifest.xml "$uapk" | grep -q "OutfitComplicationService" && echo "   karmaşıklık servisi var" || problem "karmaşıklık servisi manifestte yok"
             if "$BT/apksigner" verify --print-certs "$uapk" > usig.txt 2>&1; then

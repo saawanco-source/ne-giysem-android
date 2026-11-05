@@ -1,6 +1,6 @@
 // Ne Giysem? on the watch (Wear OS 3+): a complication with the phone's outfit for any watch face, and a small screen
 // behind it. The phone app sends its widget snapshot over the Wearable Data Layer (app: data/WatchSync.kt), which only
-// connects apps with the same package name and signing key: hence applicationId com.negiysem.app here too.
+// connects apps with the same package name and signing key: hence applicationId com.negiysem.android here too.
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -16,7 +16,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.negiysem.app"
+        applicationId = "com.negiysem.android"
         minSdk = 30
         targetSdk = 35
         // Its own numbers, above the phone app's (one Play listing, so every APK needs a version code of its own).

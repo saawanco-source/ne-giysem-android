@@ -1125,7 +1125,7 @@
       </TimeText>
     </DigitalClock>
     <ComplicationSlot name="outfit_card" x="88" y="180" width="274" height="168" slotId="0" supportedTypes="PHOTO_IMAGE EMPTY" displayName="outfit_slot" isCustomizable="TRUE">
-      <DefaultProviderPolicy defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" primaryProvider="com.negiysem.app/com.negiysem.app.wear.OutfitComplicationService" primaryProviderType="PHOTO_IMAGE" />
+      <DefaultProviderPolicy defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" primaryProvider="com.negiysem.android/com.negiysem.app.wear.OutfitComplicationService" primaryProviderType="PHOTO_IMAGE" />
       <BoundingRoundBox x="0" y="0" width="274" height="168" cornerRadius="24" />
       <Complication type="PHOTO_IMAGE">
         <PartImage name="outfit_photo" x="0" y="0" width="274" height="168">

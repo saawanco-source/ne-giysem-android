@@ -2,7 +2,7 @@
 
 **Hazırlanma tarihi: 24 Ekim 2026.** Google kuralları sık değişir; her adımı yaparken yanındaki bağlantıdan güncel hâlini kontrol et. Bağlantıların hepsi bu tarihte açılıp okundu.
 
-Uygulama: **Ne Giysem?** · paket adı `com.negiysem.app` · ücretsiz · reklamlı (AdMob) · ortaklık linkli · hesap yok.
+Uygulama: **Ne Giysem?** · paket adı `com.negiysem.android` · ücretsiz · reklamlı (AdMob) · ortaklık linkli · hesap yok.
 
 ---
 

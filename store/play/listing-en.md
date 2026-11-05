@@ -8,7 +8,7 @@ English (en-US) — translation. Play Console → Grow → Store presence → Ma
 |---|---:|---:|
 | App name | 30 | **23** |
 | Short description | 80 | **71** |
-| Full description | 4000 | **2432** |
+| Full description | 4000 | **2822** |
 | Release notes (first release, 5 lines) | 500 | **332** |
 
 ## App name (23/30)
@@ -23,7 +23,7 @@ Ne Giysem? What to Wear
 See what to wear today at a glance, based on the weather where you are.
 ```
 
-## Full description (2432/4000)
+## Full description (2822/4000)
 
 ```text
 One question to answer before you head out: what should I wear today?
@@ -34,14 +34,17 @@ What it does
 • Today's outfit from the feels-like temperature, rain, snow, wind and UV
 • "Take along" tips: a cardigan if the evening turns cool, an umbrella for rain, sunglasses and sunscreen when the sun is strong
 • Tap any sticker for a card that explains why it was suggested
-• Hour-by-hour strip and a weekly view
-• An alert when rain is on its way
+• Hour-by-hour strip: each hour's outfit and what to take along for it
+• A weekly view and a monthly summary
+• An alert when rain is on its way; tomorrow's outfit in the evening and a reminder before you leave
+• Your own alerts: you set the limit and the reason ("tell me below 0°, the car windows ice up")
 
 Made for you
 • "I get cold easily" or "I run warm": suggestions adjust to you
 • City, outdoors or sport: different suggestions for what you'll be doing
 • Profiles, for example a separate one for your child
 • My wardrobe: mark the clothes you own
+• "How was today?": say you were cold or too warm and suggestions adjust to you
 
 My day
 Enter your trips once (home to school, work to home) with their steps: walking, waiting at the stop, metro, ferry and more. Ne Giysem? picks the outfit for the moments you will actually be outside and suggests the route that keeps you out of the rain or cold.
@@ -54,7 +57,8 @@ Handy
 • Home-screen widget: today's outfit without opening the app
 • Pull to refresh; without internet the last weather is shown
 • Share card: share today's suggestion as a picture
-• Light and dark themes; Turkish and English
+• Light and dark themes; Turkish and English, other languages translated on your phone
+• Wear OS watch app and watch face
 
 Privacy
 No account needed. Your settings, places, routine and wardrobe stay on your device, and "Delete all my data" removes them. Your location is used only to find the weather and the place name, and never in the background. Approximate location permission is enough, and you can also search for a place without granting location access.

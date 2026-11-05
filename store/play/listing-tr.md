@@ -8,7 +8,7 @@ Türkçe (tr-TR) — varsayılan dil. Play Console → Büyüme → Mağaza varl
 |---|---:|---:|
 | Uygulama adı | 30 | **26** |
 | Kısa açıklama | 80 | **67** |
-| Tam açıklama | 4000 | **2331** |
+| Tam açıklama | 4000 | **2701** |
 | Sürüm notları (ilk sürüm, 5 satır) | 500 | **334** |
 
 ## Uygulama adı (26/30)
@@ -23,7 +23,7 @@ Ne Giysem? Hava ve Kıyafet
 Bulunduğun yerin havasına göre bugün ne giyeceğini bir bakışta gör.
 ```
 
-## Tam açıklama (2331/4000)
+## Tam açıklama (2701/4000)
 
 ```text
 Sabah kapıdan çıkmadan önce tek soruya cevap: Bugün ne giysem?
@@ -34,14 +34,17 @@ Ne yapar?
 • Hissedilen sıcaklığa, yağmura, kara, rüzgâra ve UV'ye göre bugünün kıyafeti
 • "Yanına al" önerileri: akşam serinleyecekse hırka, yağmur varsa şemsiye, güneş güçlüyse gözlük ve krem
 • Her çıkartmaya dokununca neden önerildiğini anlatan bilgi kartı
-• Saat saat hava şeridi ve haftalık görünüm
-• Yağmur yaklaşırken uyarı
+• Saat saat hava şeridi: her saatin kıyafeti ve o saat yanına alman gerekenler
+• Haftalık görünüm ve ayın özeti
+• Yağmur yaklaşırken uyarı; akşam yarının kıyafeti, çıkmadan önce hatırlatma
+• Kendi uyarıların: sınırı ve nedenini sen yazarsın ("0°'nin altında haber ver, araba camı buzlanır")
 
 Sana göre
 • "Çabuk üşürüm" ya da "Sıcak tutarım": öneriler senin vücuduna göre ayarlanır
 • Şehir, arazi ya da spor: ne yapacağına göre farklı öneriler
 • Profiller: örneğin çocuğun için ayrı bir profil
 • Dolabım: sahip olduğun kıyafetleri işaretle
+• "Bugün nasıldı?": üşüdüm ya da terledim dersen öneriler sana göre ayarlanır
 
 Günüm
 Evden okula, işten eve yolculuklarını ve yürüyüş, durakta bekleme, metro, vapur gibi adımlarını bir kez gir. Ne Giysem? kıyafeti gerçekten dışarıda olacağın anlara göre seçer ve yağmurda ya da soğukta daha az kalacağın rotayı önerir.
@@ -54,7 +57,8 @@ Pratik
 • Ana ekran widget'ı: bugünün kıyafeti, uygulamayı açmadan
 • Aşağı çekip yenile; internet yokken son alınan hava gösterilir
 • Paylaşım kartı: bugünün önerisini görsel olarak paylaş
-• Açık ve koyu görünüm; Türkçe ve İngilizce
+• Açık ve koyu görünüm; Türkçe ve İngilizce, diğer dillerde telefonda çeviri
+• Wear OS saat uygulaması ve saat yüzü
 
 Gizlilik
 Hesap gerekmez. Ayarların, yerlerin, rutinin ve dolabın yalnızca cihazında durur; "Tüm verilerimi sil" ile hepsini silebilirsin. Konumun yalnızca hava durumunu ve yer adını bulmak için kullanılır, arka planda konuma bakılmaz. Yaklaşık konum izni yeterlidir; istersen konum izni vermeden yer arayıp seçebilirsin.

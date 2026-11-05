@@ -68,7 +68,10 @@ object Scheduler {
     suspend fun shows(context: Context): Boolean = hasWidgets(context) || hasWatch(context)
 
     /** Background refresh is needed while a widget or the watch shows the outfit, or weather warnings are turned on. */
-    suspend fun needed(context: Context): Boolean = Store(context).alertsOn || shows(context)
+    suspend fun needed(context: Context): Boolean {
+        val st = Store(context)
+        return st.alertsOn || listOf("live", "depart", "hourly", "rules").any { st.notifOn(it) } || shows(context)
+    }
 
     /**
      * Keeps the widget fresh: every 30 minutes, with or without a connection (without one it moves on to the current

@@ -4,4 +4,13 @@
     <string name="app_name">Ne Giysem?</string>
     <string name="widget_name">Ne Giysem?</string>
     <string name="widget_desc">Today\'s outfit at a glance</string>
+    <string name="sc_tomorrow_s">Tomorrow</string>
+    <string name="sc_tomorrow">What to wear tomorrow</string>
+    <string name="sc_hours_s">Hour by hour</string>
+    <string name="sc_hours">Today hour by hour</string>
+    <string name="sc_pack_s">Pack a bag</string>
+    <string name="sc_pack">Pack a bag</string>
+    <string name="sc_month_s">My month</string>
+    <string name="sc_month">The month in weather</string>
+    <string name="tile_label">Today\'s outfit</string>
 </resources>

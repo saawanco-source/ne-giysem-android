@@ -7,7 +7,7 @@
      `node tools/csp.js`; the web tests check) and talk only to its own server and, when that can't be reached, to MET
      Norway, Photon and BigDataCloud directly. No other site gets anything from this page. AdSense, a custom domain or a
      new service must be added here first. The site adds the rest (framing, HTTPS) in web/_headers. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-ffi2BlOJATHdHzNstTYqDEtvXnqcuvEvhWBSystS/dw='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-42Tn1393PGcNQ/5V3tfV1TBCS9nttoszK+Nkd7aPpoI='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
 <meta name="referrer" content="same-origin">
 <!-- The app's own server; the Android build puts the preview site's address here for a test build. -->
 <meta name="ng-api" content="https://ne-giysem.pages.dev">
@@ -94,6 +94,11 @@ button:active,.mini:active{transform:scale(.95)}
 summary:active{opacity:.75}
 :focus-visible{outline:2.5px solid var(--focus);outline-offset:3px;border-radius:8px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* Light mode on slower phones (little memory or few cores): no grain, blur or deep shadows, shorter animations. */
+html.lite .sky::after{display:none}
+html.lite .intro{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(10,15,33,.6)}
+html.lite *{box-shadow:none!important}
+html.lite *,html.lite *::before,html.lite *::after{animation-duration:.01s!important;transition-duration:.01s!important}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 .app{max-width:1120px;margin:0 auto;padding-block:14px 36px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -161,7 +166,8 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 
 /* layout */
 .grid{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"hero" "board" "trip" "day" "week" "need" "me" "edit";gap:22px;margin-top:22px}
-@media (min-width:900px){
+/* Two columns from 720px: a tablet, or a foldable opened up (Galaxy Z Fold, Pixel Fold) */
+@media (min-width:720px){
   .grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:"hero board" "trip board" "day board" "week board" "need board" "me board" "edit edit";grid-template-rows:auto auto auto auto auto 1fr auto;column-gap:40px;margin-top:34px}
   .board{position:sticky;top:calc(20px + env(safe-area-inset-top,0px));align-self:start}
 }
@@ -344,6 +350,14 @@ html.ptr-on,html.ptr-on body{overscroll-behavior-y:contain}
 .h .ic{width:22px;height:22px}
 .h .ht{font:400 1.3rem/1 var(--font-display);font-variant-numeric:tabular-nums}
 .h .hp{font-size:11px;font-weight:700;min-height:13px}
+.h{cursor:pointer;border:0;background:none;color:inherit;font:inherit}
+.h.sel{box-shadow:inset 0 0 0 2px var(--ink)}
+.h .hx{display:flex;gap:1px;min-height:20px}
+.h .hx .art{width:20px;height:20px;display:block}
+.h .hx .art svg{width:100%;height:100%}
+.hour-more{margin-top:10px;padding:12px 14px;border-radius:16px;background:var(--chip)}
+.hour-more[hidden]{display:none}
+.hour-more p{margin:0 0 4px;font-size:14px}
 .facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .fact{background:var(--chip);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .fact b{font-weight:800}
@@ -467,6 +481,24 @@ html.sheet-open,html.sheet-open body{overflow:hidden}
 .pk-it .n{font:400 1.6rem/1 var(--font-display);font-variant-numeric:tabular-nums;flex:none}
 .pk-it.done .pl b,.pk-it.done .n{text-decoration:line-through;text-decoration-thickness:2px}
 .pk-it.done .art,.pk-it.done .pl{opacity:.55}
+.mo-card{display:flex;flex-direction:column;align-items:center;gap:2px;margin:14px 0;padding:22px 16px;border-radius:24px;background:linear-gradient(160deg,var(--wl),color-mix(in oklab,var(--wl) 40%,var(--card)));color:#1d1b14;text-align:center}
+.mo-card .art{width:110px;height:110px;display:block;animation:inPop .6s cubic-bezier(.2,1.4,.4,1) both}
+.mo-card .art svg{width:100%;height:100%}
+.mo-card b{font:400 3rem/1 var(--font-display)}
+.mo-card small{font-weight:700;font-size:14px}
+.mo-m{margin:6px 0 0;font-weight:700;text-transform:capitalize}
+.mo-list{margin:0 0 10px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.my-alerts{display:flex;flex-direction:column;gap:6px;max-width:34rem;margin:0 0 14px}
+.my-alerts[hidden]{display:none}
+.ma{display:flex;align-items:flex-start;gap:10px;padding:10px 4px 10px 12px;border-radius:18px;background:var(--card);box-shadow:inset 0 0 0 1px var(--card-line)}
+.ma p{margin:0;flex:1;font-size:14px;line-height:1.35}
+.ma-ic{font-size:18px;line-height:1.2}
+.ma-lim{color:var(--ink2);font-weight:600}
+.ma .x{margin-left:0;flex:none}
+.rl-list{list-style:none;padding:0;margin:8px 0 14px;display:flex;flex-direction:column;gap:8px}
+.rl-list li{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--card);border-radius:16px;padding:10px 12px}
+.rl-list small{display:block;color:var(--ink2);font-size:13px}
+.pf-form select{border:1.5px solid var(--input-line);background:var(--input);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;min-height:44px}
 .xl-bar{max-width:34rem;margin:0 0 14px;padding:12px 14px;border-radius:18px;background:var(--card);box-shadow:inset 0 0 0 1px var(--card-line)}
 .xl-bar[hidden]{display:none}
 .xl-bar p{margin:0 0 8px;font-size:14px;font-weight:600}
@@ -479,7 +511,12 @@ html.sheet-open,html.sheet-open body{overflow:hidden}
 .in-n{font-size:13px;font-weight:700;color:var(--ink2);font-variant-numeric:tabular-nums}
 .in-skip{border:0;background:none;font:inherit;font-weight:700;color:var(--ink2);padding:10px 8px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .in-art{display:flex;justify-content:center;gap:6px;min-height:120px;align-items:center}
-.in-art .art{width:96px;height:96px;display:block}
+.in-art .art{width:96px;height:96px;display:block;animation:inPop .6s cubic-bezier(.2,1.4,.4,1) both, inFloat 3.2s ease-in-out .7s infinite}
+.in-art .art:nth-child(2){animation-delay:.12s,.85s}
+.in-art .art:nth-child(3){animation-delay:.24s,1s}
+.in-ic svg{animation:inPop .6s cubic-bezier(.2,1.4,.4,1) both, inFloat 3.2s ease-in-out .7s infinite}
+@keyframes inPop{from{transform:translateY(18px) scale(.6) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes inFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(2deg)}}
 .in-art .art svg{width:100%;height:100%}
 .in-ic svg{width:84px;height:84px;color:var(--ink)}
 .in-box h2{margin:0;font:400 34px/1.1 var(--font-display);outline:none}
@@ -586,6 +623,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <div class="xl-bar" id="xlBar" role="status" hidden></div>
       <div class="severe" id="severe" hidden></div>
       <div class="rain-alert" id="rainAlert" role="status" hidden></div>
+      <div class="my-alerts" id="myAlerts" role="status" hidden></div>
       <div class="tag" id="tag">
         <svg class="tag-str" viewBox="0 0 30 52" aria-hidden="true"><path d="M15 5Q10.5 26 15 48M15 5Q19.5 26 15 48" fill="none" stroke="#7A6A4A" stroke-width="1.2"/><circle cx="15" cy="5" r="4" fill="#B88A3E"/><circle cx="13.8" cy="3.8" r="1.4" fill="#F4DFA6"/></svg>
         <div class="tag-body"><span class="big" id="bigTemp">17°</span><span class="lvl" id="tagLevel"></span><span id="nowIcon"></span></div>
@@ -631,6 +669,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     <section class="day card" id="dayCard" hidden>
       <h2 id="dayTitle">Gün nasıl geçecek</h2>
       <div class="hours" id="hours"></div>
+      <div class="hour-more" id="hourMore" role="region" aria-live="polite" hidden></div>
       <div class="facts" id="facts"></div>
       <p class="src" id="wxCredit">Hava verisi: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0)</p>
     </section>
@@ -730,6 +769,16 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         <div class="chips"><button type="button" class="chip" id="alertsBtn" aria-pressed="false">Telefonuma bildir</button></div>
         <p class="src" id="alertsHint"></p>
       </div>
+      <div class="row">
+        <span class="rl" data-i18n>Uyarılarım</span>
+        <div class="chips"><button type="button" class="chip" id="rulesBtn" data-i18n>Uyarı ekle ya da düzenle</button></div>
+        <p class="src" id="rulesHint" data-i18n>Kendi sınırını ve nedenini yaz: “Hissedilen 0°’nin altına düşerse haber ver, araba camı buzlanır.” İstediğin kadar ekleyebilirsin.</p>
+      </div>
+      <div class="row" id="notifRow" hidden>
+        <span class="rl" data-i18n>Diğer bildirimler</span>
+        <div class="chips" id="notifChips"></div>
+        <p class="src" id="notifHint"></p>
+      </div>
       <div class="row" id="eveRow" hidden>
         <span class="rl" data-i18n>Akşam hatırlatması</span>
         <div class="chips"><button type="button" class="chip" id="eveBtn" aria-pressed="false">Her akşam yarını bildir</button></div>
@@ -741,6 +790,18 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
           <button type="button" data-val="tr" lang="tr">Türkçe</button>
           <button type="button" data-val="en" lang="en">English</button>
           <button type="button" data-val="auto" id="langAuto" hidden></button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="rl" data-i18n>Ayın özeti</span>
+        <div class="chips"><button type="button" class="chip" id="monthBtn" data-i18n>Bu ayı gör</button></div>
+        <p class="src" data-i18n>Ay boyunca kaç gün şemsiye taşıdın, en soğuk sabah kaç dereceydi… Paylaşılabilir bir özet.</p>
+      </div>
+      <div class="row">
+        <span class="rl" id="lHap" data-i18n>Titreşim</span>
+        <div class="seg" role="group" aria-labelledby="lHap" data-key="haptics">
+          <button type="button" data-val="true" data-i18n>Açık</button>
+          <button type="button" data-val="false" data-i18n>Kapalı</button>
         </div>
       </div>
       <div class="row">
@@ -784,6 +845,20 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     <section class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="wardTitle">
       <div class="tc-head"><h2 id="wardTitle" tabindex="-1">Dolabım</h2><button type="button" class="x" data-close-sheet aria-label="Dolabı kapat" data-i18n-attr="aria-label">×</button></div>
       <div id="wardBody"></div>
+    </section>
+  </div>
+  <div class="sheet" id="rulesSheet" hidden>
+    <div class="sheet-bg" data-close-sheet></div>
+    <section class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+      <div class="tc-head"><h2 id="rulesTitle" tabindex="-1" data-i18n>Uyarılarım</h2><button type="button" class="x" data-close-sheet aria-label="Kapat" data-i18n-attr="aria-label">×</button></div>
+      <div id="rulesBody"></div>
+    </section>
+  </div>
+  <div class="sheet" id="monthSheet" hidden>
+    <div class="sheet-bg" data-close-sheet></div>
+    <section class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="monthTitle">
+      <div class="tc-head"><h2 id="monthTitle" tabindex="-1" data-i18n>Ayın özeti</h2><button type="button" class="x" data-close-sheet aria-label="Kapat" data-i18n-attr="aria-label">×</button></div>
+      <div id="monthBody"></div>
     </section>
   </div>
   <div class="sheet" id="shareSheet" hidden>
@@ -897,6 +972,16 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   // A person's own correction from their "Bugün nasıldı?" answers, in degrees: −1 for every "üşüdüm" (dressed warmer),
   // +1 for every "terledim"; at most 4 either way.
   function calOf(v){ v = Math.round(+v); return isFinite(v) ? Math.max(-4, Math.min(4, v)) : 0; }
+  // One of the person's own warnings as stored, checked; null when it isn't one.
+  var RULE_KINDS = {cold:{min:-40, max:30, unit:"°"}, hot:{min:0, max:55, unit:"°"}, frost:{min:-30, max:10, unit:"°"}, wind:{min:10, max:150, unit:" km/sa"},
+                    rain:{min:5, max:100, unit:"%"}, uv:{min:1, max:12, unit:""}, snow:{min:0, max:0, unit:""}};
+  function ruleOf(r){
+    if (!r || typeof r !== "object" || !RULE_KINDS[r.k] || typeof r.id !== "string") return null;
+    var K = RULE_KINDS[r.k], v = r.k === "snow" ? 0 : Math.round(+r.v);
+    if (!isFinite(v) || v < K.min || v > K.max) return null;
+    var why = typeof r.why === "string" ? r.why.trim().slice(0, 120) : "";
+    return why ? {id:r.id.slice(0, 40), k:r.k, v:v, why:why} : null;
+  }
   // A child's school hours on weekdays ({in:"08:00", out:"15:30"}), or null.
   function schoolOf(o){
     if (!o || typeof o !== "object") return null;
@@ -912,7 +997,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
            // needOff: "don't show" for a missing piece, until a date ({yagmurluk:"2026-11-10"}).
            hist:null, fbDay:"", needOff:{},
            // intro: the first-run pages were seen (or skipped); a device that already has data counts as seen.
-           intro:false,
+           intro:false, haptics:true,
+           // rules: the person's own warnings ({id, k:"cold"|"hot"|"frost"|"wind"|"rain"|"uv"|"snow", v, why}); ruleOff: dismissed today
+           rules:[], ruleOff:{},
+           // log: each day the app was looked at, what it was ({"2026-11-05": {L, lo, hi, g:[pieces], umb}}), for the month's summary
+           log:{},
            // People the app dresses: each with an age group, cold sensitivity and the pieces missing from their wardrobe.
            // The active person's sensitivity lives in S.feel while they are chosen.
            profiles:[{id:"me", name:"Ben", who:"me", feel:"normal", missing:[]}], prof:"me"};
@@ -922,6 +1011,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     try { var raw = localStorage.getItem(KEY) || localStorage.getItem("negiysem:v1"); d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
     if (!d || typeof d !== "object") return;
     S.intro = d.intro !== false;
+    if (d.haptics === false) S.haptics = false;
+    if (d.log && typeof d.log === "object") Object.keys(d.log).filter(function(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }).sort().slice(-70).forEach(function(k){
+      var e = d.log[k]; if (e && fin(e.L) && fin(e.lo) && fin(e.hi)) S.log[k] = {L:e.L, lo:e.lo, hi:e.hi, umb:!!e.umb, g:Array.isArray(e.g) ? e.g.filter(function(g){ return typeof g === "string"; }).slice(0, 4) : []}; });
+    if (Array.isArray(d.rules)) S.rules = d.rules.map(ruleOf).filter(Boolean).slice(0, 200);
+    if (d.ruleOff && typeof d.ruleOff === "object") Object.keys(d.ruleOff).forEach(function(k){ if (typeof d.ruleOff[k] === "string") S.ruleOff[String(k).slice(0, 40)] = d.ruleOff[k].slice(0, 10); });
     var num = function(v){ return typeof v === "number" && isFinite(v); };
     var str = function(v){ return typeof v === "string" && v.length > 0; };
     if (d.lang === "tr" || d.lang === "en" || (d.lang === "auto" && xlTarget())) { S.lang = d.lang; S.langSet = true; }
@@ -1009,7 +1103,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     try { localStorage.setItem(KEY, JSON.stringify({lang:S.langSet ? S.lang : undefined, places:S.places, sel:S.sel, hours:S.hours, feel:S.feel, act:S.act, manual:S.manual, mode:S.mode, live:S.live,
       routes:S.routes, trips:S.trips, dayMode:S.dayMode, dayWx:S.dayWx, choice:S.choice, fix:S.fix, rainOff:S.rainOff, pack:S.pack,
       profiles:S.profiles, prof:S.prof, gRoutes:S.gRoutes || undefined, outdated:S.outdated || undefined, hist:S.hist || undefined, fbDay:S.fbDay || undefined,
-      needOff:S.needOff && Object.keys(S.needOff).length ? S.needOff : undefined, intro:S.intro})); } catch (e) {}
+      needOff:S.needOff && Object.keys(S.needOff).length ? S.needOff : undefined, intro:S.intro, haptics:S.haptics === false ? false : undefined,
+      rules:S.rules.length ? S.rules : undefined, log:Object.keys(S.log).length ? S.log : undefined, ruleOff:Object.keys(S.ruleOff).length ? S.ruleOff : undefined})); } catch (e) {}
   }
   function save(){
     saveQuiet();
@@ -1019,7 +1114,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var places = S.places.map(function(p){ return {id:p.id, name:p.name, lat:p.lat, lon:p.lon}; });
       var pr = curProf();
       try { window.NeGiysemAndroid.saveState(JSON.stringify({lang:LANG, xl:XL.on ? XL.lang : "", feel:S.feel, act:S.act, hours:S.hours, place:pl, who:pr.who, missing:pr.missing,
-        cal:pr.cal || 0, school:pr.who === "child" && pr.school ? pr.school : null,
+        cal:pr.cal || 0, school:pr.who === "child" && pr.school ? pr.school : null, rules:S.rules, haptics:S.haptics !== false,
         routine:{dayMode:S.dayMode, places:places, routes:S.routes, trips:S.trips, choice:S.choice}})); } catch (e) {}
     }
   }
@@ -1603,7 +1698,36 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Haftanın her günü için ne giyileceğini görürsün. “Bavul hazırla”, takvimden seçtiğin tarihler için gideceğin yerin havasına göre liste çıkarır.": "See what to wear on every day of the week. “Pack a bag” makes a list for the dates you pick on the calendar, from the weather where you're going.",
     "Fırtına, sel, yoğun kar gibi tehlikeli havalarda bildirim alabilir, her akşam 21:00’de yarının kıyafetini söyleyen hatırlatmayı açabilirsin. İkisi de “Sana göre” bölümünde.": "Get notifications for dangerous weather such as storms, floods and heavy snow, and turn on the reminder that tells you tomorrow's outfit every evening at 21:00. Both are under “Made for you”.",
     "Tehlikeli hava uyarıları ekranın en üstünde çıkar. Bildirimler, akşam hatırlatması ve ana ekran widget’ı Android uygulamasında var.": "Dangerous-weather warnings appear at the top of the screen. Notifications, the evening reminder and the home-screen widget are in the Android app.",
-    "Widget’la bugünün kıyafetini uygulamayı açmadan görürsün. Arka planda düzenli güncellendiği için uyarılar ve akşam hatırlatması da daha iyi çalışır.": "With the widget you see today's outfit without opening the app. Because it's refreshed regularly in the background, warnings and the evening reminder work better too."
+    "Widget’la bugünün kıyafetini uygulamayı açmadan görürsün. Arka planda düzenli güncellendiği için uyarılar ve akşam hatırlatması da daha iyi çalışır.": "With the widget you see today's outfit without opening the app. Because it's refreshed regularly in the background, warnings and the evening reminder work better too.",
+    // hour by hour
+    "{0} · hissedilen {1}": "{0} · feels like {1}", "Şu ankine ek olarak: {0}": "On top of what you wear now: {0}", "Yanına al: ": "Take: ",
+    "Titreşim": "Haptics",
+    // my warnings
+    "Uyarılarım": "My warnings", "Uyarı ekle ya da düzenle": "Add or edit warnings",
+    "Kendi sınırını ve nedenini yaz: “Hissedilen 0°’nin altına düşerse haber ver, araba camı buzlanır.” İstediğin kadar ekleyebilirsin.": "Set your own limit and why it matters: “Tell me if it feels below 0°, the car windscreen will ice up.” Add as many as you like.",
+    "Hissedilen sıcaklık şunun altına düşerse": "If it feels colder than", "Hissedilen sıcaklık şunu geçerse": "If it feels warmer than",
+    "Hava sıcaklığı şunun altına düşerse (buz)": "If the air drops below (ice)", "Rüzgâr ya da hamle şunu geçerse": "If wind or gusts go over",
+    "Yağış ihtimali şunu geçerse": "If the chance of rain goes over", "UV indeksi şunu geçerse": "If the UV index goes over", "Kar yağacaksa": "If it's going to snow",
+    "{0} km/sa": "{0} km/h", "km/sa": "km/h", "kar": "snow", "şimdi": "now", "(sınırın {0})": "(your limit {0})", "Bu uyarıyı bugünlük kapat": "Dismiss this warning for today",
+    "ve {0} uyarı daha": "and {0} more", "Sil: {0}": "Delete: {0}", "Sil": "Delete", "Henüz uyarın yok.": "No warnings yet.", "Yeni uyarı": "New warning", "Sınır": "Limit",
+    "Bir sınır ve kendi nedenini yaz; hava o sınırı geçeceği zaman ekranın üstünde, Android uygulamasında bildirim olarak da haber verilir. İstediğin kadar uyarı ekleyebilirsin.": "Set a limit and your own reason; when the weather is going to cross it you're told at the top of the screen, and in the Android app with a notification too. Add as many warnings as you like.",
+    "Neden? (sana hatırlatılacak)": "Why? (you'll be reminded of it)", "Ör. araba camı buzlanır, erken çık": "e.g. the windscreen will ice up, leave early", "Uyarıyı ekle": "Add the warning",
+    "Sınır {0} ile {1} arasında olmalı.": "The limit must be between {0} and {1}.", "Nedenini yaz; uyarı geldiğinde sana bunu hatırlatır.": "Write the reason; the warning reminds you of it.", "Uyarı eklendi.": "Warning added.",
+    // the month
+    "Ayın özeti": "The month in weather", "Bu ayı gör": "See this month",
+    "Ay boyunca kaç gün şemsiye taşıdın, en soğuk sabah kaç dereceydi… Paylaşılabilir bir özet.": "How many days you needed an umbrella, how cold the coldest morning was… A summary you can share.",
+    "{0} gün baktın; en çok “{1}” günler.": "You checked on {0} days; mostly “{1}” days.", "{0} gün şemsiye ya da yağmurluk gerekti.": "{0} days needed an umbrella or rain jacket.",
+    "Bu ay hiç şemsiye gerekmedi.": "No umbrella needed all month.", "En soğuk an {0}: hissedilen {1}.": "Coldest on {0}: felt like {1}.", "En sıcak an {0}: hissedilen {1}.": "Warmest on {0}: felt like {1}.",
+    "En çok giyilen dış katman: {0} ({1} gün).": "Most worn outer layer: {0} ({1} days).", "şemsiye": "umbrella", "en soğuk an": "coldest moment",
+    "Bu ay için henüz kayıt yok; uygulamayı açtığın her gün bir satır eklenir.": "Nothing for this month yet; every day you open the app adds a line.",
+    "Uygulamayı açtığın günlerden; telefonunda kalır.": "From the days you opened the app; it stays on your phone.", "Özeti paylaş": "Share the summary",
+    "{0} hava özetim": "My weather in {0}", "Ne Giysem? ile": "With Ne Giysem?", "Özet panoya kopyalandı.": "Summary copied.", "Kopyalanamadı.": "Couldn't copy.",
+    "Diğer bildirimler": "Other notifications", "Çıkış öncesi": "Before you leave", "Saatlik değişiklik": "Hourly changes", "Canlı kart": "Live card",
+    "Günüm’deki her yolculuktan 40 dk önce ne giyeceğin.": "What to wear, 40 min before each trip in My day.",
+    "Önümüzdeki saatlerde yanına alman gereken yeni bir şey olursa (“15:00’ten itibaren şemsiye”).": "When the coming hours need something new to take (“umbrella from 15:00”).",
+    "Yağmur başlamak üzereyken ve yolculuğun sırasında kilit ekranında canlı kart (Android 16’da Now Bar ve durum çubuğu).": "A live card on the lock screen when rain is about to start and during your trip (on Android 16 in the Now Bar and the status bar).",
+    "Kendi yazdığın uyarılar bildirim olarak da gelir.": "Your own warnings come as notifications too.",
+    "Android’de bu uygulamanın bildirimleri kapalı. Bir düğmeye dokununca bildirim ayarları açılır.": "This app's notifications are off in Android. Tap a button to open the notification settings."
   };
 
   /* ================= weather vocabulary ================= */
@@ -2733,10 +2857,17 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       inp.window.forEach(function(h, i){ if (i > 0 && h.app < lowV - 0.4) { lowV = h.app; lowI = i; } });
       if (!(lowV < inp.now.app - 1)) lowI = -1;
       $("dayTitle").textContent = tx("Önümüzdeki {0} saat", S.hours);
+      // Each hour's own outfit, and what it adds to the one worn now (an umbrella from 15:00, a warmer layer tonight).
+      var hx = inp.window.map(function(h){ try { return hourOutfit(h, inp, P); } catch (e) { return null; } });
+      hourExtras(hx);
+      HOURS = {list:inp.window, plans:hx};
       $("hours").innerHTML = inp.window.map(function(h, i){
-        var pr = Math.round(h.p || 0);
-        return '<div class="h' + (i === 0 ? ' now' : '') + (i === lowI ? ' low' : '') + '"><span class="hh">' + (i === 0 ? esc(tx("Şimdi")) : hm(h.time)) + '</span>' + icon(kindOf(h.code, h.day)) + '<span class="ht">' + deg(h.app) + '</span><span class="hp">' + (pr >= 20 ? '<span class="sr">' + tx("yağış ihtimali") + ' </span>' + pct(pr) : "") + '</span></div>';
+        var pr = Math.round(h.p || 0), x = hx[i], ex = x ? x.need.slice(0, 2) : [];
+        return '<div class="h' + (i === 0 ? ' now' : '') + (i === lowI ? ' low' : '') + (i === HOUR_SEL ? ' sel' : '') + '" data-hr="' + i + '" role="button" tabindex="0" aria-expanded="' + (i === HOUR_SEL) + '" aria-controls="hourMore"><span class="hh">' + (i === 0 ? esc(tx("Şimdi")) : hm(h.time)) + '</span>' + icon(kindOf(h.code, h.day)) + '<span class="ht">' + deg(h.app) + '</span><span class="hp">' + (pr >= 20 ? '<span class="sr">' + tx("yağış ihtimali") + ' </span>' + pct(pr) : "") + '</span>' +
+          '<span class="hx" aria-hidden="true">' + ex.map(function(it){ return '<span class="art">' + art(it.g) + '</span>'; }).join("") + '</span>' +
+          (ex.length ? '<span class="sr">' + esc(tx("Yanına al: ")) + esc(ex.map(function(it){ return it.label; }).join(", ")) + '</span>' : '') + '</div>';
       }).join("");
+      renderHourMore();
       var n = inp.now, f = [];
       f.push(LANG === "en" ? (p.wi >= 0 ? '<b>' + WN_EN[p.wi] + ' wind</b> · ' : 'Wind ') + rnd(n.wind || 0) + ' km/h'
         : (p.wi >= 0 ? '<b>' + WN[p.wi] + '</b> · ' : 'Rüzgâr ') + rnd(n.wind || 0) + ' km/sa');
@@ -2758,6 +2889,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     try { renderRain(live, inp, day); } catch (e) { $("rainAlert").hidden = true; console.error(e); }
     try { renderWeek(live); } catch (e) { $("weekCard").hidden = true; console.error(e); }
     try { renderNeed(live); } catch (e) { $("needCard").hidden = true; console.error(e); }
+    try { renderMyAlerts(live); } catch (e) { $("myAlerts").hidden = true; console.error(e); }
+    try { if (live) logDay(); } catch (e) { console.error(e); }
     try { renderFb(live); } catch (e) { $("fbCard").hidden = true; console.error(e); }
     try { renderCal(); } catch (e) { console.error(e); }
     try { if (live && recordHist()) saveQuiet(); } catch (e) { console.error(e); }
@@ -3313,7 +3446,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     renderAlertsRow(); SEVERE_HTML = ""; if (S.live) { try { renderSevere(S.mode === "live"); } catch (e) {} }
   }
   // The app calls this once Android's permission question is answered (or the phone's settings changed).
-  window.ngAlertsChanged = function(){ renderAlertsRow(); renderEveRow(); SEVERE_HTML = ""; try { renderSevere(S.mode === "live"); } catch (e) {} };
+  window.ngAlertsChanged = function(){ renderAlertsRow(); renderEveRow(); renderNotifRow(); SEVERE_HTML = ""; try { renderSevere(S.mode === "live"); } catch (e) {} };
 
   /* ---- the evening note for tomorrow (Android app only): "Yarın sabah 4°, yağmurlu: montunu ve şemsiyeni hazırla." ---- */
   function eveState(){
@@ -3328,6 +3461,20 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     hint.textContent = tx(st === "on" ? "Her akşam 21:00’de yarının kıyafeti ve hazırlaman gerekenler bildirim olarak gelir. Kapatmak için dokun."
       : st === "blocked" ? "Android’de bu uygulamanın bildirimleri kapalı. Dokununca bildirim ayarları açılır."
       : "Her akşam 21:00’de yarının kıyafetini söyler: “Yarın sabah 4°, montunu ve şemsiyeni kapının önüne koy.”");
+  }
+  var NOTIFS = [["depart","Çıkış öncesi","Günüm’deki her yolculuktan 40 dk önce ne giyeceğin."],
+                ["hourly","Saatlik değişiklik","Önümüzdeki saatlerde yanına alman gereken yeni bir şey olursa (“15:00’ten itibaren şemsiye”)."],
+                ["live","Canlı kart","Yağmur başlamak üzereyken ve yolculuğun sırasında kilit ekranında canlı kart (Android 16’da Now Bar ve durum çubuğu)."],
+                ["rules","Uyarılarım","Kendi yazdığın uyarılar bildirim olarak da gelir."]];
+  function notifState(k){ var A = window.NeGiysemAndroid; try { return A && typeof A.notifState === "function" ? String(A.notifState(k)) : ""; } catch (e) { return ""; } }
+  function renderNotifRow(){
+    var row = $("notifRow"), any = notifState("depart");
+    row.hidden = !any; if (!any) return;
+    var blocked = false;
+    $("notifChips").innerHTML = NOTIFS.map(function(n){ var st = notifState(n[0]); if (st === "blocked") blocked = true;
+      return '<button type="button" class="chip" data-notif="' + n[0] + '" aria-pressed="' + (st === "on" || st === "blocked") + '">' + esc(tx(n[1])) + '</button>'; }).join("");
+    $("notifHint").textContent = blocked ? tx("Android’de bu uygulamanın bildirimleri kapalı. Bir düğmeye dokununca bildirim ayarları açılır.")
+      : NOTIFS.map(function(n){ return tx(n[1]) + ": " + tx(n[2]); }).join(" ");
   }
   function setEve(on){
     var A = window.NeGiysemAndroid;
@@ -4849,7 +4996,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       Object.keys(o.attrs).forEach(function(a){ var v = o.attrs[a]; if (v != null) { v = LANG === "tr" ? v : tx(v); if (el.getAttribute(a) !== v) el.setAttribute(a, v); } });
     });
     var rb = $("resetBtn"); if (rb.dataset.armed !== "1") rb.textContent = tx("Tüm verilerimi sil");
-    renderAlertsRow(); renderEveRow();
+    renderAlertsRow(); renderEveRow(); renderNotifRow();
     var la = $("langAuto"), tl = xlTarget();
     la.hidden = !tl; if (tl) { la.lang = tl; la.textContent = xlName(tl) + " · auto"; }
     renderXlBar();
@@ -4870,6 +5017,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var b = e.target.closest && e.target.closest(".seg button"); if (!b) return;
     var key = b.parentElement.dataset.key, v = b.dataset.val;
     if (key === "lang" && v) { setLang(v); return; }
+    if (key === "haptics") { S.haptics = v === "true"; save(); render(); if (S.haptics) buzz("confirm"); return; }
     if (["hours","feel","act","sky","wind"].indexOf(key) < 0 || v == null) return; // other button groups handle themselves
     if (key === "hours") S.hours = +v; else if (key === "sky" || key === "wind") S.manual[key] = v; else S[key] = v;
     save(); render();
@@ -4894,6 +5042,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 
   $("alertsBtn").addEventListener("click", function(){ setAlerts(alertsState() !== "on"); });
   $("eveBtn").addEventListener("click", function(){ setEve(eveState() !== "on"); });
+  $("notifChips").addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-notif]"); if (!b) return;
+    var k = b.dataset.notif, A = window.NeGiysemAndroid, st = notifState(k);
+    try { A.setNotif(k, st === "off"); } catch (x) {}
+    renderNotifRow();
+  });
   $("xlBar").addEventListener("click", function(e){
     var b = e.target.closest && e.target.closest("[data-xl]"); if (!b) return;
     if (b.dataset.xl === "go") xlPrepare(); else setLang("en");
@@ -4977,7 +5131,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     S.manual = {temp:17, sky:"partly", wind:"breezy"}; S.mode = "manual"; S.live = null;
     S.routes = []; S.trips = []; S.dayMode = true; S.dayWx = null; S.choice = {date:"", picks:{}}; S.fix = null;
     S.rainOff = ""; S.pack = {place:"", days:3, start:0, ticks:{}}; S.gRoutes = false; GR.byKey = {};
-    S.hist = null; S.fbDay = ""; S.needOff = {}; S.intro = true;
+    S.hist = null; S.fbDay = ""; S.needOff = {}; S.intro = true; S.rules = []; S.ruleOff = {}; S.haptics = true; S.log = {};
     S.lang = deviceLang(); S.langSet = false; // back to the default language
     try { localStorage.removeItem(KEY + ":xl"); } catch (e) {}
     XL.cache = {}; xlSetup();
@@ -5078,7 +5232,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (!(e.target.closest && e.target.closest("[data-share-again]")) || !SHARE.file) return;
     navigator.share({files:[SHARE.file], title:"Ne Giysem?", text:shareCaption()}).catch(function(){});
   });
-  ["packSheet", "shareSheet", "personSheet", "wardSheet"].forEach(function(id){
+  ["packSheet", "shareSheet", "personSheet", "wardSheet", "rulesSheet", "monthSheet"].forEach(function(id){
     var sh = $(id);
     sh.addEventListener("click", function(e){ if (e.target.closest && e.target.closest("[data-close-sheet]")) closeSheet(); });
     sh.addEventListener("keydown", function(e){
@@ -5237,6 +5391,180 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   $("iosHintClose").addEventListener("click", function(){ $("iosHint").hidden = true; try { localStorage.setItem(KEY + ":ioshint", "1"); } catch (e) {} });
 
+  /* ---- the month's summary: from what the app showed on each day it was opened ---- */
+  var MONTH = {ym:""};
+  function logDay(){
+    var wx = S.live && S.live.wx; if (!wx) return;
+    var ds = wxToday(wx), inp = dayInput(wx, ds, false); if (!inp) return;
+    var p = plan(inp, prefs()), apps = inp.window.map(function(h){ return h.app; });
+    var e = {L:p.L, lo:Math.round(Math.min.apply(null, apps) * 10) / 10, hi:Math.round(Math.max.apply(null, apps) * 10) / 10, umb:rainGear(p) || !!p.wet, g:keyItems(p).map(function(it){ return it.g; })};
+    var old = S.log[ds];
+    if (old && JSON.stringify(old) === JSON.stringify(e)) return;
+    S.log[ds] = e;
+    var ks = Object.keys(S.log).sort(); while (ks.length > 70) delete S.log[ks.shift()];
+    saveQuiet();
+  }
+  function monthStats(ym){
+    var days = Object.keys(S.log).filter(function(k){ return k.slice(0, 7) === ym; }).sort();
+    if (!days.length) return null;
+    var umb = 0, cold = null, warm = null, outer = {}, lv = {};
+    days.forEach(function(k){
+      var e = S.log[k];
+      if (e.umb) umb++;
+      if (!cold || e.lo < S.log[cold].lo) cold = k;
+      if (!warm || e.hi > S.log[warm].hi) warm = k;
+      e.g.forEach(function(g){ if (OUTER.indexOf(g) >= 0 && g !== "yagmurluk") outer[g] = (outer[g] || 0) + 1; });
+      lv[e.L] = (lv[e.L] || 0) + 1;
+    });
+    var top = Object.keys(outer).sort(function(a, b){ return outer[b] - outer[a]; })[0];
+    var band = Object.keys(lv).sort(function(a, b){ return lv[b] - lv[a]; })[0];
+    return {n:days.length, umb:umb, cold:cold, warm:warm, outer:top || "", outerN:top ? outer[top] : 0, band:+band};
+  }
+  function monthName(ym){ var a = ym.split("-"); return new Date(+a[0], +a[1] - 1, 1).toLocaleDateString(loc(), {month:"long", year:"numeric"}); }
+  function dayName(ds){ return calDate(ds).toLocaleDateString(loc(), {day:"numeric", month:"long"}); }
+  function monthLines(ym, st){
+    var l = [tx("{0} gün baktın; en çok “{1}” günler.", st.n, lvName(st.band))];
+    l.push(st.umb ? tx("{0} gün şemsiye ya da yağmurluk gerekti.", st.umb) : tx("Bu ay hiç şemsiye gerekmedi."));
+    l.push(tx("En soğuk an {0}: hissedilen {1}.", dayName(st.cold), deg(S.log[st.cold].lo)));
+    l.push(tx("En sıcak an {0}: hissedilen {1}.", dayName(st.warm), deg(S.log[st.warm].hi)));
+    if (st.outer) l.push(tx("En çok giyilen dış katman: {0} ({1} gün).", low(gl(st.outer)), st.outerN));
+    return l;
+  }
+  function renderMonth(){
+    var ym = MONTH.ym, st = monthStats(ym), months = Object.keys(S.log).map(function(k){ return k.slice(0, 7); }).filter(function(v, i, a){ return a.indexOf(v) === i; }).sort().reverse();
+    var h = months.length > 1 ? '<div class="pk-seg">' + months.slice(0, 3).map(function(m){ return '<button type="button" data-month="' + m + '" aria-pressed="' + (m === ym) + '">' + esc(monthName(m)) + '</button>'; }).join("") + '</div>' : '';
+    if (!st) { $("monthBody").innerHTML = h + '<p class="empty">' + esc(tx("Bu ay için henüz kayıt yok; uygulamayı açtığın her gün bir satır eklenir.")) + '</p>'; return; }
+    var big = st.umb ? {g:"semsiye", t:tx("{0} gün", st.umb), s:tx("şemsiye")} : {g:st.outer || "tshirt", t:deg(S.log[st.cold].lo), s:tx("en soğuk an")};
+    h += '<div class="mo-card" style="--wl:' + LV[st.band].color + '"><span class="art" aria-hidden="true">' + art(big.g) + '</span><b>' + esc(big.t) + '</b><small>' + esc(big.s) + '</small><p class="mo-m">' + esc(monthName(ym)) + '</p></div>';
+    h += '<ul class="mo-list">' + monthLines(ym, st).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>';
+    h += '<p class="src">' + esc(tx("Uygulamayı açtığın günlerden; telefonunda kalır.")) + '</p>';
+    h += '<div class="ed-foot"><button type="button" class="btn" data-month-share>' + esc(tx("Özeti paylaş")) + '</button><button type="button" class="btn soft" data-close-sheet>' + esc(tx("Kapat")) + '</button></div><p class="src" id="moMsg" role="status"></p>';
+    $("monthBody").innerHTML = h;
+  }
+  function openMonth(back, ym){ MONTH.ym = ym || isoDate(new Date()).slice(0, 7); renderMonth(); openSheet("monthSheet", back); }
+  $("monthBtn").addEventListener("click", function(e){ openMonth(e.currentTarget); });
+  $("monthBody").addEventListener("click", async function(e){
+    var b = e.target.closest && e.target.closest("[data-month],[data-month-share]"); if (!b) return;
+    if (b.dataset.month) { MONTH.ym = b.dataset.month; renderMonth(); return; }
+    var st = monthStats(MONTH.ym); if (!st) return;
+    var text = [tx("{0} hava özetim", monthName(MONTH.ym))].concat(monthLines(MONTH.ym, st).map(function(x){ return "• " + x; }), ["", tx("Ne Giysem? ile")]).join("\n");
+    var r = await shareText(tx("Ayın özeti"), text);
+    $("moMsg").textContent = r === "copied" ? tx("Özet panoya kopyalandı.") : r === "fail" ? tx("Kopyalanamadı.") : "";
+  });
+
+  /* ---- the person's own warnings: a limit, and why it matters to them (as many as they like) ---- */
+  var RULE_LABEL = {cold:"Hissedilen sıcaklık şunun altına düşerse", hot:"Hissedilen sıcaklık şunu geçerse", frost:"Hava sıcaklığı şunun altına düşerse (buz)",
+                    wind:"Rüzgâr ya da hamle şunu geçerse", rain:"Yağış ihtimali şunu geçerse", uv:"UV indeksi şunu geçerse", snow:"Kar yağacaksa"};
+  // The first hour in the next 24 that crosses the rule's limit: {ms, at, val}; null when none does.
+  function ruleHit(r, wx, nowMs){
+    var H = wx && wx.hourly; if (!H || !Array.isArray(H.time)) return null;
+    var i0 = wxIdx(wx, nowMs); if (i0 < 0) i0 = 0;
+    for (var j = i0; j < Math.min(H.time.length, i0 + 24); j++) {
+      var ap = ix(H.apparent_temperature, j), t = ix(H.temperature_2m, j), app = fin(ap) ? ap : t, val = null;
+      if (r.k === "cold" && fin(app) && app <= r.v) val = app;
+      else if (r.k === "hot" && fin(app) && app >= r.v) val = app;
+      else if (r.k === "frost" && fin(t) && t <= r.v) val = t;
+      else if (r.k === "wind") { var w = Math.max(ix(H.wind_speed_10m, j) || 0, ix(H.wind_gusts_10m, j) || 0); if (w >= r.v) val = w; }
+      else if (r.k === "rain") { var p = ix(H.precipitation_probability, j) || 0; if (p >= r.v) val = p; }
+      else if (r.k === "snow" && isSnow(ix(H.weather_code, j))) val = 0;
+      else if (r.k === "uv") {
+        var hr = +String(H.time[j]).slice(11,13), D = wx.daily || {}, di = Array.isArray(D.time) ? D.time.indexOf(String(H.time[j]).slice(0,10)) : -1, uv = di >= 0 ? ix(D.uv_index_max, di) : null;
+        if (hr >= 11 && hr <= 15 && fin(uv) && uv >= r.v) val = uv;
+      }
+      if (val != null) return {ms:wxMs(wx, H.time[j]), at:hm(H.time[j]), day:dayDiff(wxToday(wx), String(H.time[j]).slice(0,10)), val:val};
+    }
+    return null;
+  }
+  function ruleVal(r, v){ return r.k === "wind" ? tx("{0} km/sa", rnd(v)) : r.k === "rain" ? pct(rnd(v)) : r.k === "uv" ? "UV " + num(v, 1) : r.k === "snow" ? tx("kar") : deg(v); }
+  function ruleLimit(r){ return r.k === "snow" ? "" : r.k === "wind" ? tx("{0} km/sa", r.v) : r.k === "rain" ? pct(r.v) : r.k === "uv" ? String(r.v) : deg(r.v); }
+  function renderMyAlerts(live){
+    var el = $("myAlerts"), wx = live && S.live && S.live.wx, today = isoDate(new Date()), now = Date.now();
+    var hits = wx ? S.rules.filter(function(r){ return S.ruleOff[r.id] !== today; }).map(function(r){ var h = ruleHit(r, wx, now); return h ? {r:r, h:h} : null; }).filter(Boolean) : [];
+    el.hidden = !hits.length; if (!hits.length) return;
+    el.innerHTML = hits.slice(0, 4).map(function(x){
+      var when = x.h.ms <= now + 3600e3 ? tx("şimdi") : (x.h.day === 1 ? lowDay(tx("Yarın")) + " " : "") + x.h.at;
+      return '<div class="ma"><span class="ma-ic" aria-hidden="true">⚑</span><p><b>' + esc(cap(when)) + ' · ' + esc(ruleVal(x.r, x.h.val)) + '</b>' +
+        (x.r.k === "snow" ? '' : ' <span class="ma-lim">' + esc(tx("(sınırın {0})", ruleLimit(x.r))) + '</span>') + '<br>' + esc(x.r.why) + '</p>' +
+        '<button type="button" class="x" data-rule-off="' + esc(x.r.id) + '" aria-label="' + esc(tx("Bu uyarıyı bugünlük kapat")) + '">×</button></div>';
+    }).join("") + (hits.length > 4 ? '<p class="src">' + esc(tx("ve {0} uyarı daha", hits.length - 4)) + '</p>' : '');
+  }
+  var RULE_ED = {k:"cold"};
+  function renderRules(){
+    var K = RULE_KINDS[RULE_ED.k], h = "";
+    h += '<p class="src">' + esc(tx("Bir sınır ve kendi nedenini yaz; hava o sınırı geçeceği zaman ekranın üstünde, Android uygulamasında bildirim olarak da haber verilir. İstediğin kadar uyarı ekleyebilirsin.")) + '</p>';
+    h += S.rules.length ? '<ul class="rl-list">' + S.rules.map(function(r){
+      return '<li><span><b>' + esc(tx(RULE_LABEL[r.k])) + (r.k === "snow" ? '' : ' ' + esc(ruleLimit(r))) + '</b><small>' + esc(r.why) + '</small></span>' +
+        '<button type="button" class="chip" data-rule-del="' + esc(r.id) + '" aria-label="' + esc(tx("Sil: {0}", r.why)) + '">' + esc(tx("Sil")) + '</button></li>';
+    }).join("") + '</ul>' : '<p class="empty">' + esc(tx("Henüz uyarın yok.")) + '</p>';
+    h += '<h3>' + esc(tx("Yeni uyarı")) + '</h3><div class="pf-form">' +
+      '<label class="rl" for="ruK">' + esc(tx("Ne zaman?")) + '</label><select id="ruK">' + Object.keys(RULE_KINDS).map(function(k){ return '<option value="' + k + '"' + (k === RULE_ED.k ? ' selected' : '') + '>' + esc(tx(RULE_LABEL[k])) + '</option>'; }).join("") + '</select>' +
+      (RULE_ED.k === "snow" ? '' : '<label class="rl" for="ruV">' + esc(tx("Sınır")) + (K.unit ? ' (' + esc(tx(K.unit.trim())) + ')' : '') + '</label><input id="ruV" type="number" inputmode="numeric" min="' + K.min + '" max="' + K.max + '" step="1" value="' + (RULE_ED.k === "cold" ? 0 : RULE_ED.k === "hot" ? 32 : RULE_ED.k === "frost" ? 0 : RULE_ED.k === "wind" ? 40 : RULE_ED.k === "rain" ? 60 : 6) + '">') +
+      '<label class="rl" for="ruW">' + esc(tx("Neden? (sana hatırlatılacak)")) + '</label><input id="ruW" maxlength="120" autocomplete="off" placeholder="' + esc(tx("Ör. araba camı buzlanır, erken çık")) + '">' +
+      '<p class="warn" id="ruErr" role="alert" hidden></p></div>' +
+      '<div class="ed-foot"><button type="button" class="btn" data-rule-add>' + esc(tx("Uyarıyı ekle")) + '</button><button type="button" class="btn soft" data-close-sheet>' + esc(tx("Kapat")) + '</button></div>';
+    $("rulesBody").innerHTML = h;
+  }
+  $("rulesBtn").addEventListener("click", function(e){ renderRules(); openSheet("rulesSheet", e.currentTarget); });
+  $("rulesBody").addEventListener("change", function(e){ if (e.target.id === "ruK") { var w = $("ruW").value; RULE_ED.k = e.target.value; renderRules(); $("ruW").value = w; $("ruK").focus(); } });
+  $("rulesBody").addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-rule-add],[data-rule-del]"); if (!b) return;
+    if (b.dataset.ruleDel) { S.rules = S.rules.filter(function(r){ return r.id !== b.dataset.ruleDel; }); save(); render(); renderRules(); return; }
+    var K = RULE_KINDS[RULE_ED.k], v = RULE_ED.k === "snow" ? 0 : +$("ruV").value, why = $("ruW").value.trim(), err = $("ruErr");
+    if (RULE_ED.k !== "snow" && (!isFinite(v) || $("ruV").value === "" || v < K.min || v > K.max)) { err.textContent = tx("Sınır {0} ile {1} arasında olmalı.", K.min, K.max); err.hidden = false; $("ruV").focus(); return; }
+    if (!why) { err.textContent = tx("Nedenini yaz; uyarı geldiğinde sana bunu hatırlatır."); err.hidden = false; $("ruW").focus(); return; }
+    S.rules.push(ruleOf({id:"r" + uid(), k:RULE_ED.k, v:v, why:why}));
+    save(); render(); renderRules(); buzz("confirm");
+    setStatus(tx("Uyarı eklendi."));
+  });
+  $("myAlerts").addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-rule-off]"); if (!b) return;
+    S.ruleOff[b.dataset.ruleOff] = isoDate(new Date()); save(); render();
+  });
+
+  /* ---- the hourly strip: each hour's own outfit ---- */
+  var HOURS = {list:[], plans:[]}, HOUR_SEL = -1;
+  var HOUR_EXTRA = ["semsiye","yagmurluk","gozluk","krem","sapka","bere","eldiven","atki"].concat(OUTER, MID);
+  function hourOutfit(h, inp, P){
+    var hr = +String(h.time).slice(11,13);
+    var one = {kind:"live", now:{t:fin(h.t) ? h.t : h.app, app:h.app, code:h.code, isDay:h.day, wind:h.wind || 0, gust:h.gust || 0, dir:null, rh:null, precip:0},
+      window:[h], uvMax:inp.uvMax, uvDay:h.day === 1 && hr >= 10 && hr <= 16, sunset:null};
+    return {p:plan(one, P), extra:[], need:[]};
+  }
+  // need: what that hour itself calls for having with you (rain gear, sun things, a warmer layer than now);
+  // extra: of those, what the current hour's outfit doesn't have yet.
+  function hourExtras(hx){
+    var base = hx[0] && hx[0].p; if (!base) return;
+    var have = base.wear.concat(base.take).map(function(it){ return it.g; });
+    hx.forEach(function(x){
+      if (!x) return;
+      var p = x.p, colder = p.L < base.L;
+      x.need = p.take.filter(function(it){ return HOUR_EXTRA.indexOf(it.g) >= 0; })
+        .concat(p.wear.filter(function(it){ return it.g === "yagmurluk" || (colder && (OUTER.indexOf(it.g) >= 0 || MID.indexOf(it.g) >= 0)); }));
+      x.extra = p.wear.concat(p.take).filter(function(it){ return HOUR_EXTRA.indexOf(it.g) >= 0 && have.indexOf(it.g) < 0; });
+    });
+  }
+  function renderHourMore(){
+    var el = $("hourMore"), i = HOUR_SEL, h = HOURS.list[i], x = HOURS.plans[i];
+    if (!h || !x) { el.hidden = true; HOUR_SEL = -1; return; }
+    var p = x.p, when = i === 0 ? tx("Şimdi") : hm(h.time);
+    el.hidden = false;
+    el.innerHTML = '<p><b>' + esc(tx("{0} · hissedilen {1}", when, deg(h.app))) + '</b> ' + esc(p.head.replace(/[{}]/g, "")) + '</p>' +
+      '<p class="tsum">' + esc(tx("Giy: ")) + esc(p.wear.map(function(w){ return w.label; }).join(", ")) + (p.take.length ? esc(tx(" · Yanına al: ")) + esc(p.take.map(function(t){ return t.label; }).join(", ")) : '') + '</p>' +
+      (i > 0 && x.extra.length ? '<p class="tsum"><b>' + esc(tx("Şu ankine ek olarak: {0}", x.extra.map(function(it){ return low(it.label); }).join(", "))) + '</b></p>' : '');
+  }
+  // A light tick under the finger (the app: Android's own haptics; a browser: a very short vibration). Off in settings.
+  function buzz(kind){
+    if (S.haptics === false) return;
+    var A = window.NeGiysemAndroid;
+    try { if (A && typeof A.haptic === "function") { A.haptic(kind || "tick"); return; } } catch (e) {}
+    try { if (navigator.vibrate && matchMedia("(pointer:coarse)").matches) navigator.vibrate(kind === "confirm" ? 14 : 6); } catch (e) {}
+  }
+  $("hours").addEventListener("click", function(e){ var n = e.target.closest && e.target.closest("[data-hr]"); if (n) pickHour(+n.dataset.hr); });
+  $("hours").addEventListener("keydown", function(e){ var n = e.target.closest && e.target.closest("[data-hr]"); if (n && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pickHour(+n.dataset.hr); } });
+  // Every choice button answers with a tick.
+  document.addEventListener("click", function(e){ if (e.target.closest && e.target.closest(".seg button,.chip,.btn,.stk,.mini,.wd,.rchip,.pk-seg button")) buzz("tick"); }, true);
+  function pickHour(i){ HOUR_SEL = HOUR_SEL === i ? -1 : i; $("hours").querySelectorAll(".h").forEach(function(n){ var on = +n.dataset.hr === HOUR_SEL; n.classList.toggle("sel", on); n.setAttribute("aria-expanded", on ? "true" : "false"); }); renderHourMore(); buzz("tick"); }
+
   /* ================= first-run pages: what each part of the app is for (skippable) ================= */
   var INTRO = {i:0, back:null};
   function widgetState(){
@@ -5347,10 +5675,30 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   if (XL.on && IN_APP) save(); // the widget and the evening note follow the translated language
   try { handForecast(); } catch (e) {} // the weather kept from last time, for a widget that has none yet
   // A stored state this version can't draw must not leave a broken screen: drop the stored weather and draw again.
-  makeGrain();
+  // Light mode: a phone with little memory or few cores (the Android app also says when Android counts it low on memory).
+  try {
+    var A0 = window.NeGiysemAndroid, ramLow = A0 && typeof A0.lowRam === "function" && A0.lowRam();
+    if (ramLow || (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4 && navigator.deviceMemory && navigator.deviceMemory <= 4)) document.documentElement.classList.add("lite");
+  } catch (e) {}
+  if (!document.documentElement.classList.contains("lite")) makeGrain();
   try { render(); } catch (e) { S.live = null; S.dayWx = null; S.mode = "manual"; try { render(); } catch (e2) {} }
+  // Shortcuts (the app icon's long press, the quick-settings tile, the assistant): ?go=tomorrow | pack | hours | month.
+  function go(where){
+    try {
+      if (where === "pack") { var pb = $("packBtn"); PACK.msg = ""; PACK.out = ""; PACK.cal = false; openSheet("packSheet", pb); renderPack(); }
+      else if (where === "month") openMonth($("monthBtn"));
+      else if (where === "tomorrow") {
+        var t = addDays(isoDate(new Date()), 1); WEEK_OPEN[t] = true; render();
+        var row = document.querySelector('[data-wk="' + t + '"]'); if (row) { row.scrollIntoView({behavior:smooth(), block:"center"}); row.focus({preventScroll:true}); }
+      }
+      else if (where === "hours") { var dc = $("dayCard"); if (!dc.hidden) dc.scrollIntoView({behavior:smooth(), block:"start"}); }
+    } catch (e) { console.error(e); }
+  }
+  window.ngGo = function(w){ go(String(w || "")); };
+  var GO0 = (function(){ try { return new URLSearchParams(location.search).get("go") || ""; } catch (e) { return ""; } })();
   // The first time on this device: the pages that show what each part is for.
   if (!S.intro && !IS_ART && CONFIG.intro !== false) { try { openIntro(); } catch (e) { console.error(e); } }
+  else if (GO0) setTimeout(function(){ go(GO0); }, 50);
   if (IS_ART) {
     (async function(){
       try { mcp = await window.claude.use("mcp"); } catch (e) { mcp = null; }

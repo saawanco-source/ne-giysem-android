@@ -292,6 +292,36 @@ object Day {
         return School(inp, off, inAt, outAt, inp.window.first().app, inp.window.last().app)
     }
 
+    /** One hour of the forecast as the engine's input (page: hourOutfit), for the hourly "take along" note. */
+    fun hourInput(wx: JSONObject, ms: Long): Outfit.Input? {
+        val i = idxAt(wx, ms); if (i < 0) return null
+        val inp = span(wx, i, i) ?: return null
+        val hr = inp.window.firstOrNull()?.time?.substring(11, 13)?.toIntOrNull() ?: 12
+        return inp.copy(trip = false, uvDay = hr in 10..16)
+    }
+
+    /** A routine trip on its chosen (or first) route: when it starts and ends, and its steps, for the live card. */
+    data class Leg(val trip: Trip, val route: Route, val start: Long, val end: Long, val from: String, val to: String)
+
+    /** The routine's trips today and tomorrow that haven't ended yet, earliest first. */
+    fun legs(r: Routine, now: Long = System.currentTimeMillis()): List<Leg> {
+        val todayDow = Calendar.getInstance().apply { timeInMillis = now }.get(Calendar.DAY_OF_WEEK) - 1
+        fun place(id: String) = r.places.firstOrNull { it.id == id }
+        val out = ArrayList<Leg>()
+        for (offset in 0..1) {
+            val dow = (todayDow + offset) % 7
+            for (t in r.trips.filter { dow in it.days && it.from != it.to && place(it.from) != null && place(it.to) != null }) {
+                val start = atTime(t.time, offset)
+                val routes = r.routes.filter { it.from == t.from && it.to == t.to && it.steps.isNotEmpty() }
+                val picked = if (r.choiceDate == dateKey(start)) r.picks[t.id] else null
+                val route = routes.firstOrNull { it.id == picked } ?: routes.firstOrNull() ?: continue
+                val end = start + route.steps.sumOf { maxOf(0, it.min) } * 60_000L
+                if (end > now) out.add(Leg(t, route, start, end, place(t.from)!!.name, place(t.to)!!.name))
+            }
+        }
+        return out.sortedBy { it.start }
+    }
+
     /** Tomorrow's daytime (08–20) at the place (page: dayInput), for the evening note. */
     fun tomorrow(wx: JSONObject): Outfit.Input? {
         val times = wx.optJSONObject("hourly")?.optJSONArray("time") ?: return null

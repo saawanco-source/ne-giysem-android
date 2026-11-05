@@ -56,6 +56,16 @@ class Store(context: Context) {
 
     fun setAlerts(on: Boolean) { prefs.edit().putBoolean("alerts", on).apply() }
 
+    /** The person's own warnings from the app ([{id, k, v, why}]), as JSON. */
+    val rules: String get() = prefs.getString("rules", "[]") ?: "[]"
+    /** Other notifications the person turned on in the app: "depart" (before the first trip), "hourly" (take-along
+     *  changes), "live" (rain and trip cards on the lock screen), "rules" (their own warnings). */
+    fun notifOn(kind: String): Boolean = prefs.getBoolean("notif:$kind", false)
+    fun setNotif(kind: String, on: Boolean) { prefs.edit().putBoolean("notif:$kind", on).apply() }
+    /** What was already announced, so each note comes once: key → value (e.g. "hourly" → "2026-11-05|semsiye,bere"). */
+    fun sent(key: String): String = prefs.getString("sent:$key", "") ?: ""
+    fun markSent(key: String, v: String) { prefs.edit().putString("sent:$key", v).apply() }
+
     /** The evening note about tomorrow (21:00), turned on in the app. */
     val eveningOn: Boolean get() = prefs.getBoolean("evening", false)
     fun setEvening(on: Boolean) { prefs.edit().putBoolean("evening", on).apply() }
@@ -84,6 +94,15 @@ class Store(context: Context) {
         val miss = o.optJSONArray("missing")?.let { a -> (0 until a.length()).map { a.optString(it) }.filter { it.matches(Regex("[a-z]{2,12}")) } }
             ?.sorted()?.joinToString(",") ?: ""
         val cal = o.optInt("cal", 0).coerceIn(-4, 4)
+        o.optJSONArray("rules")?.let { a ->
+            val clean = org.json.JSONArray()
+            for (i in 0 until minOf(a.length(), 200)) a.optJSONObject(i)?.let { r ->
+                val k = r.optString("k"); val why = r.optString("why").take(120)
+                if (k in setOf("cold", "hot", "frost", "wind", "rain", "uv", "snow") && why.isNotBlank())
+                    clean.put(JSONObject().put("id", r.optString("id").take(40)).put("k", k).put("v", r.optDouble("v", 0.0)).put("why", why))
+            }
+            e.putString("rules", clean.toString())
+        }
         val xl = o.optString("xl", "").takeIf { Regex("[a-z]{2,3}").matches(it) } ?: ""
         if (xl != this.xl) changed = true
         e.putString("xl", xl)

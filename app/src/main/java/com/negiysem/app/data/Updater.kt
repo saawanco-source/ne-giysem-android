@@ -129,6 +129,7 @@ object Updater {
         WatchSync.send(context, shown)
         cached.optJSONObject("main")?.let { main ->
             runCatching { AlertNotifier.check(context, main, Outfit.ownName(store.placeName ?: cached.optString("name", "Konumun"), store.lang)) }
+            runCatching { com.negiysem.app.work.Extras.check(context, main) }
         }
         return failure == null
     }

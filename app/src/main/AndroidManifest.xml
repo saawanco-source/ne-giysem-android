@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- Severe-weather warnings, only once the person turns them on in the app (Android 13+ asks them as well). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Android 16: the rain and trip cards may show as Live Updates (lock screen, status-bar chip, Samsung's Now Bar). -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
 
     <application
         android:name=".NeGiysemApp"
@@ -29,7 +31,21 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>
+
+        <!-- Quick settings tile: today's outfit in one line; a tap opens the app. -->
+        <service
+            android:name=".widget.OutfitTile"
+            android:exported="true"
+            android:icon="@drawable/ic_stat_shirt"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="false" />
+        </service>
 
         <!-- AdMob app ID (Google's sample ID in development builds; see app/build.gradle.kts). -->
         <meta-data
@@ -57,6 +73,9 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/negiysem_widget_info" />
+            <meta-data
+                android:name="com.samsung.android.appwidget.provider"
+                android:resource="@xml/samsung_widget_info" />
         </receiver>
 
         <!-- The watch app asks for the outfit (wear: PhoneListener.ask); only paired devices with the same signing key reach it. -->

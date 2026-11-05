@@ -3,4 +3,13 @@
     <string name="app_name">Ne Giysem?</string>
     <string name="widget_name">Ne Giysem?</string>
     <string name="widget_desc">Bugünün kıyafeti bir bakışta</string>
+    <string name="sc_tomorrow_s">Yarın</string>
+    <string name="sc_tomorrow">Yarın ne giysem?</string>
+    <string name="sc_hours_s">Saat saat</string>
+    <string name="sc_hours">Bugün saat saat</string>
+    <string name="sc_pack_s">Bavul</string>
+    <string name="sc_pack">Bavul hazırla</string>
+    <string name="sc_month_s">Ayım</string>
+    <string name="sc_month">Ayın özeti</string>
+    <string name="tile_label">Bugünün kıyafeti</string>
 </resources>

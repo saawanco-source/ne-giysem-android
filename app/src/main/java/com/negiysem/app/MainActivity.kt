@@ -177,7 +177,9 @@ class MainActivity : Activity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             back = WebBack(this) { if (!webGone && web.canGoBack()) web.goBack() else exitWithWidgetOffer() }
         }
-        if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) web.loadUrl(home)
+        // A shortcut, the quick-settings tile or a note can ask for one part of the page (?go=tomorrow | pack | hours | month).
+        val go = intent?.getStringExtra("go")?.takeIf { it in GO_PLACES }
+        if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) web.loadUrl(if (go != null) "$home?go=$go" else home)
         updateBack()
 
         startAds()
@@ -257,6 +259,49 @@ class MainActivity : Activity() {
         }
         store.setAlerts(true)
         Scheduler.schedule(ctx)
+        val needsPermission = Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        when {
+            needsPermission && (!store.alertsAsked || shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) -> {
+                store.markAlertsAsked()
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_NOTIFY)
+            }
+            !AlertNotifier.allowed(ctx) -> runCatching {
+                startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+            }
+            else -> alertsChanged()
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val go = intent.getStringExtra("go")?.takeIf { it in GO_PLACES } ?: return
+        if (!webGone) web.evaluateJavascript("window.ngGo && window.ngGo(${JSONObject.quote(go)})", null)
+    }
+
+    /** The page's other notification switches ("depart", "hourly", "live", "rules"): "on", "off" or "blocked". */
+    private fun notifState(kind: String): String = when {
+        kind !in NOTIF_KINDS -> ""
+        !Store(applicationContext).notifOn(kind) -> "off"
+        !AlertNotifier.allowed(applicationContext) -> "blocked"
+        else -> "on"
+    }
+    private fun setNotif(kind: String, on: Boolean) {
+        if (kind !in NOTIF_KINDS) return
+        val ctx = applicationContext
+        Store(ctx).setNotif(kind, on)
+        if (!on) {
+            if (kind == "live") { com.negiysem.app.work.Extras.cancel(ctx, 4300); com.negiysem.app.work.Extras.cancel(ctx, 4301) }
+            alertsChanged(); return
+        }
+        Scheduler.schedule(ctx)
+        askNotify()
+    }
+    /** Android's notification permission (13+), or once refused, the app's notification settings. */
+    private fun askNotify() {
+        val ctx = applicationContext
+        val store = Store(ctx)
         val needsPermission = Build.VERSION.SDK_INT >= 33 &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         when {
@@ -449,6 +494,7 @@ class MainActivity : Activity() {
             Scheduler.cancel(ctx)
             AlertNotifier.clear(ctx)
             Evening.cancel(ctx)
+            com.negiysem.app.work.Extras.clear(ctx)
             com.negiysem.app.data.WatchSync.clear(ctx)
             CoroutineScope(Dispatchers.IO).launch {
                 runCatching { NeGiysemWidget.pushAll(ctx, "") }
@@ -516,6 +562,32 @@ class MainActivity : Activity() {
 
         @JavascriptInterface
         fun widgetState(): String = this@MainActivity.widgetState()
+
+        @JavascriptInterface
+        fun notifState(kind: String): String = this@MainActivity.notifState(kind)
+
+        @JavascriptInterface
+        fun setNotif(kind: String, on: Boolean) {
+            if (kind in NOTIF_KINDS) Store(applicationContext).setNotif(kind, on) // read back by the page right away
+            runOnUiThread { this@MainActivity.setNotif(kind, on) }
+        }
+
+        /** A light tick ("tick") or a firmer one ("confirm") under the finger, as Android does it on this phone. */
+        @JavascriptInterface
+        fun haptic(kind: String) {
+            runOnUiThread {
+                if (webGone) return@runOnUiThread
+                val c = if (kind == "confirm" && Build.VERSION.SDK_INT >= 30) android.view.HapticFeedbackConstants.CONFIRM else android.view.HapticFeedbackConstants.CLOCK_TICK
+                web.performHapticFeedback(c)
+            }
+        }
+
+        /** Android counts this phone as low on memory (or gives the app little): the page goes light. */
+        @JavascriptInterface
+        fun lowRam(): Boolean = runCatching {
+            val am = getSystemService(android.app.ActivityManager::class.java)
+            am.isLowRamDevice || am.memoryClass <= 128
+        }.getOrDefault(false)
 
         @JavascriptInterface
         fun pinWidget() { runOnUiThread { this@MainActivity.pinWidget() } }
@@ -624,6 +696,9 @@ class MainActivity : Activity() {
  * so on the first page the system's own Back closes the app, with Android's back-to-home animation.
  */
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+private val GO_PLACES = setOf("tomorrow", "pack", "hours", "month")
+private val NOTIF_KINDS = setOf("depart", "hourly", "live", "rules")
+
 private class WebBack(private val activity: Activity, private val goBack: () -> Unit) {
     private val callback = OnBackInvokedCallback { goBack() }
     private var registered = false

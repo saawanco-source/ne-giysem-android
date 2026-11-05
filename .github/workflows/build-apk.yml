@@ -313,7 +313,11 @@ jobs:
               for f in $(find so -name '*.so'); do
                 al=$(readelf -lW "$f" | awk '$1=="LOAD"{print $NF}' | sort -u | tr '\n' ' ')
                 echo "   ${f#so/}: LOAD hizası $al"
-                for a in $al; do [ $((a)) -ge 16384 ] || problem "${f#so/} 16 KB hizalı değil ($a)"; done
+                # Play's 16 KB page rule is for the 64-bit libraries (16 KB devices are all 64-bit); 32-bit ones are only noted.
+                case "$f" in
+                  */arm64-v8a/*|*/x86_64/*) for a in $al; do [ $((a)) -ge 16384 ] || problem "${f#so/} 16 KB hizalı değil ($a)"; done ;;
+                  *) for a in $al; do [ $((a)) -ge 16384 ] || echo "   (32 bit, 16 KB kuralı dışında: ${f#so/} $a)"; done ;;
+                esac
               done
             fi
             echo "   zipalign -P 16: $("$BT/zipalign" -c -P 16 -v 4 "$apk" 2>&1 | tail -1)"

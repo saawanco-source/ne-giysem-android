@@ -106,7 +106,7 @@ SLOT_TYPES = ["SHORT_TEXT", "RANGED_VALUE", "GOAL_PROGRESS", "MONOCHROMATIC_IMAG
 SLOT_BG = "#1FF3EFE6"               # frosted glass over the sky
 SLOT_EDGE = "#33F3EFE6"
 # The outfit card from the Ne Giysem? watch app (wear/: OutfitComplicationService, photo image).
-NG_PROVIDER = "com.negiysem.app/com.negiysem.app.wear.OutfitComplicationService"
+NG_PROVIDER = "com.negiysem.android/com.negiysem.app.wear.OutfitComplicationService"
 
 
 def el(parent, tag, **attrs):

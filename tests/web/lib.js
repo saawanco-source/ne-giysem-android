@@ -293,6 +293,8 @@ async function start() {
     // The tests were written for a phone that follows its own language (CONFIG.lang "device"); the live default is
     // checked on its own (12-english.js, liveDefaultIsEnglish, with o.liveLang).
     if (!o.liveLang) await context.addInitScript(() => { window.NG_CONFIG = Object.assign({ lang: "device" }, window.NG_CONFIG || {}); });
+    // The first-run pages are checked on their own (24-intro-translate.js, with o.intro).
+    if (!o.intro) await context.addInitScript(() => { window.NG_CONFIG = Object.assign({ intro: false }, window.NG_CONFIG || {}); });
     // API mode talks to the fake server; otherwise force the legacy direct services even though CONFIG.api is set.
     await context.addInitScript((a) => { window.NG_API = a; }, o.api ? API_ORIGIN : "");
     const page = await context.newPage();

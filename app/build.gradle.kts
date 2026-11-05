@@ -92,6 +92,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-wearable:19.0.0")
     implementation("com.google.android.gms:play-services-ads:25.5.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
+    // On-device translation (English → the phone's language when it is neither Turkish nor English): the model is
+    // downloaded once (~30 MB) and the text never leaves the phone.
+    implementation("com.google.mlkit:translate:17.0.3")
 
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

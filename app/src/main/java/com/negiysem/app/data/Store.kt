@@ -18,6 +18,8 @@ class Store(context: Context) {
     /** The person the app screen is dressing: age group and the pieces missing from their wardrobe. */
     val who: String get() = prefs.getString("who", "me") ?: "me"
     val missing: Set<String> get() = prefs.getString("missing", "")?.split(",")?.filter { it.isNotBlank() }?.toSet() ?: emptySet()
+    /** The phone's language the app is translated into on the phone ("de"), or "" (Turkish or English as they are). */
+    val xl: String get() = prefs.getString("xl", "") ?: ""
     /** The person's own fine-tuning from "Bugün nasıldı?" (−4..4 degrees). */
     val cal: Int get() = prefs.getInt("cal", 0).coerceIn(-4, 4)
     /** A child's school hours on weekdays ("08:00", "15:30"), or null. */
@@ -82,6 +84,9 @@ class Store(context: Context) {
         val miss = o.optJSONArray("missing")?.let { a -> (0 until a.length()).map { a.optString(it) }.filter { it.matches(Regex("[a-z]{2,12}")) } }
             ?.sorted()?.joinToString(",") ?: ""
         val cal = o.optInt("cal", 0).coerceIn(-4, 4)
+        val xl = o.optString("xl", "").takeIf { Regex("[a-z]{2,3}").matches(it) } ?: ""
+        if (xl != this.xl) changed = true
+        e.putString("xl", xl)
         val hm = Regex("([01]?\\d|2[0-3]):[0-5]\\d")
         val sc = o.optJSONObject("school")?.takeIf { who == "child" }
         val sIn = sc?.optString("in", "")?.takeIf { hm.matches(it) }
@@ -169,7 +174,7 @@ class Store(context: Context) {
          * people from other countries (the page's CONFIG.lang in web/index.html says the same). "device" would follow
          * the phone: Turkish on a Turkish phone, English anywhere else.
          */
-        const val DEFAULT_LANG = "en"
+        const val DEFAULT_LANG = "device"
 
         fun deviceLang(): String = when (DEFAULT_LANG) {
             "tr", "en" -> DEFAULT_LANG
@@ -199,6 +204,26 @@ class Store(context: Context) {
             o.put("take", JSONArray().apply { plan.take.forEach { put(JSONObject().put("g", it.g).put("label", it.label)) } })
             o.put("pills", JSONArray().apply { plan.pills.forEach { put(it) } })
             if (alert != null) o.put("alert", alert)
+            return o.toString()
+        }
+
+        /**
+         * The snapshot's words in the phone's language [xl] (the widget and the watch show them as they are); the
+         * snapshot unchanged when the model isn't on the phone or a translation fails.
+         */
+        fun translated(context: Context, snapshot: String, xl: String): String {
+            if (xl.isEmpty()) return snapshot
+            val o = runCatching { JSONObject(snapshot) }.getOrNull() ?: return snapshot
+            class Slot(val get: () -> String, val set: (String) -> Unit)
+            val slots = ArrayList<Slot>()
+            fun field(obj: JSONObject, k: String) { if (obj.has(k)) slots.add(Slot({ obj.optString(k).replace("{", "").replace("}", "") }, { v -> obj.put(k, v) })) }
+            listOf("levelName", "headline", "cond", "next").forEach { field(o, it) }
+            listOf("wear", "take").forEach { k -> o.optJSONArray(k)?.let { a -> for (i in 0 until a.length()) a.optJSONObject(i)?.let { field(it, "label") } } }
+            o.optJSONArray("pills")?.let { a -> for (i in 0 until a.length()) { val j = i; slots.add(Slot({ a.optString(j) }, { v -> a.put(j, v) })) } }
+            o.optJSONObject("alert")?.let { a -> listOf("title", "short", "when").forEach { field(a, it) } }
+            val out = PhoneTranslate.translateNow(context, xl, slots.map { it.get() }) ?: return snapshot
+            slots.forEachIndexed { i, sl -> out.getOrNull(i)?.takeIf { it.isNotBlank() }?.let { sl.set(it) } }
+            o.put("xl", xl)
             return o.toString()
         }
     }

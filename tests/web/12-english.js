@@ -114,24 +114,27 @@ H.run({
     }
   },
 
-  async liveDefaultIsEnglish(t) {
-    // The live setting (CONFIG.lang "en"): even a Turkish phone opens in English until Türkçe is picked, and deleting
-    // all data goes back to English.
+  async liveDefaultFollowsPhone(t) {
+    // The live setting (CONFIG.lang "device"): a Turkish phone opens in Turkish, any other phone in English, until a
+    // language is picked; deleting all data goes back to the phone's language.
     const calls = [];
     const s = await t.open({ liveLang: true, seed: seed(fc(9)) }); // Turkish phone
     await androidBridge(s, calls);
     await s.goto(); await sleep(400);
     const a = await s.page.evaluate(() => ({ lang: document.documentElement.lang, feels: document.getElementById("nowFeels").textContent, pressed: document.querySelector('[data-key="lang"] [aria-pressed="true"]').dataset.val }));
-    check("live default: a Turkish phone opens in English", a.lang === "en" && a.pressed === "en" && /^Feels like/.test(a.feels), a);
-    // (the page tells the Android app only when something is saved; until then the app's own default, also English, holds)
-    check("live default: English is not stored as a choice, and anything sent to the Android app says 'en'", !((await s.stored()) || {}).lang && (calls.length === 0 || calls[calls.length - 1].lang === "en"), { stored: ((await s.stored()) || {}).lang, last: calls.slice(-1).map((c) => c.lang) });
+    check("live default: a Turkish phone opens in Turkish", a.lang === "tr" && a.pressed === "tr" && /^Hissedilen/.test(a.feels), a);
+    check("live default: the language is not stored as a choice", !((await s.stored()) || {}).lang, ((await s.stored()) || {}).lang);
     await scrollTo(s, '[data-key="lang"]');
-    await s.page.tap('[data-key="lang"] [data-val="tr"]'); await sleep(300);
-    check("live default: Türkçe can be picked and is stored", await s.page.evaluate(() => document.documentElement.lang) === "tr" && (await s.stored()).lang === "tr", (await s.stored()).lang);
+    await s.page.tap('[data-key="lang"] [data-val="en"]'); await sleep(300);
+    check("live default: English can be picked and is stored", await s.page.evaluate(() => document.documentElement.lang) === "en" && (await s.stored()).lang === "en", (await s.stored()).lang);
     const r = await s.page.$("#resetBtn"); await r.click(); await r.click(); await sleep(300);
-    check("live default: deleting all data goes back to English", await s.page.evaluate(() => document.documentElement.lang) === "en", true);
+    check("live default: deleting all data goes back to the phone's Turkish", await s.page.evaluate(() => document.documentElement.lang) === "tr", true);
     pageOk(s, "live default");
     await s.close();
+    const e = await t.open({ liveLang: true, ctx: { locale: "de-DE" }, seed: seed(fc(9)) }); // German phone
+    await e.goto(); await sleep(400);
+    check("live default: a German phone opens in English", await e.page.evaluate(() => document.documentElement.lang) === "en");
+    await e.close();
   },
 
   async switchInApp(t) {

@@ -7,7 +7,7 @@
      `node tools/csp.js`; the web tests check) and talk only to its own server and, when that can't be reached, to MET
      Norway, Photon and BigDataCloud directly. No other site gets anything from this page. AdSense, a custom domain or a
      new service must be added here first. The site adds the rest (framing, HTTPS) in web/_headers. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-cdek8NCiJEPr9VEAxADNam4LGGmaZSoyhi4JKUS45fY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-ffi2BlOJATHdHzNstTYqDEtvXnqcuvEvhWBSystS/dw='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
 <meta name="referrer" content="same-origin">
 <!-- The app's own server; the Android build puts the preview site's address here for a test build. -->
 <meta name="ng-api" content="https://ne-giysem.pages.dev">
@@ -467,6 +467,29 @@ html.sheet-open,html.sheet-open body{overflow:hidden}
 .pk-it .n{font:400 1.6rem/1 var(--font-display);font-variant-numeric:tabular-nums;flex:none}
 .pk-it.done .pl b,.pk-it.done .n{text-decoration:line-through;text-decoration-thickness:2px}
 .pk-it.done .art,.pk-it.done .pl{opacity:.55}
+.xl-bar{max-width:34rem;margin:0 0 14px;padding:12px 14px;border-radius:18px;background:var(--card);box-shadow:inset 0 0 0 1px var(--card-line)}
+.xl-bar[hidden]{display:none}
+.xl-bar p{margin:0 0 8px;font-size:14px;font-weight:600}
+.xl-bar .chips{display:flex;flex-wrap:wrap;gap:6px}
+/* first-run pages */
+.intro{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(10,15,33,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.intro[hidden]{display:none}
+.in-box{width:min(30rem,100%);max-height:calc(100vh - 32px);overflow:auto;background:linear-gradient(180deg,var(--sky1),var(--sky2) 38%,var(--sky3));color:var(--ink);border-radius:28px;padding:18px 20px 20px;box-shadow:0 30px 60px -30px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px}
+.in-top{display:flex;align-items:center;justify-content:space-between;min-height:40px}
+.in-n{font-size:13px;font-weight:700;color:var(--ink2);font-variant-numeric:tabular-nums}
+.in-skip{border:0;background:none;font:inherit;font-weight:700;color:var(--ink2);padding:10px 8px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.in-art{display:flex;justify-content:center;gap:6px;min-height:120px;align-items:center}
+.in-art .art{width:96px;height:96px;display:block}
+.in-art .art svg{width:100%;height:100%}
+.in-ic svg{width:84px;height:84px;color:var(--ink)}
+.in-box h2{margin:0;font:400 34px/1.1 var(--font-display);outline:none}
+.in-box p{margin:0;font-size:15.5px;line-height:1.5;color:var(--ink2)}
+.in-seg{display:flex;flex-wrap:wrap}
+.in-dots{display:flex;justify-content:center;gap:6px;margin-top:4px}
+.in-dot{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.in-dot.on{background:var(--ink);width:20px;border-radius:4px}
+.in-nav{display:flex;justify-content:space-between;gap:10px}
+.in-wd{display:flex}
 /* today against yesterday, "Bugün nasıldı?", the missing piece, the calendar and school hours */
 .vs{display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:14.5px;font-weight:600;line-height:1.35}
 .vs[hidden]{display:none}
@@ -560,6 +583,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 
   <main class="grid">
     <section class="hero" aria-label="Bugünün önerisi" data-i18n-attr="aria-label">
+      <div class="xl-bar" id="xlBar" role="status" hidden></div>
       <div class="severe" id="severe" hidden></div>
       <div class="rain-alert" id="rainAlert" role="status" hidden></div>
       <div class="tag" id="tag">
@@ -716,7 +740,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         <div class="seg" role="group" aria-labelledby="lLang" data-key="lang">
           <button type="button" data-val="tr" lang="tr">Türkçe</button>
           <button type="button" data-val="en" lang="en">English</button>
+          <button type="button" data-val="auto" id="langAuto" hidden></button>
         </div>
+      </div>
+      <div class="row">
+        <span class="rl" data-i18n>Nasıl çalışır?</span>
+        <div class="chips"><button type="button" class="chip" id="introBtn" data-i18n>Tanıtımı yeniden göster</button></div>
       </div>
       <div class="row">
         <span class="rl" data-i18n>Sorun bildir</span>
@@ -734,6 +763,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   </main>
 
   <div class="tip-card" id="tipCard" role="tooltip" hidden></div>
+  <div class="intro" id="intro" hidden><section class="in-box" role="dialog" aria-modal="true" aria-labelledby="inTitle" id="inBox"></section></div>
 
   <div class="sheet" id="packSheet" hidden>
     <div class="sheet-bg" data-close-sheet></div>
@@ -818,9 +848,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     // Where "Sorun bildir" sends its e-mail (also on the privacy pages).
     contact: "saawanco@gmail.com",
     // The language until the person picks one in "Sana göre" (then it is stored): "en" or "tr" for everyone, or
-    // "device" (Turkish on a Turkish phone, English anywhere else). English for everyone while the app is being
-    // tested with people from other countries; the Android app follows the page (Store.kt, DEFAULT_LANG).
-    lang: "en"
+    // "device" (Turkish on a Turkish phone, English anywhere else; in the Android app other phone languages can be
+    // translated on the phone from the English). The Android app follows the page (Store.kt, DEFAULT_LANG).
+    lang: "device"
   };
   if (window.NG_CONFIG && typeof window.NG_CONFIG === "object") Object.keys(window.NG_CONFIG).forEach(function(k){ CONFIG[k] = window.NG_CONFIG[k]; }); // tests
   var API = (function(){
@@ -850,8 +880,20 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   // Language until the person picks one (then it is stored): CONFIG.lang, or with "device" the phone's own language.
   function deviceLang(){
     if (CONFIG.lang === "tr" || CONFIG.lang === "en") return CONFIG.lang;
-    return /^tr/i.test(String(navigator.language || "")) ? "tr" : "en";
+    if (/^tr/i.test(String(navigator.language || ""))) return "tr";
+    // Another phone language the Android app can translate into on the phone: "auto" (English, translated).
+    return xlTarget() ? "auto" : "en";
   }
+  /* ---- translation on the phone (Android app only): English text turned into the phone's language by the phone's
+     own translation model (Google ML Kit, downloaded once, about 30 MB); nothing of the page's text leaves the phone. */
+  // The phone's language when it is neither Turkish nor English and the app can translate into it ("de", "es", "pt-BR"…).
+  function xlTarget(){
+    var A = window.NeGiysemAndroid, l = String(navigator.language || "").split("-")[0].toLowerCase();
+    if (!l || l === "tr" || l === "en" || !A || typeof A.xlSupported !== "function") return "";
+    try { return A.xlSupported(l) ? l : ""; } catch (e) { return ""; }
+  }
+  // The language's own name: "Deutsch", "español".
+  function xlName(l){ try { var n = new Intl.DisplayNames([l], {type:"language"}).of(l); return n ? n.charAt(0).toLocaleUpperCase(l) + n.slice(1) : l; } catch (e) { return l; } }
   // A person's own correction from their "Bugün nasıldı?" answers, in degrees: −1 for every "üşüdüm" (dressed warmer),
   // +1 for every "terledim"; at most 4 either way.
   function calOf(v){ v = Math.round(+v); return isFinite(v) ? Math.max(-4, Math.min(4, v)) : 0; }
@@ -869,6 +911,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
            // fbDay: the day the person last answered "Bugün nasıldı?" (their answers move each person's cal).
            // needOff: "don't show" for a missing piece, until a date ({yagmurluk:"2026-11-10"}).
            hist:null, fbDay:"", needOff:{},
+           // intro: the first-run pages were seen (or skipped); a device that already has data counts as seen.
+           intro:false,
            // People the app dresses: each with an age group, cold sensitivity and the pieces missing from their wardrobe.
            // The active person's sensitivity lives in S.feel while they are chosen.
            profiles:[{id:"me", name:"Ben", who:"me", feel:"normal", missing:[]}], prof:"me"};
@@ -877,9 +921,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     // The first version kept the same kind of data under negiysem:v1; it is read once and saved under the new key.
     try { var raw = localStorage.getItem(KEY) || localStorage.getItem("negiysem:v1"); d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
     if (!d || typeof d !== "object") return;
+    S.intro = d.intro !== false;
     var num = function(v){ return typeof v === "number" && isFinite(v); };
     var str = function(v){ return typeof v === "string" && v.length > 0; };
-    if (d.lang === "tr" || d.lang === "en") { S.lang = d.lang; S.langSet = true; }
+    if (d.lang === "tr" || d.lang === "en" || (d.lang === "auto" && xlTarget())) { S.lang = d.lang; S.langSet = true; }
     if (Array.isArray(d.places)) S.places = d.places.filter(function(p){ return p && str(p.id) && num(p.lat) && num(p.lon); })
       .map(function(p){ return {id:p.id, name:String(p.name || "Kayıtlı yer"), sub:String(p.sub || ""), lat:p.lat, lon:p.lon}; });
     if (typeof d.sel === "string") S.sel = d.sel;
@@ -956,7 +1001,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   function forWhom(pr){ return pr.id === "me" && pr.name === "Ben" ? tx("Benim için") : tx("{0} için", personName(pr)); }
   function personName(pr){ return pr.id === "me" && pr.name === "Ben" ? tx("Ben") : nm(pr.name); }
   // What the outfit engine needs to know about the person being dressed.
-  function prefs(){ var pr = curProf(); return {feel:S.feel, act:S.act, who:pr.who, missing:pr.missing, lang:S.lang, cal:pr.cal || 0}; }
+  function prefs(){ var pr = curProf(); return {feel:S.feel, act:S.act, who:pr.who, missing:pr.missing, lang:LANG, cal:pr.cal || 0}; }
   // The page's own copy only (the felt-temperature history changes with every new forecast; the widget doesn't need it).
   function saveQuiet(){
     curProf().feel = S.feel;
@@ -964,7 +1009,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     try { localStorage.setItem(KEY, JSON.stringify({lang:S.langSet ? S.lang : undefined, places:S.places, sel:S.sel, hours:S.hours, feel:S.feel, act:S.act, manual:S.manual, mode:S.mode, live:S.live,
       routes:S.routes, trips:S.trips, dayMode:S.dayMode, dayWx:S.dayWx, choice:S.choice, fix:S.fix, rainOff:S.rainOff, pack:S.pack,
       profiles:S.profiles, prof:S.prof, gRoutes:S.gRoutes || undefined, outdated:S.outdated || undefined, hist:S.hist || undefined, fbDay:S.fbDay || undefined,
-      needOff:S.needOff && Object.keys(S.needOff).length ? S.needOff : undefined})); } catch (e) {}
+      needOff:S.needOff && Object.keys(S.needOff).length ? S.needOff : undefined, intro:S.intro})); } catch (e) {}
   }
   function save(){
     saveQuiet();
@@ -973,7 +1018,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       var pl = S.live && S.live.place ? {name:livePlaceName(), lat:S.live.place.lat, lon:S.live.place.lon} : null;
       var places = S.places.map(function(p){ return {id:p.id, name:p.name, lat:p.lat, lon:p.lon}; });
       var pr = curProf();
-      try { window.NeGiysemAndroid.saveState(JSON.stringify({lang:S.lang, feel:S.feel, act:S.act, hours:S.hours, place:pl, who:pr.who, missing:pr.missing,
+      try { window.NeGiysemAndroid.saveState(JSON.stringify({lang:LANG, xl:XL.on ? XL.lang : "", feel:S.feel, act:S.act, hours:S.hours, place:pl, who:pr.who, missing:pr.missing,
         cal:pr.cal || 0, school:pr.who === "child" && pr.school ? pr.school : null,
         routine:{dayMode:S.dayMode, places:places, routes:S.routes, trips:S.trips, choice:S.choice}})); } catch (e) {}
     }
@@ -1011,12 +1056,85 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   // function of the same arguments where English needs plurals. Sentences with a different word order get their own template.
   // The outfit engine's English must stay the same as the widget's (Outfit.kt, Day.kt): tests/parity checks both languages.
   var LANG = "tr";
-  function loc(){ return LANG === "en" ? "en-US" : "tr-TR"; }
+  function loc(){ return LANG === "en" ? (XL.on ? XL.lang : "en-US") : "tr-TR"; }
   function fill(s, a){ return a && a.length ? String(s).replace(/\{(\d)\}/g, function(m, i){ return a[+i] == null ? "" : String(a[+i]); }) : s; }
   function tx(s){
     var a = Array.prototype.slice.call(arguments, 1), t = s;
     if (LANG === "en" && Object.prototype.hasOwnProperty.call(EN, s)) t = EN[s];
-    return typeof t === "function" ? t.apply(null, a) : fill(t, a);
+    t = typeof t === "function" ? t.apply(null, a) : fill(t, a);
+    return XL.on && LANG === "en" ? xl(t) : t;
+  }
+  function baseLang(l){ return l === "auto" ? "en" : l; }
+  // XL.cache: English → the phone's language, kept on the device; strings not there yet are asked for in small
+  // batches and the screen is drawn again when they come back.
+  var XL = {lang:"", on:false, want:false, cache:{}, pend:{}, q:[], timer:null, seq:0, redraw:null, state:"", saveT:null};
+  function xlSetup(){
+    var l = S.lang === "auto" ? xlTarget() : "", A = window.NeGiysemAndroid;
+    XL.want = !!l; XL.lang = l; XL.on = false; XL.q = []; XL.pend = {};
+    if (!l) { XL.state = ""; return; }
+    try { var c = JSON.parse(localStorage.getItem(KEY + ":xl") || "null"); XL.cache = c && c.lang === l && c.map && typeof c.map === "object" ? c.map : {}; } catch (e) { XL.cache = {}; }
+    var st = ""; try { st = String(A.xlState(l)); } catch (e) {}
+    XL.state = st; XL.on = st === "ready";
+  }
+  function xl(t){
+    if (typeof t !== "string" || !/[A-Za-z]{2}/.test(t)) return t;
+    if (t.indexOf("<") >= 0 && /<\/?[a-z][^>]*>/i.test(t)) return t.split(/(<[^>]+>)/).map(function(x){ return x.charAt(0) === "<" ? x : xl(x); }).join("");
+    var m = /^(\s*)([\s\S]*?)(\s*)$/.exec(t), core = m[2];
+    if (!/[A-Za-z]{2}/.test(core)) return t;
+    var c = XL.cache[core];
+    if (typeof c === "string") return m[1] + c + m[3];
+    if (!XL.pend[core]) { XL.pend[core] = 1; XL.q.push(core); if (!XL.timer) XL.timer = setTimeout(xlSend, 40); }
+    return t;
+  }
+  function xlSend(){
+    XL.timer = null;
+    var A = window.NeGiysemAndroid; if (!XL.on || !A || typeof A.translate !== "function") return;
+    while (XL.q.length) {
+      var batch = XL.q.splice(0, 60), id = "x" + (++XL.seq);
+      XL.batches = XL.batches || {}; XL.batches[id] = batch;
+      try { A.translate(id, XL.lang, JSON.stringify(batch)); } catch (e) { batch.forEach(function(k){ delete XL.pend[k]; }); }
+    }
+  }
+  var W_ = typeof window !== "undefined" ? window : {}; // (the engine also runs in Node for the tests)
+  W_.ngTranslated = function(id, out){
+    var batch = XL.batches && XL.batches[id]; if (!batch) return;
+    delete XL.batches[id];
+    var arr = []; try { arr = typeof out === "string" ? JSON.parse(out) : out; } catch (e) {}
+    batch.forEach(function(k, i){
+      var v = arr && typeof arr[i] === "string" && arr[i].trim() ? arr[i].replace(/[<>]/g, "") : null;
+      if (v != null) XL.cache[k] = v; // a failed one is asked again next time the page opens
+      delete XL.pend[k];
+    });
+    // keep the newest 6000
+    var ks = Object.keys(XL.cache); if (ks.length > 6000) ks.slice(0, ks.length - 6000).forEach(function(k){ delete XL.cache[k]; });
+    clearTimeout(XL.saveT); XL.saveT = setTimeout(function(){ try { localStorage.setItem(KEY + ":xl", JSON.stringify({lang:XL.lang, map:XL.cache})); } catch (e) {} }, 800);
+    clearTimeout(XL.redraw); XL.redraw = setTimeout(xlRedraw, 60);
+  };
+  function xlRedraw(){
+    try { applyLang(); render({keepEditor:true}); } catch (e) { console.error(e); }
+    try { if (!$("packSheet").hidden) renderPack(); if (!$("wardSheet").hidden) renderWardrobe(); if (!$("intro").hidden) renderIntro(); } catch (e) {}
+  }
+  // The model is there now (or couldn't be downloaded).
+  W_.ngXlReady = function(l, ok){
+    if (l !== XL.lang) return;
+    XL.state = ok ? "ready" : "failed"; XL.on = !!ok;
+    if (ok) save(); // the widget gets the language too
+    xlRedraw(); renderXlBar();
+  };
+  function xlPrepare(){
+    var A = window.NeGiysemAndroid; if (!A || !XL.want) return;
+    XL.state = "loading"; renderXlBar();
+    try { A.xlPrepare(XL.lang); } catch (e) { XL.state = "failed"; renderXlBar(); }
+  }
+  // "Translate into Deutsch?" until the model is on the phone. In English and in the language itself's name.
+  function renderXlBar(){
+    var el = $("xlBar"); if (!el) return;
+    var show = XL.want && XL.state !== "ready";
+    el.hidden = !show; if (!show) return;
+    var name = xlName(XL.lang), msg = XL.state === "loading" ? "Downloading the " + name + " translation (about 30 MB)…"
+      : XL.state === "failed" ? "The " + name + " translation couldn't be downloaded. Check the connection and try again."
+      : "Show Ne Giysem? in " + name + "? The phone translates it from English itself; about 30 MB is downloaded once and nothing you see leaves the phone.";
+    el.innerHTML = '<p>' + esc(msg) + '</p>' + (XL.state === "loading" ? '' : '<div class="chips"><button type="button" class="chip" data-xl="go">' + esc(XL.state === "failed" ? "Try again" : "Translate into " + name) + '</button><button type="button" class="chip" data-xl="en">Keep English</button></div>');
   }
   // Names the app stores itself (always in Turkish) and shows in the current language; anything else is the person's own text.
   var OWN = ["Konumun", "Kayıtlı yer", "Kişi", "Son bilinen konum", "Cihaz konumu", "Yaklaşık konum", "Kaydettiğin konum"];
@@ -1470,7 +1588,22 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     "Seyahatin aylar sonra da olsa tarihlerini şimdi seç; liste o günlerin hava tahminine göre hazırlanır (en çok {0} gün).": "Pick your dates now even if the trip is months away; the list follows the forecast for those days (up to {0} days).",
     "Bu tarihlerin hava tahmini henüz yok: tahmin yaklaşık {0} gün önceden çıkar.": "There's no forecast for these dates yet: it comes out about {0} days ahead.",
     "{0} civarı bu listeyi aç; kıyafetler o günlerin havasına göre eklenir. Tarihlerin kayıtlı kalır.": "Open this list around {0}; the clothes are added for the weather on those days. Your dates stay saved.",
-    "Tahmin birkaç gün içinde gelir; listeyi o zaman yeniden aç.": "The forecast arrives within a few days; open the list again then."
+    "Tahmin birkaç gün içinde gelir; listeyi o zaman yeniden aç.": "The forecast arrives within a few days; open the list again then.",
+    // first-run pages
+    "Hoş geldin!": "Welcome!", "Yerin": "Your place", "Kişiler ve dolabım": "People and my wardrobe", "Bu hafta ve bavul": "This week and packing",
+    "Uyarılar": "Warnings", "Ana ekran widget’ı": "Home-screen widget", "{0} / {1}": "{0} / {1}", "Atla": "Skip", "Geri": "Back", "İleri": "Next",
+    "Başla": "Let's go", "Şimdi değil, başla": "Not now, let's go", "Widget’ı ana ekrana ekle": "Add the widget to the home screen",
+    "Nasıl çalışır?": "How it works", "Tanıtımı yeniden göster": "Show the introduction again",
+    "Ne Giysem? bulunduğun yerin hava tahminine bakar ve bugün ne giymen gerektiğini büyük çıkartmalarla söyler. Ekranın rengi günün sıcaklığını gösterir; bir çıkartmaya dokununca neden önerildiğini görürsün.": "Ne Giysem? looks at the forecast where you are and shows what to wear today as big stickers. The screen takes the colour of the day's temperature; tap a sticker to see why it was suggested.",
+    "Sağ üstteki yer düğmesinden konumunu aç ya da semt, okul, durak ara. Kaydettiğin yerler arasında tek dokunuşla geçersin. Konumun yalnızca havayı bulmak için kullanılır, hiçbir yerde saklanmaz.": "Use the place button at the top right to turn on your location or search for a neighbourhood, school or stop. Switch between saved places with one tap. Your location is only used to find the weather and is never stored anywhere.",
+    "“Soğuğa karşı”: çabuk üşüyorsan bir kat daha sıcak, sıcak tutuyorsan daha ince önerilir. “Ne yapacaksın?”: şehirde, arazide ve sporda farklı giyilir. “Dışarıda ne kadar?”: kaç saatin havasına bakılacağını seçer. Şimdi seç, sonra “Sana göre” bölümünden değiştir:": "“How you feel the cold”: if you get cold easily you get one layer warmer, if you run warm something lighter. “What will you do?”: city, outdoors and sport call for different clothes. “How long outside?”: how many hours of weather to look at. Choose now, and change it later under “Made for you”:",
+    "Akşamları bir kez sorar: üşüdün mü, terledin mi? Cevaplarına göre öneriler zamanla tam sana göre olur.": "Once every evening it asks: were you cold, or too warm? Over time your answers make the suggestions fit you exactly.",
+    "Çocuğun ya da annen için ayrı kişi ekle; çocuğun okul saatlerini yazarsan kıyafet okul yoluna göre seçilir. “Dolabım”da olmayan parçaları işaretlersen yerine elindekiler önerilir.": "Add a separate person for your child or a parent; enter a child's school hours and the outfit is chosen for the way to and from school. Mark what isn't in “My wardrobe” and the closest piece you have is suggested instead.",
+    "Evden okula, işten eve yolculuklarını bir kez gir: yürüme, bekleme, metro, vapur… Kıyafet gerçekten dışarıda olacağın anlara göre seçilir, yağmurdan kaçıran rota önerilir, metroda terlememen için katman tavsiyesi verilir.": "Enter your trips once (home to school, work to home) with their steps: walking, waiting, metro, ferry… The outfit is chosen for the moments you'll really be outside, the route that keeps you out of the rain is suggested, and you get layering tips so you don't overheat on the metro.",
+    "Haftanın her günü için ne giyileceğini görürsün. “Bavul hazırla”, takvimden seçtiğin tarihler için gideceğin yerin havasına göre liste çıkarır.": "See what to wear on every day of the week. “Pack a bag” makes a list for the dates you pick on the calendar, from the weather where you're going.",
+    "Fırtına, sel, yoğun kar gibi tehlikeli havalarda bildirim alabilir, her akşam 21:00’de yarının kıyafetini söyleyen hatırlatmayı açabilirsin. İkisi de “Sana göre” bölümünde.": "Get notifications for dangerous weather such as storms, floods and heavy snow, and turn on the reminder that tells you tomorrow's outfit every evening at 21:00. Both are under “Made for you”.",
+    "Tehlikeli hava uyarıları ekranın en üstünde çıkar. Bildirimler, akşam hatırlatması ve ana ekran widget’ı Android uygulamasında var.": "Dangerous-weather warnings appear at the top of the screen. Notifications, the evening reminder and the home-screen widget are in the Android app.",
+    "Widget’la bugünün kıyafetini uygulamayı açmadan görürsün. Arka planda düzenli güncellendiği için uyarılar ve akşam hatırlatması da daha iyi çalışır.": "With the widget you see today's outfit without opening the app. Because it's refreshed regularly in the background, warnings and the evening reminder work better too."
   };
 
   /* ================= weather vocabulary ================= */
@@ -4717,13 +4850,17 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     });
     var rb = $("resetBtn"); if (rb.dataset.armed !== "1") rb.textContent = tx("Tüm verilerimi sil");
     renderAlertsRow(); renderEveRow();
+    var la = $("langAuto"), tl = xlTarget();
+    la.hidden = !tl; if (tl) { la.lang = tl; la.textContent = xlName(tl) + " · auto"; }
+    renderXlBar();
     if (IS_ART && mcpState === "no") $("liveHint").textContent = noLive();
     renderCredits();
   }
   function setLang(l){
-    l = l === "en" ? "en" : "tr";
-    var changed = l !== LANG;
-    S.lang = LANG = l; S.langSet = true;
+    l = l === "en" || l === "tr" ? l : l === "auto" && xlTarget() ? "auto" : "tr";
+    var changed = l !== S.lang;
+    S.lang = l; LANG = baseLang(l); S.langSet = true;
+    xlSetup();
     if (changed) { applyLang(); setStatus(""); } // a message on screen was written in the other language
     save(); render();
   }
@@ -4757,6 +4894,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 
   $("alertsBtn").addEventListener("click", function(){ setAlerts(alertsState() !== "on"); });
   $("eveBtn").addEventListener("click", function(){ setEve(eveState() !== "on"); });
+  $("xlBar").addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-xl]"); if (!b) return;
+    if (b.dataset.xl === "go") xlPrepare(); else setLang("en");
+  });
   // "Bugün nasıldı?", the personal fine-tuning's reset, and the missing-piece card
   document.addEventListener("click", function(e){
     var b = e.target.closest && e.target.closest("[data-fb],[data-fb-close],[data-cal-reset],[data-need-have],[data-need-off]"); if (!b) return;
@@ -4836,9 +4977,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     S.manual = {temp:17, sky:"partly", wind:"breezy"}; S.mode = "manual"; S.live = null;
     S.routes = []; S.trips = []; S.dayMode = true; S.dayWx = null; S.choice = {date:"", picks:{}}; S.fix = null;
     S.rainOff = ""; S.pack = {place:"", days:3, start:0, ticks:{}}; S.gRoutes = false; GR.byKey = {};
-    S.hist = null; S.fbDay = ""; S.needOff = {};
+    S.hist = null; S.fbDay = ""; S.needOff = {}; S.intro = true;
     S.lang = deviceLang(); S.langSet = false; // back to the default language
-    if (S.lang !== LANG) { LANG = S.lang; applyLang(); }
+    try { localStorage.removeItem(KEY + ":xl"); } catch (e) {}
+    XL.cache = {}; xlSetup();
+    if (baseLang(S.lang) !== LANG) LANG = baseLang(S.lang);
+    applyLang();
     SEARCH.cache = {}; lastWearSig = "";
     closeSearch(); togglePanel(false); $("routine").hidden = true; hideTip(); closeSheet(true);
     if (window.NeGiysemAndroid && window.NeGiysemAndroid.reset) { try { window.NeGiysemAndroid.reset(); } catch (e) {} }
@@ -5093,6 +5237,83 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
   $("iosHintClose").addEventListener("click", function(){ $("iosHint").hidden = true; try { localStorage.setItem(KEY + ":ioshint", "1"); } catch (e) {} });
 
+  /* ================= first-run pages: what each part of the app is for (skippable) ================= */
+  var INTRO = {i:0, back:null};
+  function widgetState(){
+    var A = window.NeGiysemAndroid;
+    try { return A && typeof A.widgetState === "function" ? String(A.widgetState()) : ""; } catch (e) { return ""; }
+  }
+  function inIcon(k){
+    var w = function(inner){ return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>'; };
+    if (k === "pin") return w('<path d="M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/>');
+    if (k === "bell") return w('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>');
+    if (k === "widget") return w('<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><rect x="6.5" y="6.5" width="11" height="6" rx="2"/><path d="M6.5 16h5M6.5 18h3"/>');
+    return mIcon(k);
+  }
+  function introPages(){
+    var app = !!window.NeGiysemAndroid, pages = [
+      {art:["tshirt","mont","semsiye"], t:"Hoş geldin!", p:"Ne Giysem? bulunduğun yerin hava tahminine bakar ve bugün ne giymen gerektiğini büyük çıkartmalarla söyler. Ekranın rengi günün sıcaklığını gösterir; bir çıkartmaya dokununca neden önerildiğini görürsün."},
+      {icon:"pin", t:"Yerin", p:"Sağ üstteki yer düğmesinden konumunu aç ya da semt, okul, durak ara. Kaydettiğin yerler arasında tek dokunuşla geçersin. Konumun yalnızca havayı bulmak için kullanılır, hiçbir yerde saklanmaz."},
+      {art:["kazak","bere"], t:"Sana göre", p:"“Soğuğa karşı”: çabuk üşüyorsan bir kat daha sıcak, sıcak tutuyorsan daha ince önerilir. “Ne yapacaksın?”: şehirde, arazide ve sporda farklı giyilir. “Dışarıda ne kadar?”: kaç saatin havasına bakılacağını seçer. Şimdi seç, sonra “Sana göre” bölümünden değiştir:", control:true},
+      {art:["hirka"], t:"Bugün nasıldı?", p:"Akşamları bir kez sorar: üşüdün mü, terledin mi? Cevaplarına göre öneriler zamanla tam sana göre olur."},
+      {art:["sweatshirt","sapka"], t:"Kişiler ve dolabım", p:"Çocuğun ya da annen için ayrı kişi ekle; çocuğun okul saatlerini yazarsan kıyafet okul yoluna göre seçilir. “Dolabım”da olmayan parçaları işaretlersen yerine elindekiler önerilir."},
+      {icon:"metro", t:"Günüm", p:"Evden okula, işten eve yolculuklarını bir kez gir: yürüme, bekleme, metro, vapur… Kıyafet gerçekten dışarıda olacağın anlara göre seçilir, yağmurdan kaçıran rota önerilir, metroda terlememen için katman tavsiyesi verilir."},
+      {art:["yagmurluk"], t:"Bu hafta ve bavul", p:"Haftanın her günü için ne giyileceğini görürsün. “Bavul hazırla”, takvimden seçtiğin tarihler için gideceğin yerin havasına göre liste çıkarır."},
+      {icon:"bell", t:"Uyarılar", p:app ? "Fırtına, sel, yoğun kar gibi tehlikeli havalarda bildirim alabilir, her akşam 21:00’de yarının kıyafetini söyleyen hatırlatmayı açabilirsin. İkisi de “Sana göre” bölümünde." : "Tehlikeli hava uyarıları ekranın en üstünde çıkar. Bildirimler, akşam hatırlatması ve ana ekran widget’ı Android uygulamasında var."}
+    ];
+    if (widgetState() === "can") pages.push({icon:"widget", t:"Ana ekran widget’ı", p:"Widget’la bugünün kıyafetini uygulamayı açmadan görürsün. Arka planda düzenli güncellendiği için uyarılar ve akşam hatırlatması da daha iyi çalışır.", widget:true});
+    return pages;
+  }
+  function renderIntro(){
+    var pages = introPages(), i = Math.max(0, Math.min(INTRO.i, pages.length - 1)), pg = pages[i], last = i === pages.length - 1;
+    INTRO.i = i;
+    var pic = pg.art ? '<div class="in-art">' + pg.art.map(function(g){ return '<span class="art">' + art(g) + '</span>'; }).join("") + '</div>' : '<div class="in-art in-ic">' + inIcon(pg.icon) + '</div>';
+    var ctl = "";
+    if (pg.control) {
+      var seg = function(key, opts){ return '<div class="seg in-seg" role="group" aria-label="' + esc(tx(opts[0])) + '">' + opts[1].map(function(o){
+        return '<button type="button" data-in-set="' + key + '" data-val="' + o[0] + '" aria-pressed="' + (String(S[key]) === String(o[0])) + '">' + esc(tx(o[1])) + '</button>'; }).join("") + '</div>'; };
+      ctl = seg("feel", ["Soğuğa karşı", [["cold","Çabuk üşürüm"],["normal","Normal"],["warm","Sıcak tutarım"]]]) +
+            seg("act", ["Ne yapacaksın?", [["city","Şehir / okul"],["field","Arazi / doğa"],["sport","Spor"]]]);
+    }
+    var dots = pages.map(function(x, k){ return '<span class="in-dot' + (k === i ? ' on' : '') + '"></span>'; }).join("");
+    $("inBox").innerHTML = '<div class="in-top"><span class="in-n">' + esc(tx("{0} / {1}", i + 1, pages.length)) + '</span>' +
+      (last ? '' : '<button type="button" class="in-skip" data-in="skip">' + esc(tx("Atla")) + '</button>') + '</div>' +
+      pic + '<h2 id="inTitle" tabindex="-1">' + esc(tx(pg.t)) + '</h2><p>' + esc(tx(pg.p)) + '</p>' + ctl +
+      (pg.widget ? '<div class="in-wd"><button type="button" class="btn" data-in="pin">' + esc(tx("Widget’ı ana ekrana ekle")) + '</button></div>' : '') +
+      '<div class="in-dots" aria-hidden="true">' + dots + '</div>' +
+      '<div class="in-nav">' + (i ? '<button type="button" class="btn soft" data-in="back">' + esc(tx("Geri")) + '</button>' : '<span></span>') +
+      '<button type="button" class="btn" data-in="' + (last ? 'done' : 'next') + '">' + esc(tx(last ? (pg.widget ? "Şimdi değil, başla" : "Başla") : "İleri")) + '</button></div>';
+    var h = $("inTitle"); if (h) h.focus({preventScroll:true});
+  }
+  function openIntro(back){
+    INTRO.i = 0; INTRO.back = back || null;
+    $("intro").hidden = false; document.documentElement.classList.add("sheet-open"); hideTip();
+    renderIntro();
+  }
+  function closeIntro(){
+    $("intro").hidden = true; document.documentElement.classList.remove("sheet-open");
+    if (!S.intro) { S.intro = true; save(); }
+    var b = INTRO.back || $("headline"); if (b && b.focus) b.focus({preventScroll:true});
+  }
+  $("intro").addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-in],[data-in-set]"); if (!b) return;
+    if (b.dataset.inSet) { S[b.dataset.inSet] = b.dataset.val; save(); render(); renderIntro(); return; }
+    var a = b.dataset["in"];
+    if (a === "next") { INTRO.i++; renderIntro(); }
+    else if (a === "back") { INTRO.i--; renderIntro(); }
+    else if (a === "pin") { try { window.NeGiysemAndroid.pinWidget(); } catch (x) {} closeIntro(); }
+    else closeIntro();
+  });
+  $("intro").addEventListener("keydown", function(e){
+    if (e.key === "Escape") { e.preventDefault(); closeIntro(); }
+    else if (e.key === "Tab") { // focus stays in the pages
+      var f = [].slice.call($("inBox").querySelectorAll("button")); if (!f.length) return;
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+    }
+  });
+  $("introBtn").addEventListener("click", function(e){ openIntro(e.currentTarget); });
+
   /* ================= boot ================= */
   async function maybeRefresh(){
     if (busy) return;
@@ -5122,11 +5343,14 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (S.fix || gs === "granted" || gs === "denied") fetchLive(); else if (!S.live || S.outdated) setStatus(tx("Başlamak için yenile düğmesine bas ya da sağ üstten konum seç."));
   }
   // The page in the stored (or the device's) language, before anything is drawn.
-  LANG = S.lang; applyLang();
+  LANG = baseLang(S.lang); xlSetup(); applyLang();
+  if (XL.on && IN_APP) save(); // the widget and the evening note follow the translated language
   try { handForecast(); } catch (e) {} // the weather kept from last time, for a widget that has none yet
   // A stored state this version can't draw must not leave a broken screen: drop the stored weather and draw again.
   makeGrain();
   try { render(); } catch (e) { S.live = null; S.dayWx = null; S.mode = "manual"; try { render(); } catch (e2) {} }
+  // The first time on this device: the pages that show what each part is for.
+  if (!S.intro && !IS_ART && CONFIG.intro !== false) { try { openIntro(); } catch (e) { console.error(e); } }
   if (IS_ART) {
     (async function(){
       try { mcp = await window.claude.use("mcp"); } catch (e) { mcp = null; }

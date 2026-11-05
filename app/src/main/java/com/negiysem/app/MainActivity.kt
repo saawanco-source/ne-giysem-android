@@ -40,6 +40,11 @@ import com.google.android.ump.UserMessagingPlatform
 import androidx.core.content.FileProvider
 import androidx.webkit.WebViewAssetLoader
 import com.negiysem.app.data.Store
+import com.negiysem.app.data.PhoneTranslate
+import com.negiysem.app.widget.NeGiysemReceiver
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.app.AlertDialog
 import com.negiysem.app.widget.NeGiysemWidget
 import com.negiysem.app.work.AlertNotifier
 import com.negiysem.app.work.Evening
@@ -170,7 +175,7 @@ class MainActivity : Activity() {
         web.addJavascriptInterface(Bridge(), "NeGiysemAndroid")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            back = WebBack(this) { if (!webGone && web.canGoBack()) web.goBack() }
+            back = WebBack(this) { if (!webGone && web.canGoBack()) web.goBack() else exitWithWidgetOffer() }
         }
         if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) web.loadUrl(home)
         updateBack()
@@ -307,13 +312,44 @@ class MainActivity : Activity() {
 
     /** Android 13+: Back is handled by [WebBack] only while the page has somewhere to go back to. */
     private fun updateBack() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) back?.enable(!webGone && web.canGoBack())
+        // Also the first time Back would leave the app without a widget on the home screen: it offers one first.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) back?.enable((!webGone && web.canGoBack()) || exitOfferDue())
+    }
+
+    /* ---- the home-screen widget: offered on the first-run pages (the page) and the first time the app is left ---- */
+    private fun hasWidget(): Boolean = runCatching {
+        AppWidgetManager.getInstance(this).getAppWidgetIds(ComponentName(this, NeGiysemReceiver::class.java)).isNotEmpty()
+    }.getOrDefault(false)
+    private fun canPin(): Boolean = runCatching { AppWidgetManager.getInstance(this).isRequestPinAppWidgetSupported }.getOrDefault(false)
+    /** "has", "can" (no widget yet and the launcher can add one), or "" (the launcher can't). */
+    private fun widgetState(): String = if (hasWidget()) "has" else if (canPin()) "can" else ""
+    private fun pinWidget() {
+        runCatching { AppWidgetManager.getInstance(this).requestPinAppWidget(ComponentName(this, NeGiysemReceiver::class.java), null, null) }
+    }
+    private fun exitOfferDue(): Boolean {
+        val p = getSharedPreferences("negiysem", MODE_PRIVATE)
+        return !p.getBoolean("pinAskedExit", false) && !hasWidget() && canPin()
+    }
+    /** Back on the app's first screen: once, "add the widget?" before leaving; otherwise the app closes as usual. */
+    private fun exitWithWidgetOffer() {
+        if (!exitOfferDue()) { finish(); return }
+        getSharedPreferences("negiysem", MODE_PRIVATE).edit().putBoolean("pinAskedExit", true).apply()
+        updateBack()
+        val en = Store(applicationContext).lang == "en"
+        AlertDialog.Builder(this)
+            .setTitle(if (en) "Add the widget to your home screen?" else "Ana ekrana widget eklensin mi?")
+            .setMessage(if (en) "You'll see today's outfit without opening the app, and because the widget is refreshed in the background, warnings and the evening reminder work better."
+                else "Bugünün kıyafetini uygulamayı açmadan görürsün; widget arka planda güncellendiği için uyarılar ve akşam hatırlatması da daha iyi çalışır.")
+            .setPositiveButton(if (en) "Add" else "Ekle") { _, _ -> pinWidget() }
+            .setNegativeButton(if (en) "Not now" else "Şimdi değil") { _, _ -> finish() }
+            .setOnCancelListener { finish() }
+            .show()
     }
 
     /** Android 8–12 only: with android:enableOnBackInvokedCallback="true", Android 13+ never calls this. */
     @Deprecated("Android 12 and older; Android 13+ uses WebBack")
     override fun onBackPressed() {
-        if (!webGone && web.canGoBack()) web.goBack() else super.onBackPressed()
+        if (!webGone && web.canGoBack()) web.goBack() else if (exitOfferDue()) exitWithWidgetOffer() else super.onBackPressed()
     }
 
     override fun onPause() {
@@ -477,6 +513,39 @@ class MainActivity : Activity() {
 
         @JavascriptInterface
         fun eveningState(): String = this@MainActivity.eveningState()
+
+        @JavascriptInterface
+        fun widgetState(): String = this@MainActivity.widgetState()
+
+        @JavascriptInterface
+        fun pinWidget() { runOnUiThread { this@MainActivity.pinWidget() } }
+
+        /* On-device translation: English → the phone's language (PhoneTranslate). */
+        @JavascriptInterface
+        fun xlSupported(lang: String): Boolean = PhoneTranslate.supported(lang)
+
+        /** "ready" (the model is on the phone) or "none". */
+        @JavascriptInterface
+        fun xlState(lang: String): String = if (PhoneTranslate.ready(applicationContext, lang)) "ready" else "none"
+
+        /** Downloads the model; answered through window.ngXlReady(lang, ok). */
+        @JavascriptInterface
+        fun xlPrepare(lang: String) {
+            PhoneTranslate.prepare(applicationContext, lang) { ok ->
+                runOnUiThread { if (!webGone) web.evaluateJavascript("window.ngXlReady && window.ngXlReady(${JSONObject.quote(lang)}, $ok)", null) }
+            }
+        }
+
+        /** Translates a JSON array of texts; answered through window.ngTranslated(id, json array, null where it failed). */
+        @JavascriptInterface
+        fun translate(id: String, lang: String, json: String) {
+            if (json.length > 200_000) return
+            val texts = runCatching { org.json.JSONArray(json) }.getOrNull()?.let { a -> (0 until a.length()).map { a.optString(it).take(2000) } } ?: return
+            PhoneTranslate.translate(lang, texts) { out ->
+                val arr = org.json.JSONArray().apply { out.forEach { put(it ?: JSONObject.NULL) } }
+                runOnUiThread { if (!webGone) web.evaluateJavascript("window.ngTranslated && window.ngTranslated(${JSONObject.quote(id)}, ${JSONObject.quote(arr.toString())})", null) }
+            }
+        }
 
         @JavascriptInterface
         fun setEvening(on: Boolean) {

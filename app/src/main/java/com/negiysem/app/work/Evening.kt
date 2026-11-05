@@ -97,7 +97,11 @@ object Evening {
         if (!AlertNotifier.allowed(context)) return false
         val store = Store(context)
         val main = store.forecast?.let { runCatching { JSONObject(it) }.getOrNull() }?.optJSONObject("main") ?: return false
-        val n = note(store, main) ?: return false
+        val n0 = note(store, main) ?: return false
+        // In the phone's language when the app is translated on the phone (only with the model already there).
+        val n = store.xl.takeIf { it.isNotEmpty() }?.let { xl ->
+            com.negiysem.app.data.PhoneTranslate.translateNow(context, xl, listOf(n0.title, n0.text, n0.big))?.let { Note(it[0], it[1], it[2]) }
+        } ?: n0
         val en = store.lang == "en"
         if (Build.VERSION.SDK_INT >= 26) context.getSystemService(NotificationManager::class.java)?.createNotificationChannel(
             NotificationChannel(CHANNEL, if (en) "Tomorrow's outfit" else "Yarının kıyafeti", NotificationManager.IMPORTANCE_DEFAULT).apply {

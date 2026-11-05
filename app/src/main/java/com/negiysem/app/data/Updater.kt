@@ -121,10 +121,12 @@ object Updater {
         val snapshot = withContext(Dispatchers.IO) { snapshot(store, cached) }
             ?: throw (failure ?: IOException("forecast no longer covers this hour"))
         if (Store(context).generation != gen) return failure == null // data was deleted while this refresh ran
-        store.saveWidget(snapshot, cached.optLong("at"))
+        // In the phone's language when the app is translated (the model is already on the phone; nothing is downloaded here).
+        val shown = withContext(Dispatchers.IO) { Store.translated(context, snapshot, store.xl) }
+        store.saveWidget(shown, cached.optLong("at"))
         store.clearFail()
-        NeGiysemWidget.pushAll(context, snapshot)
-        WatchSync.send(context, snapshot)
+        NeGiysemWidget.pushAll(context, shown)
+        WatchSync.send(context, shown)
         cached.optJSONObject("main")?.let { main ->
             runCatching { AlertNotifier.check(context, main, Outfit.ownName(store.placeName ?: cached.optString("name", "Konumun"), store.lang)) }
         }

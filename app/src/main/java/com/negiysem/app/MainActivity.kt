@@ -138,8 +138,10 @@ class MainActivity : Activity() {
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url = request.url
-                if (url.host == "appassets.androidplatform.net") return false
-                runCatching { startActivity(Intent(Intent.ACTION_VIEW, url)) }
+                // Only the app's own bundled page stays in the app (it alone can reach the bridge); web links open in
+                // the browser, e-mail links in the mail app, anything else is ignored.
+                if (url.scheme == "https" && url.host == "appassets.androidplatform.net") return false
+                if (url.scheme == "https" || url.scheme == "mailto") runCatching { startActivity(Intent(Intent.ACTION_VIEW, url)) }
                 return true
             }
 
@@ -166,7 +168,7 @@ class MainActivity : Activity() {
                 } else {
                     pendingGeo = origin to callback
                     requestPermissions(
-                        arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),
+                        arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
                         REQ_LOCATION
                     )
                 }
@@ -224,7 +226,7 @@ class MainActivity : Activity() {
         if (!hasLocation()) {
             val ask = locateWaiting.isEmpty()
             locateWaiting += id
-            if (ask) requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION), REQ_LOCATE)
+            if (ask) requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), REQ_LOCATE)
             return
         }
         locator.locate { loc, err -> answerLocation(id, loc, err) }
@@ -291,10 +293,7 @@ class MainActivity : Activity() {
         if (kind !in NOTIF_KINDS) return
         val ctx = applicationContext
         Store(ctx).setNotif(kind, on)
-        if (!on) {
-            if (kind == "live") { com.negiysem.app.work.Extras.cancel(ctx, 4300); com.negiysem.app.work.Extras.cancel(ctx, 4301) }
-            alertsChanged(); return
-        }
+        if (!on) { com.negiysem.app.work.Extras.cancelKind(ctx, kind); alertsChanged(); return }
         Scheduler.schedule(ctx)
         askNotify()
     }
@@ -495,6 +494,10 @@ class MainActivity : Activity() {
             AlertNotifier.clear(ctx)
             Evening.cancel(ctx)
             com.negiysem.app.work.Extras.clear(ctx)
+            // Nothing left behind: the last shared picture, downloaded translation models, the page's web cache.
+            runCatching { File(cacheDir, "shared").deleteRecursively() }
+            PhoneTranslate.deleteModels(ctx)
+            runOnUiThread { if (!webGone) { web.clearCache(true); android.webkit.WebStorage.getInstance().deleteAllData() } }
             com.negiysem.app.data.WatchSync.clear(ctx)
             CoroutineScope(Dispatchers.IO).launch {
                 runCatching { NeGiysemWidget.pushAll(ctx, "") }

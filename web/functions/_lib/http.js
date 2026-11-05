@@ -29,18 +29,30 @@ export const upstreamError = (message, extra) => new HttpError(502, message, ext
 export function json(body, status = 200, cacheControl = "no-store", extra = {}) {
   return jsonText(JSON.stringify(body), status, cacheControl, extra);
 }
+// Every answer: JSON only, never run or framed as a page.
+export const SAFE = { "x-content-type-options": "nosniff", "content-security-policy": "default-src 'none'; frame-ancestors 'none'", "referrer-policy": "no-referrer" };
 export function jsonText(text, status = 200, cacheControl = "no-store", extra = {}) {
   return new Response(text, {
     status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": cacheControl, ...CORS, ...extra },
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": cacheControl, ...CORS, ...SAFE, ...extra },
   });
 }
+
+/**
+ * Whether an answer came from the cache ("hit", "miss"…), only where NG_DEBUG is on (tests, a preview): on the live
+ * site a stranger could otherwise tell that someone looked up a place lately.
+ */
+export function cacheInfo(context, value) {
+  return context && context.env && context.env.NG_DEBUG === "1" ? { "x-ng-cache": value } : {};
+}
+
+export const tooMany = () => new HttpError(429, "rate_limited");
 
 /** Wraps a GET handler: OPTIONS -> 204 preflight, HEAD -> headers only, other methods -> 405, errors -> JSON {error}. */
 export function route(handler) {
   return async function onRequest(context) {
     const method = context.request.method;
-    if (method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
+    if (method === "OPTIONS") return new Response(null, { status: 204, headers: { ...CORS, ...SAFE } });
     if (method !== "GET" && method !== "HEAD") {
       return json({ error: "method_not_allowed" }, 405, "no-store", { allow: "GET, HEAD, OPTIONS" });
     }

@@ -1,7 +1,7 @@
 // Ne Giysem? service worker: keeps the app shell and its fonts available offline.
 // Weather and location requests always go to the network; the page keeps the last result itself. Nothing outside the
 // site is touched here (the page itself may talk only to its own server and a few weather and map services).
-const SHELL_CACHE = "negiysem-shell-v15";
+const SHELL_CACHE = "negiysem-shell-v16";
 // The app itself is kept as "./" (the site answers /index.html with a redirect to /).
 const SHELL = [
   "./",
@@ -86,5 +86,8 @@ self.addEventListener("fetch", (event) => {
     );
     return;
   }
-  event.respondWith(staleWhileRevalidate(req, SHELL_CACHE));
+  // Only the shell's own files are kept (a query string doesn't make a new copy); anything else goes to the network.
+  var shellPath = SHELL.some(function(u){ return new URL(u, self.location).pathname === url.pathname; });
+  if (!shellPath) return;
+  event.respondWith(staleWhileRevalidate(new Request(url.origin + url.pathname), SHELL_CACHE));
 });

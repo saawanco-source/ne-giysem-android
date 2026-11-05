@@ -94,10 +94,15 @@ test("only the app's own pages may ask, within limits", async () => {
   const none = await call(routeApi, `${ORIGIN}/api/route?${Q}`, { env: KEY });
   assert.equal(none.res.status, 403, "no Origin, no Referer (a script, not the app)");
   for (const h of [{ origin: "https://appassets.androidplatform.net" }, { "sec-fetch-site": "same-origin" },
-    { referer: "https://abc123.ne-giysem.pages.dev/" }, { origin: "http://localhost:8787" }]) {
+    { referer: "https://abc123.ne-giysem.pages.dev/" }]) {
     const r = await atTime(NOW, () => call(routeApi, `${ORIGIN}/api/route?${Q}`, { env: KEY, headers: h }));
     assert.equal(r.res.status, 200, JSON.stringify(h));
   }
+  // A local copy only where DEV_ORIGINS is on, never on the live site.
+  const loc = await atTime(NOW, () => call(routeApi, `${ORIGIN}/api/route?${Q}`, { env: KEY, headers: { origin: "http://localhost:8787" } }));
+  assert.equal(loc.res.status, 403);
+  const locDev = await atTime(NOW, () => call(routeApi, `${ORIGIN}/api/route?${Q}`, { env: { ...KEY, DEV_ORIGINS: "1" }, headers: { origin: "http://localhost:8787" } }));
+  assert.equal(locDev.res.status, 200);
   const bad = async (q) => (await atTime(NOW, () => call(routeApi, `${ORIGIN}/api/route?${q}`, { env: KEY, headers: APP }))).body.error;
   assert.equal(await bad("from=41.04,29.00&to=39.92,32.85&depart=2026-10-27T05:30:00Z"), "too_far");
   assert.equal(await bad("from=41.04,29.00&to=41.04,29.00&depart=2026-10-27T05:30:00Z"), "same_place");

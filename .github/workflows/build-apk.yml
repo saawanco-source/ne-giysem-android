@@ -18,8 +18,9 @@ on:
         type: boolean
         default: false
 
+# Read only by default; the two jobs that publish releases ask for write themselves.
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: build-${{ github.ref }}
@@ -153,6 +154,8 @@ jobs:
 
   build:
     needs: [web-tests, parity, api-tests, watchface]
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -168,7 +171,7 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
         with:
           gradle-version: "8.14.6"
 
@@ -214,12 +217,11 @@ jobs:
             echo "mode=debug" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          {
-            echo "NG_KEYSTORE_FILE=$ks"
-            echo "NG_KEYSTORE_PASSWORD=$pw"
-            echo "NG_KEY_ALIAS=$alias"
-            echo "NG_KEY_PASSWORD=$keypw"
-          } >> "$GITHUB_ENV"
+          # The passwords go only to the build step (a file it reads, deleted right after it), not to $GITHUB_ENV, where
+          # every later step and action of the job could read them.
+          umask 077
+          { printf 'export NG_KEYSTORE_FILE=%q\n' "$ks"; printf 'export NG_KEYSTORE_PASSWORD=%q\n' "$pw"
+            printf 'export NG_KEY_ALIAS=%q\n' "$alias"; printf 'export NG_KEY_PASSWORD=%q\n' "$keypw"; } > "$RUNNER_TEMP/ng-sign.env"
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
 
       - name: Uygulamayı derle
@@ -227,8 +229,12 @@ jobs:
           MODE: ${{ steps.key.outputs.mode }}
         run: |
           set -o pipefail
-          if [ "$MODE" = debug ]; then tasks="assembleDebug"; else tasks="bundleRelease assembleRelease"; fi
+          if [ "$MODE" = debug ]; then tasks="assembleDebug"; else tasks="bundleRelease assembleRelease"; . "$RUNNER_TEMP/ng-sign.env"; fi
           gradle $tasks --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: İmza dosyalarını sil
+        if: always()
+        run: rm -f "$RUNNER_TEMP/ng-sign.env" "$RUNNER_TEMP/upload-key.p12"
 
       # Job logs cannot always be opened: the key lines also go into the run's annotations.
       - name: Derleme hatasını özetle
@@ -438,7 +444,7 @@ jobs:
       # published only as APKs: the .aab files Play takes are never next to a test build, so one can't be uploaded by mistake.
       - name: Sürümler sayfasında yayınla
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && steps.key.outputs.mode == 'release' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: ${{ env.REL_TAG }}
           target_commitish: ${{ github.sha }}
@@ -450,6 +456,8 @@ jobs:
   # The widget drawn on an emulator at many sizes, texts and font sizes: nothing may overlap, stick out or be clipped.
   # Its pictures and report are added to the release. For now it only reports; it doesn't stop the release.
   widget-look:
+    permissions:
+      contents: write
     name: Widget görünümü (emülatör)
     needs: build
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
@@ -461,7 +469,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
         with:
           gradle-version: "8.14.6"
       - name: Uygulamayı ve testi derle
@@ -472,7 +480,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Emülatörde çiz ve denetle
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
         with:
           api-level: 34
           arch: x86_64

@@ -75,7 +75,8 @@ try {
 
   const two = await get(forecast, "/api/forecast?latitude=41.01,52.52&longitude=28.98,13.41");
   check(two.res.status === 200 && Array.isArray(two.body) && two.body.length === 2, "array answer for two places");
-  check((two.res.headers.get("x-ng-cache") || "").startsWith("hit"), "second İstanbul request served from the cache");
+  // (the live site sends x-ng-cache only where NG_DEBUG is on)
+  if (two.res.headers.get("x-ng-cache") != null) check(two.res.headers.get("x-ng-cache").startsWith("hit"), "second İstanbul request served from the cache");
   if (Array.isArray(two.body)) checkForecast("Berlin", two.body[1], [3600, 7200]);
 
   for (const s of seen) {

@@ -7,7 +7,7 @@
      `node tools/csp.js`; the web tests check) and talk only to its own server and, when that can't be reached, to MET
      Norway, Photon and BigDataCloud directly. No other site gets anything from this page. AdSense, a custom domain or a
      new service must be added here first. The site adds the rest (framing, HTTPS) in web/_headers. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-hNMDDgwt0WMAYyAOnf6OZ1bQh1HTMsjmjwYdQy1Oi/E='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-QwVyTNchllsuXlYxN9eAsA9AqA6YkZ88nBb4F2mzMSA='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
 <meta name="referrer" content="same-origin">
 <!-- The app's own server; the Android build puts the preview site's address here for a test build. -->
 <meta name="ng-api" content="https://ne-giysem.pages.dev">
@@ -1131,7 +1131,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   function low(s){ return LANG === "en" ? lcf(String(s)) : String(s).toLocaleLowerCase("tr"); }
   // A phrase that continues a sentence: English lower-cases its first letter, Turkish keeps it as written.
   function inner(s){ return LANG === "en" ? lcf(s) : s; }
-  function hm(t){ return t ? String(t).slice(11,16) : ""; }
+  function hm(t){ var v = t ? String(t).slice(11,16) : ""; return /^\d\d:\d\d$/.test(v) ? v : ""; }
   function num(v, d){ return Number(v).toLocaleString(loc(), {maximumFractionDigits: d || 0}); }
   function smooth(){ return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"; }
   function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
@@ -1162,7 +1162,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     var l = S.lang === "auto" ? xlTarget() : "", A = window.NeGiysemAndroid;
     XL.want = !!l; XL.lang = l; XL.on = false; XL.q = []; XL.pend = {};
     if (!l) { XL.state = ""; return; }
-    try { var c = JSON.parse(localStorage.getItem(KEY + ":xl") || "null"); XL.cache = c && c.lang === l && c.map && typeof c.map === "object" ? c.map : {}; } catch (e) { XL.cache = {}; }
+    try { var c = JSON.parse(localStorage.getItem(KEY + ":xl") || "null"); XL.cache = {};
+      if (c && c.lang === l && c.map && typeof c.map === "object") Object.keys(c.map).forEach(function(k){ if (typeof c.map[k] === "string") XL.cache[k] = c.map[k].replace(/[<>]/g, ""); }); } catch (e) { XL.cache = {}; }
     var st = ""; try { st = String(A.xlState(l)); } catch (e) {}
     XL.state = st; XL.on = st === "ready";
   }
@@ -2656,7 +2657,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   // How heavy the rain is, hour by hour (0; 1 "Dikkat"; 2 "Tehlikeli"): an hour of 8 (15) mm, or every wet hour (1 mm or
   // more) of a six-hour spell bringing 20 (40) mm, so a warning lasts as long as the rain. Only amounts count, never
   // the symbol (MET Norway calls 1 mm an hour "heavy rain" already). The warning and the outfit both use it.
+  // (kept per forecast: wxAt() asks for one hour of it many times a draw)
+  var RL_MEMO = typeof WeakMap === "function" ? new WeakMap() : null;
   function rainLevels(H){
+    if (RL_MEMO && H && typeof H === "object") { var m0 = RL_MEMO.get(H); if (m0 && m0.n === (Array.isArray(H.time) ? H.time.length : 0)) return m0.lv; var lv0 = rainLevels0(H); RL_MEMO.set(H, {n:Array.isArray(H.time) ? H.time.length : 0, lv:lv0}); return lv0; }
+    return rainLevels0(H);
+  }
+  function rainLevels0(H){
     var P = H && Array.isArray(H.precipitation) ? H.precipitation : [], C = H && Array.isArray(H.weather_code) ? H.weather_code : [];
     var n = H && Array.isArray(H.time) ? H.time.length : 0, lv = [], j, q;
     var mm = function(k){ var v = P[k]; return typeof v === "number" && isFinite(v) ? v : null; };
@@ -2849,7 +2856,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     wearEl.innerHTML = p.wear.map(function(w, i){
       return '<div class="stk ' + (rackKind(w.g) === "floor" ? "floor" : "hang") + (w.need ? ' need' : '') + '" data-k="w:' + i + '" tabindex="0" role="button" aria-label="' + esc(w.label + ": " + w.why.join(", ")) + '"><div class="art">' + rackArt(w.g) + '</div><span class="lab">' + esc(w.label) + '</span></div>';
     }).join("");
-    if (sig !== lastWearSig) { wearEl.classList.remove("pop"); void wearEl.offsetWidth; wearEl.classList.add("pop"); lastWearSig = sig; }
+    // the stickers pop in again when the outfit changes (restarted on the next frames, without forcing a layout now)
+    if (sig !== lastWearSig) { wearEl.classList.remove("pop"); lastWearSig = sig; requestAnimationFrame(function(){ requestAnimationFrame(function(){ wearEl.classList.add("pop"); }); }); }
     var tk = $("take");
     tk.hidden = !p.take.length;
     tk.innerHTML = '<span class="tl">' + esc(tx("Yanına al")) + '</span>' + p.take.map(function(t, i){
@@ -2993,7 +3001,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     if (e && (e.state === "loading" || Date.now() - e.at < GR_TTL)) return e;
     var a = placeById(it.trip.from), b = placeById(it.trip.to);
     e = GR.byKey[key] = {state:"loading", at:Date.now()};
-    var url = API + "/api/route?from=" + (+a.lat).toFixed(5) + "," + (+a.lon).toFixed(5) + "&to=" + (+b.lat).toFixed(5) + "," + (+b.lon).toFixed(5) +
+    // (rounded to about 100 m, like every other place the app sends: never the exact door)
+    var url = API + "/api/route?from=" + (+a.lat).toFixed(3) + "," + (+a.lon).toFixed(3) + "&to=" + (+b.lat).toFixed(3) + "," + (+b.lon).toFixed(3) +
       "&depart=" + encodeURIComponent(new Date(it.start).toISOString()) + "&lang=" + LANG;
     fetch(url).then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {r:r, j:j}; }); }).then(function(x){
       if (x.r.ok && x.j && Array.isArray(x.j.routes)) { e.state = "ok"; e.data = x.j; }
@@ -3314,12 +3323,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   }
 
   /* ---- this week ---- */
-  var WEEK_OPEN = {};
+  var WEEK_OPEN = {}, WEEK_HTML = "";
   function renderWeek(live){
     var card = $("weekCard"), days = live && S.live && S.live.wx ? weekDays(S.live.wx, prefs()) : [];
     card.hidden = !days.length;
     if (!days.length) return;
-    $("week").innerHTML = days.map(function(d){
+    var weekHtml = days.map(function(d){
       var p = d.p, k = keyItems(p), open = !!WEEK_OPEN[d.date], id = "wk-" + d.date, rainy = p.wet || p.pMax >= 30;
       var name = d.off <= 1 ? esc(d.long) : '<span class="wk-l">' + esc(d.long) + '</span><span class="wk-s">' + esc(d.short) + '</span>';
       var facts = [tx("Hissedilen {0} – {1}", deg(d.lo), deg(d.hi))];
@@ -3336,6 +3345,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
         '<p class="tsum">' + esc(tx("Giy: ")) + esc(p.wear.map(function(w){ return w.label; }).join(", ")) + (p.take.length ? esc(tx(" · Yanına al: ")) + esc(p.take.map(function(t){ return t.label; }).join(", ")) : '') + '</p>' +
         '<p class="tsum">' + esc(facts.join(" · ")) + '</p></div></li>';
     }).join("");
+    if (weekHtml !== WEEK_HTML) { $("week").innerHTML = weekHtml; WEEK_HTML = weekHtml; } // unchanged: no new nodes
   }
 
   /* ---- rain coming ---- */
@@ -4818,6 +4828,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     return {"ı":"i", "ş":"s", "ç":"c", "ğ":"g", "ö":"o", "ü":"u", "â":"a", "î":"i", "û":"u"}[l] || l;
   }
   function markMatch(name, q){
+    name = String(name == null ? "" : name);
     var fn = String(name).split("").map(fold1).join(""), fq = fold(q), i = fq ? fn.indexOf(fq) : -1;
     if (i < 0) return esc(name);
     return esc(name.slice(0, i)) + "<mark>" + esc(name.slice(i, i + fq.length)) + "</mark>" + esc(name.slice(i + fq.length));
@@ -5362,13 +5373,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       foot = esc(en ? "Preview: while this page is open in the Claude desktop app, live weather is read from Open-Meteo.com through Claude's browser. The installable app uses the device's location."
         : "Önizleme: canlı hava, bu sayfa Claude masaüstü uygulamasında açıkken Claude'un tarayıcısıyla Open-Meteo.com'dan okunur. Yüklenebilir uygulama sürümü cihaz konumunu kullanır.");
     } else if (API) {
-      var policy = (location.origin === API ? "" : API + "/") + tx("gizlilik.html");
+      var policy = esc((location.origin === API ? "" : API + "/") + (LANG === "en" ? "privacy.html" : "gizlilik.html"));
       var MET = '<a href="https://www.met.no/en"' + A + '>MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/"' + A + '>CC BY 4.0</a>, ', OSM = '<a href="https://www.openstreetmap.org/copyright"' + A + '>';
       wx = en ? "Weather data: " + MET + "adapted)" : "Hava verisi: " + MET + "uyarlanmıştır)";
       foot = (en ? 'Weather data comes from MET Norway (CC BY 4.0, adapted); place search and place names come from Photon (map data © ' + OSM + 'OpenStreetMap contributors</a>). ' +
-          "Your location is sent to the app's server only to find the weather and the place name; your settings and the last weather fetched are stored on this device only. "
+          "Your location is sent to the app's server, rounded, only to find the weather and the place name (and, if you turn route suggestions on, your trips' rounded start and end points for the routes); your settings, routine, warnings and the last weather fetched are stored on this device only. "
         : 'Hava verisi MET Norway’den (CC BY 4.0, uyarlanmıştır), yer arama ve yer adları Photon üzerinden alınır (harita verisi © ' + OSM + 'OpenStreetMap katkıda bulunanlar</a>). ' +
-          'Konumun yalnızca hava durumunu ve yer adını bulmak için uygulamanın sunucusuna gönderilir; ayarların ve son alınan hava sadece bu cihazda saklanır. ') +
+          'Konumun yuvarlanarak yalnızca hava durumunu ve yer adını bulmak için uygulamanın sunucusuna gönderilir (rota önerilerini açarsan yolculuklarının yuvarlanmış başlangıç ve varış noktaları da rotalar için); ayarların, rutinin, uyarıların ve son alınan hava sadece bu cihazda saklanır. ') +
         '<a href="' + policy + '"' + A + '>' + tx("Gizlilik") + '</a>' +
         (adsOn() || adPrivacyInApp() ? ' · <button type="button" class="lnk" id="adPrefs">' + tx("Reklam tercihleri") + '</button>' : '');
     } else {

@@ -55,7 +55,9 @@ object MetDirect {
                 val lib = context.assets.open("www/forecast-lib.js").bufferedReader(Charsets.UTF_8).use { it.readText() }
                 isolate.evaluateJavaScriptAsync("$lib\n;typeof NGForecast").get(15, TimeUnit.SECONDS)
                 return cells.map { cell ->
-                    val js = "JSON.stringify(NGForecast.fromMet(${met.getValue(cell)}, ${cell.first}, ${cell.second}, $now))"
+                    // MET's answer goes in as data (checked JSON, re-serialised), never as code of its own.
+                    val metJson = JSONObject(met.getValue(cell)).toString()
+                    val js = "JSON.stringify(NGForecast.fromMet($metJson, ${cell.first}, ${cell.second}, $now))"
                     JSONObject(isolate.evaluateJavaScriptAsync(js).get(20, TimeUnit.SECONDS))
                 }
             } finally {

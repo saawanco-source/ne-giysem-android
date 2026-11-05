@@ -67,7 +67,17 @@ object Extras {
     }
 
     fun cancel(context: Context, id: Int) = NotificationManagerCompat.from(context).cancel(id)
+    /** Cancels the notes of one kind ("live", "depart", "hourly", "rules"), e.g. when it's turned off. */
+    fun cancelKind(context: Context, kind: String) {
+        when (kind) {
+            "live" -> { cancel(context, ID_LIVE_RAIN); cancel(context, ID_LIVE_TRIP); WorkManager.getInstance(context).cancelUniqueWork(LIVE) }
+            "depart" -> { cancel(context, ID_DEPART); WorkManager.getInstance(context).cancelUniqueWork(DEPART) }
+            "hourly" -> cancel(context, ID_HOURLY)
+            "rules" -> for (i in 0 until 90) cancel(context, ID_RULE + i)
+        }
+    }
     fun clear(context: Context) {
+        listOf("live", "depart", "hourly", "rules").forEach { cancelKind(context, it) }
         listOf(ID_LIVE_RAIN, ID_LIVE_TRIP, ID_DEPART, ID_HOURLY).forEach { cancel(context, it) }
         WorkManager.getInstance(context).cancelUniqueWork(DEPART)
         WorkManager.getInstance(context).cancelUniqueWork(LIVE)
@@ -88,6 +98,15 @@ object Extras {
 
     @SuppressLint("MissingPermission")
     private fun post(context: Context, id: Int, n: android.app.Notification) { runCatching { NotificationManagerCompat.from(context).notify(id, n) } }
+
+    /**
+     * On a locked phone only a neutral line shows (no place names, times or the person's own words): the full note
+     * appears once the phone is unlocked, whatever the lock-screen setting.
+     */
+    fun privateOnLock(context: Context, b: NotificationCompat.Builder, channel: String, en: Boolean, title: String, text: String): NotificationCompat.Builder =
+        b.setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setPublicVersion(
+            NotificationCompat.Builder(context, channel).setSmallIcon(R.drawable.ic_stat_shirt).setContentTitle(title).setContentText(text).build()
+        )
 
     /** Asks Android 16 to show an ongoing note as a Live Update (lock screen, status-bar chip); older versions ignore it. */
     private fun promoted(b: NotificationCompat.Builder): NotificationCompat.Builder = b.addExtras(Bundle().apply { putBoolean("android.requestPromotedOngoing", true) })
@@ -169,6 +188,7 @@ object Extras {
             .setOngoing(true).setOnlyAlertOnce(true).setSilent(true).setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setProgress(total, done, false).setContentIntent(open(context)).setWhen(cur.end).setUsesChronometer(true).setChronometerCountDown(true)
             .setTimeoutAfter((cur.end - now).coerceAtLeast(MIN))
+        privateOnLock(context, b, "live", e, "Ne Giysem?", if (e) "Trip under way · ${total - done} min to go" else "Yolculuk sürüyor · ${total - done} dk kaldı")
         post(context, ID_LIVE_TRIP, promoted(b).build())
     }
 
@@ -178,7 +198,7 @@ object Extras {
     private fun scheduleDepart(context: Context, r: Day.Routine, now: Long) {
         val store = Store(context)
         // The next trip whose note hasn't gone yet (each trip: home to school in the morning, back in the evening).
-        val leg = Day.legs(r, now).firstOrNull { it.start - 40 * MIN > now - MIN && store.sent("depart") != dayOf(it.start) + "|" + it.trip.id } ?: return
+        val leg = Day.legs(r, now).firstOrNull { it.start - 40 * MIN > now + MIN && store.sent("depart") != dayOf(it.start) + "|" + it.trip.id } ?: return
         val at = leg.start - 40 * MIN
         WorkManager.getInstance(context).enqueueUniqueWork(DEPART, ExistingWorkPolicy.REPLACE,
             OneTimeWorkRequestBuilder<DepartWorker>().setInitialDelay((at - now).coerceAtLeast(0), TimeUnit.MILLISECONDS).build())
@@ -205,11 +225,12 @@ object Extras {
             if (plan.take.isNotEmpty()) (if (e) " · Take: " else " · Yanına al: ") + plan.take.joinToString(", ") { it.label } else ""
         val w = words(context, store, listOf(title, head, wear))
         channel(context, "depart", "Çıkış öncesi", "Before you leave", store.lang, NotificationManager.IMPORTANCE_DEFAULT)
-        val n = NotificationCompat.Builder(context, "depart")
+        val nb = NotificationCompat.Builder(context, "depart")
             .setSmallIcon(R.drawable.ic_stat_shirt).setContentTitle(w[0]).setContentText(w[1])
             .setStyle(NotificationCompat.BigTextStyle().bigText(w[1] + "\n" + w[2]))
             .setCategory(NotificationCompat.CATEGORY_REMINDER).setContentIntent(open(context)).setAutoCancel(true)
-            .setTimeoutAfter((leg.end - now).coerceAtLeast(30 * MIN)).build()
+            .setTimeoutAfter((leg.end - now).coerceAtLeast(30 * MIN))
+        val n = privateOnLock(context, nb, "depart", e, "Ne Giysem?", if (e) "Leaving in $mins min: what to wear" else "$mins dk sonra çıkıyorsun: ne giyeceğin").build()
         post(context, ID_DEPART, n)
         store.markSent("depart", key)
     }
@@ -288,11 +309,12 @@ object Extras {
             val title = (if (at <= now + HOUR) (if (e) "Now" else "Şimdi") else hm(at)) + " · " + shown
             val w = words(context, store, listOf(title, r.optString("why")))
             channel(context, "rules", "Uyarılarım", "My warnings", store.lang, NotificationManager.IMPORTANCE_DEFAULT)
-            val notif = NotificationCompat.Builder(context, "rules")
+            val nb = NotificationCompat.Builder(context, "rules")
                 .setSmallIcon(R.drawable.ic_stat_warn).setContentTitle(w[0]).setContentText(w[1])
                 .setStyle(NotificationCompat.BigTextStyle().bigText(w[1]))
                 .setCategory(NotificationCompat.CATEGORY_REMINDER).setContentIntent(open(context)).setAutoCancel(true)
-                .setTimeoutAfter((at - now).coerceAtLeast(0) + 2 * HOUR).build()
+                .setTimeoutAfter((at - now).coerceAtLeast(0) + 2 * HOUR)
+            val notif = privateOnLock(context, nb, "rules", e, w[0], if (e) "One of your warnings" else "Uyarılarından biri").build()
             post(context, ID_RULE + (n % 90), notif)
             sentToday.add(id)
         }

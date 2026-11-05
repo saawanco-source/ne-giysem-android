@@ -8,6 +8,8 @@
 // the Routes API with a daily quota in Google Cloud; on top of that each visitor gets at most RATE_PER_HOUR answers
 // an hour, and only the app's own pages may ask.
 import { route, json, badRequest, coord, HttpError, upstreamError } from "../_lib/http.js";
+import { counted, visitor, visitorTag } from "../_lib/rate.js";
+export { visitor, visitorTag };
 
 const GOOGLE = "https://routes.googleapis.com/directions/v2:computeRoutes";
 export const RATE_PER_HOUR = 30;
@@ -24,7 +26,7 @@ export const FIELD_MASK = [
  * own origin whatever its domain ([self], e.g. negiysem.com once attached) and any origins listed in the
  * ALLOWED_ORIGINS variable ([extra], comma-separated: "https://negiysem.com,https://www.negiysem.com").
  */
-export function allowedOrigin(o, self, extra) {
+export function allowedOrigin(o, self, extra, dev) {
   if (!o) return false;
   let u;
   try { u = new URL(o); } catch (e) { return false; }
@@ -32,30 +34,20 @@ export function allowedOrigin(o, self, extra) {
   if (extra && String(extra).split(",").map((x) => x.trim().replace(/\/$/, "")).filter(Boolean).includes(u.origin)) return true;
   if (u.protocol === "https:" && (u.hostname === "ne-giysem.pages.dev" || u.hostname.endsWith(".ne-giysem.pages.dev"))) return true;
   if (u.protocol === "https:" && u.hostname === "appassets.androidplatform.net") return true;
-  return (u.protocol === "http:" || u.protocol === "https:") && (u.hostname === "localhost" || u.hostname === "127.0.0.1");
+  // Local copies only where DEV_ORIGINS is on (a development or preview setup), never on the live site.
+  return !!(dev && (u.protocol === "http:" || u.protocol === "https:") && (u.hostname === "localhost" || u.hostname === "127.0.0.1"));
 }
 
 // These headers keep other web pages from spending the key; a script can still send them, so the real cap is the
 // daily quota set on the key in Google Cloud (DEPLOY.md), with the per-visitor limit below on top.
 function fromApp(request, env) {
-  const h = request.headers, self = new URL(request.url).origin, extra = env && env.ALLOWED_ORIGINS;
-  if (allowedOrigin(h.get("origin"), self, extra)) return true;
+  const h = request.headers, self = new URL(request.url).origin, extra = env && env.ALLOWED_ORIGINS, dev = !!(env && env.DEV_ORIGINS === "1");
+  if (allowedOrigin(h.get("origin"), self, extra, dev)) return true;
   // Same-site GETs carry no Origin; browsers say so in Sec-Fetch-Site, and the Referer names the page.
   if (h.get("sec-fetch-site") === "same-origin") return true;
   const ref = h.get("referer");
-  if (ref) { try { return allowedOrigin(new URL(ref).origin, self, extra); } catch (e) { return false; } }
+  if (ref) { try { return allowedOrigin(new URL(ref).origin, self, extra, dev); } catch (e) { return false; } }
   return false;
-}
-
-/** The visitor for rate limiting: the IPv4 address, or the /64 network of an IPv6 one (one home or phone line). */
-export function visitor(ip) {
-  const a = String(ip || "?").trim();
-  if (a.indexOf(":") < 0) return a;
-  let parts = a.split("::");
-  if (parts.length > 2) return a;
-  const head = parts[0] ? parts[0].split(":") : [], tail = parts.length === 2 && parts[1] ? parts[1].split(":") : [];
-  const full = parts.length === 2 ? head.concat(Array(Math.max(0, 8 - head.length - tail.length)).fill("0"), tail) : head;
-  return full.slice(0, 4).map((x) => (x || "0").toLowerCase().replace(/^0+(?=.)/, "")).join(":") + "::/64";
 }
 
 function point(v, name) {
@@ -70,34 +62,11 @@ function km(a, b) {
   return 12742 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-/**
- * The counter's name for a visitor in one hour: an HMAC of the address (an IPv6 /64) and the hour, keyed with the
- * server's secret, so the edge cache never holds an IP address, and the name can't be turned back into one (an
- * unkeyed hash of an IPv4 address could be, by trying them all) nor linked from one hour to the next.
- */
-export async function visitorTag(ip, hour, secret) {
-  const enc = new TextEncoder();
-  const k = await crypto.subtle.importKey("raw", enc.encode("ng-rate:" + secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(visitor(ip) + "|" + hour)));
-  return Array.from(sig.slice(0, 16), (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-/** At most RATE_PER_HOUR answers per visitor and hour, counted in the edge cache (per data centre; best effort). */
-async function underLimit(request, secret) {
-  const cache = globalThis.caches && globalThis.caches.default;
-  if (!cache) return true;
-  const hour = Math.floor(Date.now() / 3600e3);
-  const tag = await visitorTag(request.headers.get("cf-connecting-ip"), hour, secret);
-  const key = `${new URL(request.url).origin}/__ng-rate/route/${tag}/${hour}`;
-  try {
-    const hit = await cache.match(key);
-    const n = hit ? Number(await hit.text()) || 0 : 0;
-    if (n >= RATE_PER_HOUR) return false;
-    // Gone at the end of this hour at the latest (the next hour has another name anyway).
-    const left = Math.max(1, 3600 - Math.floor(Date.now() / 1000) % 3600);
-    await cache.put(key, new Response(String(n + 1), { headers: { "cache-control": `public, max-age=${left}` } }));
-  } catch (e) { /* a broken counter must not stop the feature */ }
-  return true;
+/** At most RATE_PER_HOUR answers per visitor and hour, and ROUTE_DAILY_MAX (default 1000) a day for everyone together,
+ *  counted in the edge cache (per data centre; best effort; the hard cap is the key's daily quota in Google Cloud). */
+async function underLimit(request, secret, env) {
+  const dayMax = Math.max(1, Number(env && env.ROUTE_DAILY_MAX) || 1000);
+  return (await counted(request, secret, "route", RATE_PER_HOUR, 3600)) && (await counted(request, secret, "route-all", dayMax, 86400, "all"));
 }
 
 const seconds = (d) => { const m = /^(\d+(?:\.\d+)?)s$/.exec(String(d || "")); return m ? Math.round(Number(m[1])) : 0; };
@@ -185,9 +154,10 @@ export const onRequest = route(async (context, url) => {
   const lang = url.searchParams.get("lang") === "en" ? "en" : "tr";
   // RATE_SECRET (optional, any long random text) names the rate counters; without it the Google key does.
   const rateSecret = context.env && typeof context.env.RATE_SECRET === "string" && context.env.RATE_SECRET.trim() ? context.env.RATE_SECRET.trim() : key;
-  if (!(await underLimit(context.request, rateSecret))) throw new HttpError(429, "rate_limited");
+  if (!(await underLimit(context.request, rateSecret, context.env))) throw new HttpError(429, "rate_limited");
 
-  const ll = (p) => ({ location: { latLng: { latitude: Math.round(p.lat * 1e5) / 1e5, longitude: Math.round(p.lon * 1e5) / 1e5 } } });
+  // About 100 m: never the exact door (the page sends 3 decimals too).
+  const ll = (p) => ({ location: { latLng: { latitude: Math.round(p.lat * 1e3) / 1e3, longitude: Math.round(p.lon * 1e3) / 1e3 } } });
   const body = {
     origin: ll(from), destination: ll(to), travelMode: "TRANSIT", computeAlternativeRoutes: true,
     // A time already past is asked for as "now" (Google plans transit from the timetable onwards).
@@ -207,7 +177,7 @@ export const onRequest = route(async (context, url) => {
   if (!res.ok) {
     let status = "";
     try { status = (JSON.parse(text).error || {}).status || ""; } catch (e) { /* not JSON */ }
-    console.error("google routes", res.status, status, text.slice(0, 300));
+    console.error("google routes", res.status, status); // (not the body: it can quote the points sent)
     if (res.status === 429 || status === "RESOURCE_EXHAUSTED") throw new HttpError(429, "quota");
     throw upstreamError("routes_failed", { upstream: res.status });
   }

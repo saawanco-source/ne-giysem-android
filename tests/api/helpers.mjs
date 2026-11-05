@@ -47,7 +47,8 @@ export async function call(mod, url, { method = "GET", env = {}, cf, headers } =
   const request = new Request(url, { method, headers });
   if (cf !== undefined) Object.defineProperty(request, "cf", { value: cf });
   const pending = [];
-  const context = { request, env, params: {}, waitUntil: (p) => pending.push(p), next: () => { throw new Error("next"); }, data: {} };
+  // NG_DEBUG: the tests read the x-ng-cache header, which the live site doesn't send.
+  const context = { request, env: { NG_DEBUG: "1", ...env }, params: {}, waitUntil: (p) => pending.push(p), next: () => { throw new Error("next"); }, data: {} };
   const res = await mod.onRequest(context);
   await Promise.all(pending);
   const text = method === "HEAD" || res.status === 204 ? "" : await res.text();

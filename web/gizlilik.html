@@ -124,7 +124,7 @@ footer .chip{color:var(--ink)}
       <ul class="dots">
         <li><strong>Hesap yok.</strong> Adını, e-postanı ya da telefon numaranı istemeyiz.</li>
         <li><strong>Verilerin cihazında.</strong> Ayarların, yerlerin, Günüm rutinin, profillerin ve Dolabım listen bize gelmez.</li>
-        <li><strong>Konum yalnızca hava için.</strong> Konumun ya da seçtiğin yerin koordinatları, hava durumunu ve yer adını bulmak için kendi sunucumuza gider. Sunucu bunları yuvarlayarak hava ve harita servislerine iletir; konum geçmişi tutmaz.</li>
+        <li><strong>Konum yalnızca hava için.</strong> Konumun ya da seçtiğin yerin koordinatları, hava durumunu ve yer adını bulmak için kendi sunucumuza gider. Sunucu bunları yuvarlayarak (yaklaşık 1 km ya da 100 m) hava, harita ve rota servislerine iletir; konum geçmişi tutmaz.</li>
         <li><strong>Reklam ve ortaklık linkleri var.</strong> Android uygulamasında Google AdMob, web sitesinde Google AdSense reklamları gösterilir. Bazı kıyafetlerin yanında “Satın al / ortaklık linki” bağlantıları bulunur. Hepsi açıkça etiketlenir.</li>
         <li><strong>Tek dokunuşla sil.</strong> “Tüm verilerimi sil” düğmesi cihazındaki her şeyi siler.</li>
       </ul>
@@ -170,7 +170,10 @@ footer .chip{color:var(--ink)}
         <li>Kayıtlı yerlerin: verdiğin ad (ör. “Ev”, “Okul”) ve koordinatları.</li>
         <li>Günüm rutinin: yolculukların, saatleri, günleri, yürüyüş, durakta bekleme ve toplu taşıma adımları.</li>
         <li>Profillerin (ör. bir çocuk profili) ve Dolabım’da sahip olduğunu işaretlediğin kıyafetler.</li>
-        <li>Bavul listesi seçimlerin, kapattığın yağmur uyarısı, son alınan hava durumu (çevrimdışı çalışmak için) ve son bulunan konumun.</li>
+        <li>Bavul listesi seçimlerin (seçtiğin tarihler dahil), kapattığın yağmur uyarısı, son alınan hava durumu (çevrimdışı çalışmak için) ve son bulunan konumun.</li>
+        <li>Kendi yazdığın uyarılar (sınırları ve nedenleri), “Bugün nasıldı?” cevaplarınla oluşan kişisel ayar ve bir çocuğun okul saatleri.</li>
+        <li>“Dünden daha soğuk” karşılaştırması için son birkaç günün saatlik hissedilen sıcaklığı (yaklaşık 10 km’ye yuvarlanmış bir yer için) ve “Ayın özeti” için son 70 günün günlük kaydı (seviye, en düşük/yüksek hissedilen, birkaç kıyafet parçası).</li>
+        <li>Telefonda çeviri açıksa çevrilmiş metinlerin önbelleği; Android uygulamasının son hata ve çökme kayıtları.</li>
       </ul>
       <p>Bunlar web sitesinde tarayıcının yerel depolamasında (localStorage) tutulur; uygulama dosyaları çevrimdışı çalışmak için tarayıcı önbelleğine alınır. Android uygulamasında uygulamanın kendi depolamasında durur; ana ekran widget’ı seçili yeri, ayarlarını ve rutinini uygulamanın içinde ayrı bir dosyada tutar. Android uygulamasının verileri Google yedeklemesine dahil edilmez. <strong>Bu verileri biz göremeyiz;</strong> sunucumuza yalnızca hava durumu için gereken koordinatlar gider (aşağıda).</p>
 
@@ -202,7 +205,7 @@ footer .chip{color:var(--ink)}
         <li><strong>Yalnızca sen istediğinde.</strong> Konum, uygulamayı açtığında, havayı yenilediğinde ya da “Şu an bulunduğum yeri kaydet” dediğinde istenir. Android’de “Yaklaşık” konum izni yeterlidir. Konum izni vermeden de bir yer arayıp seçebilir ya da havayı elle ayarlayabilirsin.</li>
         <li><strong>Arka planda konum yok.</strong> Uygulama arka planda konumuna bakmaz. Ana ekrana bir widget eklediysen widget, uygulamada en son kullandığın yerin kayıtlı koordinatlarıyla havayı yaklaşık 30 dakikada bir yeniler (henüz bir yer yoksa IP adresinden tahmin edilen yaklaşık konumla). Son widget’ı kaldırınca bu yenileme durur. <strong>Hava uyarısı bildirimlerini</strong> açtıysan (“Sana göre” → Hava uyarıları) aynı yenileme widget olmasa da sürer; tahmindeki tehlikeli havayı telefonun kendisi hesaplar ve bildirimi telefonun kendisi gösterir, bunun için ek bir veri gönderilmez. Bildirimleri kapatınca (ve widget yoksa) yenileme durur.</li>
         <li><strong>Sunucuda yuvarlama.</strong> Sunucumuz koordinatları hava durumu için yaklaşık 1 km’lik hücrelere (virgülden sonra 2 hane), yer adı ve arama sıralaması için yaklaşık 100 m’ye (3 hane) yuvarlar. MET Norway ve Photon’a yalnızca bu yuvarlanmış değerler ve arama metni, sunucumuzun kendi adıyla gider; IP adresin ve cihaz bilgin iletilmez.</li>
-        <li><strong>Ortak önbellek.</strong> Aynı bölgedeki herkes için tekrar kullanılmak üzere hava tahminleri ve yer adları, yuvarlanmış koordinatlara (aramalarda arama metnine) göre Cloudflare önbelleğinde tutulur: hava tahminleri birkaç saat, aramalar birkaç gün, yer adları en fazla iki ay. Bu kayıtlar seninle ya da cihazınla ilişkilendirilmez.</li>
+        <li><strong>Ortak önbellek.</strong> Aynı bölgedeki herkes için tekrar kullanılmak üzere hava tahminleri ve yer adları, yuvarlanmış koordinatlara (aramalarda arama metnine) göre Cloudflare önbelleğinde tutulur: hava tahminleri en fazla yaklaşık bir gün, aramalar birkaç gün, yer adları en fazla iki ay. Bu kayıtlar seninle ya da cihazınla ilişkilendirilmez.</li>
         <li><strong>Konum geçmişi yok.</strong> Gelen koordinatları bir veritabanına yazmayız ve konum geçmişini tutmayız. Barındırma sağlayıcımız Cloudflare hizmeti işletmek ve korumak için kendi standart istek kayıtlarını tutar (<a href="#saklama">9. bölüm</a>).</li>
       </ul>
     </section>
@@ -288,7 +291,7 @@ footer .chip{color:var(--ink)}
         <h3>Google (Google LLC, ABD; Avrupa’daki kullanıcılar için Google Ireland Limited)</h3>
         <p>Android uygulamasında AdMob, web sitesinde AdSense reklamları; uygulamanın dağıtımı için Google Play; kapalı test grubu için Google Grupları. Google, reklam ve Play verilerini kendi <a href="https://policies.google.com/privacy?hl=tr">gizlilik politikasına</a> göre, kendi sorumluluğunda da işler.</p>
         <p><strong>Cihaz üstü çeviri (Google ML Kit), yalnızca Android uygulamasında ve telefonunun dili Türkçe ya da İngilizce değilse, “Çevir” dersen:</strong> o dilin çeviri modeli (yaklaşık 30 MB) bir kez Google’dan indirilir ve çeviri telefonunda yapılır; ekrandaki metinler telefondan çıkmaz. ML Kit, Google’a cihaz modeli, Android ve uygulama sürümü, seçilen dil çifti, metin uzunluğu ve hata kodları gibi teşhis bilgileri gönderebilir (<a href="https://developers.google.com/ml-kit/android-data-disclosure">ML Kit veri açıklaması</a>).</p>
-        <p><strong>Google Maps (Routes API), yalnızca rota önerilerini açarsan:</strong> yolculuklarının başlangıç ve varış koordinatları ile çıkış saatleri sunucumuz üzerinden Google’a gider (IP adresin iletilmez). Google’ın yanıtındaki rotalar yalnızca sayfa açıkken gösterilir, ne cihazında ne sunucumuzda saklanır. Bu özelliği kullanarak <a href="https://maps.google.com/help/terms_maps.html">Google Haritalar/Google Earth Ek Hizmet Şartları</a>’nı ve <a href="https://policies.google.com/privacy?hl=tr">Google Gizlilik Politikası</a>’nı kabul etmiş olursun.</p>
+        <p><strong>Google Maps (Routes API), yalnızca rota önerilerini açarsan:</strong> yolculuklarının başlangıç ve varış koordinatları (yaklaşık 100 m’ye yuvarlanmış) ile çıkış saatleri sunucumuz üzerinden Google’a gider (IP adresin iletilmez). Google’ın yanıtındaki rotalar yalnızca sayfa açıkken gösterilir, ne cihazında ne sunucumuzda saklanır. Bu özelliği kullanarak <a href="https://maps.google.com/help/terms_maps.html">Google Haritalar/Google Earth Ek Hizmet Şartları</a>’nı ve <a href="https://policies.google.com/privacy?hl=tr">Google Gizlilik Politikası</a>’nı kabul etmiş olursun.</p>
       </div>
       <div class="box">
         <h3>GitHub, Inc. (ABD)</h3>
@@ -346,7 +349,7 @@ footer .chip{color:var(--ink)}
         <li><strong>Cihazındaki veriler:</strong> sen silene kadar (“Tüm verilerimi sil”, uygulamayı kaldırmak ya da site verilerini temizlemek).</li>
         <li><strong>Sunucuya giden koordinatlar ve arama metni:</strong> isteğe cevap verildikten sonra saklanmaz; yalnızca kimseyle ilişkilendirilmeyen ortak önbellek kayıtları <a href="#konum">3. bölümde</a> yazan süreler kadar kalır.</li>
         <li><strong>Cloudflare’in istek kayıtları:</strong> Cloudflare’in kendi saklama süreleri boyunca; ayrıca kendi kayıt sistemimiz yoktur.</li>
-        <li><strong>Rota önerilerindeki istek sayacı:</strong> kötüye kullanımı sınırlamak için ziyaretçi başına saatlik bir sayaç tutulur. Sayacın adı IP adresinden gizli bir anahtarla üretilen, geri çevrilemeyen ve her saat değişen bir koddur; IP adresinin kendisi saklanmaz. Sayaç en fazla 1 saat kalır.</li>
+        <li><strong>İstek sayaçları:</strong> kötüye kullanımı sınırlamak için hava, yer arama, yer adı ve rota isteklerinde ziyaretçi başına saatlik bir sayaç tutulur. Sayacın adı IP adresinden gizli bir anahtarla üretilen, geri çevrilemeyen ve her saat değişen bir koddur; IP adresinin kendisi saklanmaz. Sayaç en fazla 1 saat kalır.</li>
         <li><strong>Test programı:</strong> test grubundaki üyelik sen ayrılana ya da test bitip uygulama herkese açıldıktan sonra en geç 30 gün içinde grup silinene kadar; geri bildirimler Google Play’in kendi saklama süreleri boyunca.</li>
         <li><strong>Reklam verileri:</strong> Google’ın politikalarında belirtilen süreler boyunca.</li>
         <li><strong>E-postalar:</strong> yazışma bittikten sonra en geç 12 ay; yasal bir yükümlülük varsa o süre kadar.</li>

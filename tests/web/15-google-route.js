@@ -69,9 +69,9 @@ H.run({
     await s.page.click('[data-gr="on"]'); await sleep(600);
     const calls = routeCalls(s).map((u) => new URL(u));
     note(calls.map((u) => u.search).join(" | "));
-    const c1 = calls.find((u) => u.searchParams.get("from") === "41.04300,29.00700");
+    const c1 = calls.find((u) => u.searchParams.get("from") === "41.043,29.007");
     check("one request per trip ahead today", calls.length === 2, calls.map((u) => u.search));
-    check("request: the places' coordinates, the departure time, the language", c1 && c1.searchParams.get("to") === "40.99030,29.02770" &&
+    check("request: the places' coordinates, the departure time, the language", c1 && c1.searchParams.get("to") === "40.990,29.028" &&
       Date.parse(c1.searchParams.get("depart")) === T + 60 * 60e3 && c1.searchParams.get("lang") === "tr", c1 && c1.search);
 
     const a = await trip(s, 0);

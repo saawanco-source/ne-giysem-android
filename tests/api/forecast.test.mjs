@@ -298,8 +298,9 @@ test("cache: served until MET's Expires, then revalidated with If-Modified-Since
   await atTime(NOW, async (clock) => {
     const r1 = await call(forecast, URL1);
     assert.equal(r1.res.headers.get("x-ng-cache"), "miss");
-    assert.equal(cache.puts, 2, "MET's series and the built forecast");
-    const keys = [...cache.store.keys()];
+    // (the rate counter has its own entries under /__ng-rate/)
+    const keys = [...cache.store.keys()].filter((k) => k.includes("/__ng-cache/"));
+    assert.equal(keys.length, 2, "MET's series and the built forecast");
     assert.equal(keys[0], `${ORIGIN}/__ng-cache/met-v1/${encodeURIComponent("41.01,28.98")}`);
     assert.ok(keys[1].startsWith(`${ORIGIN}/__ng-cache/built-v1/`), keys[1]);
 
@@ -410,4 +411,28 @@ test("MET refusing the coordinates (400/422) is a 400, not an outage", async () 
   const r = await atTime(NOW, () => call(forecast, URL1));
   assert.equal(r.res.status, 400);
   assert.equal(r.body.error, "coordinates_refused");
+});
+
+test("rate limit: a visitor gets at most RATE_FORECAST answers an hour; then 429, and the cache never holds the address", async () => {
+  const cache = installCache();
+  installFetch(() => jsonResponse(istanbul(), 200, { expires: EXPIRES, "last-modified": LAST_MOD }));
+  await atTime(NOW, async () => {
+    let last;
+    for (let i = 0; i <= forecast.RATE_FORECAST; i++) last = await call(forecast, URL1, { headers: { "cf-connecting-ip": "203.0.113.7" } });
+    assert.equal(last.res.status, 429);
+    const other = await call(forecast, URL1, { headers: { "cf-connecting-ip": "203.0.113.8" } });
+    assert.equal(other.res.status, 200, "another visitor isn't affected");
+    assert.ok(![...cache.store.keys()].some((k) => k.includes("203.0.113")), "no IP address in a cache key");
+  });
+});
+
+test("live site: no x-ng-cache header without NG_DEBUG; API answers carry nosniff and a deny-all CSP", async () => {
+  installCache();
+  installFetch(() => jsonResponse(istanbul(), 200, { expires: EXPIRES, "last-modified": LAST_MOD }));
+  await atTime(NOW, async () => {
+    const r = await call(forecast, URL1, { env: { NG_DEBUG: "" } });
+    assert.equal(r.res.headers.get("x-ng-cache"), null);
+    assert.equal(r.res.headers.get("x-content-type-options"), "nosniff");
+    assert.match(r.res.headers.get("content-security-policy") || "", /default-src 'none'/);
+  });
 });

@@ -1,7 +1,8 @@
 // GET /api/reverse?lat=…&lon=…
 // Place name for a coordinate through Photon reverse geocoding (OpenStreetMap data, ODbL), in the field names the client
 // already reads from BigDataCloud: {locality, city, principalSubdivision}. Cached 30 days per ~100 m cell (3 decimals).
-import { route, jsonText, coord, round, userAgent } from "../_lib/http.js";
+import { route, jsonText, coord, round, userAgent, cacheInfo, tooMany } from "../_lib/http.js";
+import { limit } from "../_lib/rate.js";
 import { cacheKey, cachedJson } from "../_lib/cache.js";
 
 const PHOTON = "https://photon.komoot.io";
@@ -33,6 +34,7 @@ export function reverseFields(geo) {
 }
 
 export const onRequest = route(async (context, url) => {
+  if (!(await limit(context, "reverse", 240))) throw tooMany();
   const lat = round(coord(url.searchParams.get("lat"), "lat", 90), 3).toFixed(3);
   const lon = round(coord(url.searchParams.get("lon"), "lon", 180), 3).toFixed(3);
   const r = await cachedJson(context, {
@@ -43,5 +45,5 @@ export const onRequest = route(async (context, url) => {
     transform: reverseFields,
     name: "photon",
   });
-  return jsonText(r.text, 200, "public, max-age=86400", { "x-ng-cache": r.cache });
+  return jsonText(r.text, 200, "public, max-age=86400", cacheInfo(context, r.cache));
 });

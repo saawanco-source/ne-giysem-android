@@ -6,7 +6,8 @@
 // A place MET can't answer for in a list of several comes back as {"error": "..."} in its slot (the others still
 // come); only when every place fails is the whole answer an error. A forecast built from MET's last copy while MET
 // is down says so ("stale": true, "met_updated_at") and is not cached anywhere.
-import { route, jsonText, badRequest, coord, round } from "../_lib/http.js";
+import { route, jsonText, badRequest, coord, round, cacheInfo, tooMany } from "../_lib/http.js";
+import { limit } from "../_lib/rate.js";
 import { getMetSeries, metId } from "../_lib/met.js";
 import { buildForecast } from "../_lib/openmeteo.js";
 import { cacheKey, readEntry, writeEntry } from "../_lib/cache.js";
@@ -19,7 +20,9 @@ export const BUILT_MS = 10 * 60000;
 
 function list(value, name, max) {
   if (value == null || !String(value).trim()) throw badRequest(`missing ${name}`);
-  return String(value).split(",").map((v) => coord(v, name, max));
+  const parts = String(value).split(",");
+  if (parts.length > MAX_POINTS) throw badRequest(`at most ${MAX_POINTS} coordinates per request`); // before parsing them
+  return parts.map((v) => coord(v, name, max));
 }
 
 /** {text, cache, stale} for one ~1 km cell at time `now`. Throws when MET fails and nothing is cached. */
@@ -40,7 +43,11 @@ async function cell(context, la, lo, now) {
   return { text, cache: r.cache, stale: false };
 }
 
+// A phone asks a few times an hour (more while someone searches places); far more is a script.
+export const RATE_FORECAST = 240;
+
 export const onRequest = route(async (context, url) => {
+  if (!(await limit(context, "forecast", RATE_FORECAST))) throw tooMany();
   const lats = list(url.searchParams.get("latitude"), "latitude", 90);
   const lons = list(url.searchParams.get("longitude"), "longitude", 180);
   if (lats.length !== lons.length) throw badRequest("latitude and longitude need the same number of values");
@@ -58,11 +65,10 @@ export const onRequest = route(async (context, url) => {
   if (results.every((r) => !r.ok)) throw results[0].e;
   if (pts.length === 1) {
     const r = results[0].v;
-    return jsonText(r.text, 200, r.stale ? "no-store" : "public, max-age=600", { "x-ng-cache": r.cache });
+    return jsonText(r.text, 200, r.stale ? "no-store" : "public, max-age=600", cacheInfo(context, r.cache));
   }
   const parts = results.map((r) => (r.ok ? r.v.text : JSON.stringify({ error: (r.e && r.e.message) || "unavailable" })));
   const anyStale = results.some((r) => r.ok && r.v.stale), anyFailed = results.some((r) => !r.ok);
-  return jsonText("[" + parts.join(",") + "]", 200, anyStale || anyFailed ? "no-store" : "public, max-age=600", {
-    "x-ng-cache": results.map((r) => (r.ok ? r.v.cache : "error")).join(","),
-  });
+  return jsonText("[" + parts.join(",") + "]", 200, anyStale || anyFailed ? "no-store" : "public, max-age=600",
+    cacheInfo(context, results.map((r) => (r.ok ? r.v.cache : "error")).join(",")));
 });

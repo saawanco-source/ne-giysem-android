@@ -63,6 +63,18 @@ object PhoneTranslate {
         return runCatching { texts.map { s -> if (s.isBlank()) s else Tasks.await(t.translate(s), 10, TimeUnit.SECONDS) } }.getOrNull()
     }
 
+    /** Deletes every downloaded translation model (all data deleted). */
+    fun deleteModels(context: Context) {
+        clear(context)
+        runCatching {
+            val mgr = com.google.mlkit.common.model.RemoteModelManager.getInstance()
+            mgr.getDownloadedModels(com.google.mlkit.nl.translate.TranslateRemoteModel::class.java).addOnSuccessListener { models ->
+                models.forEach { m -> if (m.language != TranslateLanguage.ENGLISH) mgr.deleteDownloadedModel(m) }
+            }
+        }
+        synchronized(this) { client?.close(); client = null; clientLang = "" }
+    }
+
     /** Forgets the downloaded models' record (all data deleted). */
     fun clear(context: Context) {
         val p = prefs(context)

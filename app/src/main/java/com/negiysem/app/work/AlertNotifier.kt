@@ -104,6 +104,10 @@ object AlertNotifier {
             .setContentTitle(info.title + " · " + info.level)
             .setContentText(info.whenText)
             .setSubText(place)
+            // On a locked phone: the warning, without the place's name.
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(NotificationCompat.Builder(context, if (a.lv == 2) DANGER else CAUTION).setSmallIcon(R.drawable.ic_stat_warn)
+                .setContentTitle(info.title + " · " + info.level).setContentText(info.whenText).build())
             .setStyle(NotificationCompat.BigTextStyle().bigText(big))
             .setPriority(if (a.lv == 2) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)

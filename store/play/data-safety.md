@@ -40,7 +40,7 @@ Kısaltmalar: **T** = toplanıyor, **P** = paylaşılıyor, **Geçici** = “ge�
 - **Geçici değil:** Sunucu koordinatları bir veritabanına yazmaz, ama Cloudflare’in standart istek kayıtları istek adresini (sorgu dizesindeki koordinatlar dahil) tutabilir ve sonuçlar yuvarlanmış koordinatla önbelleğe alınır. Bu yüzden “yalnızca bellekte işlenir” demek doğru olmaz; *Hayır* dürüst cevap. (Geçici işaretlemek yalnızca mağaza sayfasındaki gösterimi değiştirir; bu kazancı riske değmez.)
 
 **Kesin konum — toplanıyor, paylaşılmıyor, isteğe bağlı.**
-- Manifest şu an (24 Ekim 2026, API 36 sürümü) `ACCESS_FINE_LOCATION` da istiyor; birleştirilmiş manifestte doğrulandı. Bu yüzden bu satır kalır. Android 12+ kullanıcı “Tam” konumu seçerse uygulama GPS hassasiyetinde koordinatı sunucuya gönderir (istemci 4 hane yolluyor). Google’ın tanımında 3 km²’den küçük alan “kesin” sayılır; sunucunun yuvarladığı ~1 km ve ~100 m hücreler de bu tanımda kesindir.
+- 5 Kasım 2026: `ACCESS_FINE_LOCATION` manifestten ve izin isteğinden kaldırıldı; cihaz konumu yalnızca yaklaşık. Satır yine de kalır: aramayla seçilen ya da kaydedilen yerlerin koordinatları ve sunucunun yuvarladığı ~1 km / ~100 m hücreler Google’ın tanımında (3 km²’den küçük alan) “kesin” sayılır; rota önerileri açıksa yolculuk noktaları ~100 m’ye yuvarlanarak gider.
 - **İsteğe bağlı:** Kullanıcı “Yaklaşık”ı seçebilir, izni reddedip yer arayabilir ya da havayı elle ayarlayabilir.
 - **Paylaşılmıyor:** Sunucu MET Norway ve Photon’a yalnızca yuvarlanmış koordinatı, kendi User-Agent’ıyla, IP adresi ve hiçbir kimlik olmadan, ortak önbellek üzerinden gönderir. Google’ın “anonimleştirilmiş veri” istisnası: “artık tek bir kullanıcıyla ilişkilendirilemeyecek şekilde anonimleştirilmiş”. Daha temkinli istersen: Kesin ve Yaklaşık konum için *Paylaşılıyor → Uygulama işlevselliği* de işaretleyebilirsin; listede bir satır ekler, başka bir şeyi değiştirmez.
 - **Sadeleştirme önerisi:** Uygulamaya yaklaşık konum yetiyorsa manifestten ve `requestPermissions` çağrısından `ACCESS_FINE_LOCATION`’ı kaldır. O zaman cihaz konumu yalnızca yaklaşık olur ve “Kesin konum” satırını kaldırabilirsin (yeni form gönder). Not: arama ile seçilen bir yerin koordinatı (ör. bir kütüphane) yine hassastır; bu kullanıcının seçtiği bir yer olduğu ve cihaz konumu olmadığı için “Yaklaşık konum + Uygulama içi arama geçmişi” beyanı yeterli kabul edilir — emin değilsen Kesin konumu bırak.
@@ -76,7 +76,7 @@ Her bulut derlemesindeki “Dosyaları denetle” adımı bu listeyi APK’dan v
 |---|---|---|
 | `INTERNET`, `ACCESS_NETWORK_STATE` | Uygulama, AdMob, WorkManager | — (veri türü değil) |
 | `ACCESS_COARSE_LOCATION` | Uygulama | Yaklaşık konum |
-| `ACCESS_FINE_LOCATION` | Uygulama | Kesin konum (isteğe bağlı) |
+| ~~`ACCESS_FINE_LOCATION`~~ | 5 Kasım 2026’da kaldırıldı | — |
 | `com.google.android.gms.permission.AD_ID` | Google Mobile Ads SDK | Cihaz veya diğer kimlikler; Reklam kimliği beyanı “Evet” |
 | `ACCESS_ADSERVICES_AD_ID`, `ACCESS_ADSERVICES_ATTRIBUTION`, `ACCESS_ADSERVICES_TOPICS` | Google Mobile Ads SDK (Android’in Privacy Sandbox reklam arayüzleri) | Yeni veri türü yok; reklam/analiz amaçlı satırlarla kapsanır |
 | `WAKE_LOCK`, `FOREGROUND_SERVICE` | WorkManager (widget’ın ve hava uyarılarının arka plan yenilemesi) | — |

@@ -46,6 +46,8 @@ export async function counted(request, secret, bucket, max, seconds, who) {
 /** The per-visitor limit for the weather and place endpoints: a 429 past it. */
 export async function limit(context, bucket, perHour) {
   const env = context.env || {};
-  const secret = typeof env.RATE_SECRET === "string" && env.RATE_SECRET.trim() ? env.RATE_SECRET.trim() : "";
+  // RATE_SECRET (DEPLOY.md), else the Google key as route.js does: never a name anyone could turn back into an address.
+  const pick = (v) => (typeof v === "string" && v.trim() ? v.trim() : "");
+  const secret = pick(env.RATE_SECRET) || pick(env.GOOGLE_ROUTES_KEY);
   return counted(context.request, secret, bucket, perHour, 3600);
 }

@@ -7,7 +7,7 @@
      `node tools/csp.js`; the web tests check) and talk only to its own server and, when that can't be reached, to MET
      Norway, Photon and BigDataCloud directly. No other site gets anything from this page. AdSense, a custom domain or a
      new service must be added here first. The site adds the rest (framing, HTTPS) in web/_headers. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-QwVyTNchllsuXlYxN9eAsA9AqA6YkZ88nBb4F2mzMSA='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-nRVDFFvCFviUOVJdbPM+GkizhhymCHuVOq+pzTtu7Y0='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ne-giysem.pages.dev https://dev.ne-giysem.pages.dev https://api.met.no https://photon.komoot.io https://api.bigdatacloud.net; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
 <meta name="referrer" content="same-origin">
 <!-- The app's own server; the Android build puts the preview site's address here for a test build. -->
 <meta name="ng-api" content="https://ne-giysem.pages.dev">
@@ -4568,7 +4568,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     fetchJSON: function(url, ms){
       return WEB.rawJSON(url, ms).catch(function(e){
         // Out of reach, out of its daily quota, failing, or answering with something that isn't JSON (a quota page).
-        var down = e && (e.code === "network" || e.code === "parse" || (e.code === "http" && (e.status === 429 || e.status >= 500)));
+        // (/api/ip also answers 403 to a page on an origin the server doesn't know: the free service then)
+        var down = e && (e.code === "network" || e.code === "parse" || (e.code === "http" && (e.status === 429 || e.status >= 500 || (e.status === 403 && url.indexOf("/api/ip") >= 0))));
         if (!(down && API && url.indexOf(API + "/api/") === 0 && navigator.onLine !== false)) throw e;
         apiDown();
         var alt = directURL(url);

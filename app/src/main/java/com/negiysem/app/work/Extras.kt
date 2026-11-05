@@ -100,8 +100,8 @@ object Extras {
     private fun post(context: Context, id: Int, n: android.app.Notification) { runCatching { NotificationManagerCompat.from(context).notify(id, n) } }
 
     /**
-     * On a locked phone only a neutral line shows (no place names, times or the person's own words): the full note
-     * appears once the phone is unlocked, whatever the lock-screen setting.
+     * When the phone's lock screen is set to hide sensitive content, only a neutral line shows there (no place names,
+     * times or the person's own words); with "show all content" Android shows the full note, as the person chose.
      */
     fun privateOnLock(context: Context, b: NotificationCompat.Builder, channel: String, en: Boolean, title: String, text: String): NotificationCompat.Builder =
         b.setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setPublicVersion(
@@ -198,8 +198,11 @@ object Extras {
     private fun scheduleDepart(context: Context, r: Day.Routine, now: Long) {
         val store = Store(context)
         // The next trip whose note hasn't gone yet (each trip: home to school in the morning, back in the evening).
-        val leg = Day.legs(r, now).firstOrNull { it.start - 40 * MIN > now + MIN && store.sent("depart") != dayOf(it.start) + "|" + it.trip.id } ?: return
+        val leg = Day.legs(r, now).firstOrNull { it.start - 40 * MIN > now - 2 * MIN && store.sent("depart") != dayOf(it.start) + "|" + it.trip.id } ?: return
         val at = leg.start - 40 * MIN
+        // Its moment is now (a refresh in the very minute the note is due): posted here, not re-queued (a re-queue with
+        // REPLACE would cancel the worker about to post it, or the worker running this very refresh).
+        if (at <= now + MIN) { depart(context, now); return }
         WorkManager.getInstance(context).enqueueUniqueWork(DEPART, ExistingWorkPolicy.REPLACE,
             OneTimeWorkRequestBuilder<DepartWorker>().setInitialDelay((at - now).coerceAtLeast(0), TimeUnit.MILLISECONDS).build())
     }

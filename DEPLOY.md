@@ -103,6 +103,13 @@ varsayılan ayar). Deneme uygulaması bu adresin sunucusunu kullanır (RELEASE.m
 - **Rota sayacı:** rota önerilerinin ziyaretçi başına saatlik sınırı IP adresini saklamaz; sayacın adı IP'den gizli bir
   anahtarla üretilen, geri çevrilemeyen ve her saat değişen bir koddur. Anahtar `RATE_SECRET` adlı **Secret**'tır
   (isteğe bağlı: uzun, rastgele bir metin; parola yöneticisine ürettir); yoksa `GOOGLE_ROUTES_KEY` kullanılır.
+- **İstek sınırları (5 Kasım 2026):** her ziyaretçiye saatte en fazla 240 hava, 300 yer arama, 240 yer adı ve 30 rota
+  isteği; rota için herkes toplam günde `ROUTE_DAILY_MAX` (varsayılan 1000, Cloudflare veri merkezi başına). Sayaçlar
+  yukarıdaki gibi adlandırılır: **`RATE_SECRET`'ı mutlaka ekle** (rota kapalıyken başka anahtar yoktur). Asıl tavan yine
+  Google Cloud'daki günlük kotadır (§5.2), mutlaka ayarla. Sınır aşılınca uygulama ücretsiz servislere geçer.
+- **`/api/ip`** yalnızca uygulamanın kendi sayfalarına cevap verir; site kendi alan adına taşınırsa onu `ALLOWED_ORIGINS`'e ekle.
+- **Geliştirme:** `DEV_ORIGINS=1` yalnızca önizleme ortamında (localhost'tan rota denemek için); `NG_DEBUG=1` önbellek
+  durumunu `x-ng-cache` başlığında gösterir, canlı sitede açma.
 - **Yayından önce denetim (31 Ekim 2026'da ayarlandı):** proje → **Settings → Builds** → **Build command**:
   `node ../tools/csp.js --check` (kök klasör `web` olduğu için `../`). Sayfanın kodu ile güvenlik politikası eşleşmezse
   Cloudflare derlemeyi durdurur ve eski sürüm yayında kalır.
